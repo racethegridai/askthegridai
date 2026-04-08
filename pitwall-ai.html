@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PitWall AI — F1 Race Intelligence</title>
+  <title>Ask The Grid AI — F1 Race Intelligence</title>
   <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,300;0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -2154,7 +2154,7 @@
     <div class="modal-hdr">
       <div class="modal-hdr-icon">P</div>
       <div>
-        <div class="modal-title">PITWALL <em style="color:var(--red)">AI</em></div>
+        <div class="modal-title">ASK THE GRID <em style="color:var(--red)">AI</em></div>
         <div class="modal-subtitle">Connect your Anthropic API key</div>
       </div>
     </div>
@@ -2163,7 +2163,7 @@
     </p>
     <input class="modal-input" id="apiKeyInput" type="password" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false">
     <div class="modal-error" id="apiError"></div>
-    <button class="modal-submit" onclick="saveApiKey()">ENGAGE PITWALL AI</button>
+    <button class="modal-submit" onclick="saveApiKey()">ENGAGE ASK THE GRID AI</button>
     <p class="modal-note">Get your key at console.anthropic.com</p>
   </div>
 </div>
@@ -2176,7 +2176,7 @@
     <button class="logo-trigger" id="logoTrigger" onclick="toggleSportMenu()" aria-expanded="false" aria-haspopup="true">
       <div class="logo-icon">P</div>
       <div class="logo-wordmark">
-        <div class="logo-title">PITWALL <em>AI</em></div>
+        <div class="logo-title">ASK THE GRID <em>AI</em></div>
         <div class="logo-sub">F1 Race Intelligence</div>
       </div>
       <span class="logo-arrow">
@@ -2803,7 +2803,7 @@ function buildSystem(mode) {
     .map(i => `Lap ${i.lap}: ${i.msg}`).join('; ');
 
   const bases = {
-    beginner: `You are PitWall AI, a friendly F1 explainer for complete beginners watching their first race.
+    beginner: `You are Ask The Grid AI, a friendly F1 explainer for complete beginners watching their first race.
 Rules:
 • Explain ALL jargon in simple everyday terms — never assume prior knowledge
 • Use fun analogies (tyre degradation = "like soles wearing off your shoes"; DRS = "a speed boost button")
@@ -2811,21 +2811,21 @@ Rules:
 • Focus on drama and storytelling, not technical detail
 • Always explain why the viewer should care about this moment`,
 
-    casual: `You are PitWall AI, an F1 race analyst for casual fans who know the basics.
+    casual: `You are Ask The Grid AI, an F1 race analyst for casual fans who know the basics.
 Rules:
 • Explain strategy in accessible but somewhat detailed terms
 • Give context — why does this moment matter? What are the stakes?
 • Use F1 terminology but briefly clarify non-obvious terms
 • Balance entertainment with insight; reference drivers and teams by name`,
 
-    enthusiast: `You are PitWall AI, an F1 race analyst for enthusiasts who follow the sport closely.
+    enthusiast: `You are Ask The Grid AI, an F1 race analyst for enthusiasts who follow the sport closely.
 Rules:
 • Discuss undercut/overcut windows, tyre degradation, safety car timing
 • Reference specific driver and team strategic tendencies
 • Use full F1 terminology (ERS, DRS, VSC, stint, delta, pit window)
 • Quantify where useful: lap delta, pit stop time loss, gap trajectories`,
 
-    expert: `You are PitWall AI, an elite F1 technical analyst. No hand-holding.
+    expert: `You are Ask The Grid AI, an elite F1 technical analyst. No hand-holding.
 Rules:
 • Full technical vocabulary: deg curves, fuel-adjusted pace, ERS deployment, DRS, dirty air
 • Quantify everything: stint lengths, gap trajectories, pit delta, undercut/overcut EV
