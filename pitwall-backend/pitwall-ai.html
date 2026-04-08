@@ -793,50 +793,7 @@
     }
 
     /* ── QUICK CHIPS ────────────────────────────────── */
-    .chips-bar {
-      flex-shrink: 0;
-      padding: 8px 16px;
-      border-top: 1px solid var(--border);
-      background: var(--bg2);
-    }
-
-    .chips-label {
-      font-size: 8px;
-      letter-spacing: 3px;
-      color: var(--gray);
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-
-    .chips-list {
-      display: flex;
-      gap: 6px;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-
-    .chips-list::-webkit-scrollbar { display: none; }
-
-    .chip {
-      padding: 8px 14px;
-      border: 1px solid #2a2a2a;
-      background: transparent;
-      color: var(--gray-lt);
-      font-family: 'Titillium Web', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .15s;
-      white-space: nowrap;
-    }
-
-    .chip:hover {
-      border-color: var(--red);
-      color: var(--white);
-      background: var(--red-dim);
-      box-shadow: 0 0 0 1px var(--red);
-    }
+    /* chips-bar, chip — defined later in CHIP GROUPS block */
 
     /* ── FREE LIMIT BAR ─────────────────────────────── */
     .free-limit-bar {
@@ -1907,20 +1864,26 @@
     /* ── CHIP GROUPS ─────────────────────────────────── */
     .chips-bar {
       flex-shrink: 0;
-      padding: 10px 14px 8px;
+      padding: 10px 14px 10px;
       border-top: 1px solid var(--border);
       background: var(--bg2);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 0;
+    }
+    .chips-group {
+      padding: 7px 0;
+    }
+    .chips-group + .chips-group {
+      border-top: 1px solid #181818;
     }
     .chips-group-label {
       font-size: 8px;
       font-weight: 700;
       letter-spacing: 2px;
       text-transform: uppercase;
-      color: #444;
-      margin-bottom: 3px;
+      color: #555;
+      margin-bottom: 6px;
     }
     .chips-group-row {
       display: flex;
@@ -1928,35 +1891,39 @@
       flex-wrap: nowrap;
       overflow-x: auto;
       scrollbar-width: none;
+      padding-bottom: 2px;
     }
     .chips-group-row::-webkit-scrollbar { display: none; }
     .chip {
-      padding: 6px 12px;
+      padding: 5px 11px;
       background: transparent;
-      color: var(--gray-lt);
+      color: #ccc;
       font-family: 'Titillium Web', sans-serif;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       transition: all .15s;
       white-space: nowrap;
-      border-radius: 2px;
+      border-radius: 3px;
+      flex-shrink: 0;
     }
     .chip.chip-race {
-      border: 1px solid rgba(225,6,0,0.35);
+      border: 1px solid rgba(225,6,0,0.4);
+      color: #ddd;
     }
     .chip.chip-race:hover {
       border-color: var(--red);
       color: var(--white);
-      background: var(--red-dim);
+      background: rgba(225,6,0,0.1);
     }
     .chip.chip-beginner {
-      border: 1px solid rgba(50,100,200,0.4);
+      border: 1px solid rgba(60,110,220,0.45);
+      color: #bbc8ee;
     }
     .chip.chip-beginner:hover {
-      border-color: #4a7fd4;
+      border-color: #5588e8;
       color: var(--white);
-      background: rgba(50,100,200,0.12);
+      background: rgba(60,110,220,0.12);
     }
 
     /* ── UPDATE TIMER ────────────────────────────────── */
@@ -3076,7 +3043,7 @@
 
     <!-- QUICK CHIPS -->
     <div class="chips-bar">
-      <div>
+      <div class="chips-group">
         <div class="chips-group-label">This race</div>
         <div class="chips-group-row">
           <button class="chip chip-race" onclick="chipClick(this)">Why did he pit?</button>
@@ -3084,7 +3051,7 @@
           <button class="chip chip-race" onclick="chipClick(this)">Safety car impact?</button>
         </div>
       </div>
-      <div>
+      <div class="chips-group">
         <div class="chips-group-label">Explain to me</div>
         <div class="chips-group-row">
           <button class="chip chip-beginner" onclick="chipClick(this)">What is DRS?</button>
@@ -4349,11 +4316,34 @@ async function fetchChampionshipStandings() {
   }
 }
 
-// Previous positions for movement arrows: driver_number → position
+// Previous positions for movement arrows — persisted in localStorage across page loads
+// key: driver code (string), value: position number
+const _POS_STORE_KEY = 'pw_prev_positions';
 let _prevPositions = {};
 
+function _loadPrevPositions() {
+  try {
+    const s = localStorage.getItem(_POS_STORE_KEY);
+    if (s) _prevPositions = JSON.parse(s);
+  } catch {}
+}
+
+function _savePrevPositions() {
+  try { localStorage.setItem(_POS_STORE_KEY, JSON.stringify(_prevPositions)); } catch {}
+}
+
+function _arrowHtml(currentPos, key) {
+  const prev = _prevPositions[key];
+  if (prev === undefined || prev === currentPos) return '';
+  return currentPos < prev
+    ? '<span class="pos-arrow up">&#9650;</span>'
+    : '<span class="pos-arrow down">&#9660;</span>';
+}
+
 function renderStandings(drivers) {
-  // Build set of drivers currently in pit lane
+  _loadPrevPositions();
+
+  // Drivers currently in pit lane
   const inPit = new Set(
     (liveData.pit_stops || [])
       .filter(p => p.duration === null || p.duration === undefined)
@@ -4362,32 +4352,17 @@ function renderStandings(drivers) {
 
   const tbody = document.getElementById('standingsTbody');
   tbody.innerHTML = drivers.map(d => {
-    const posClass = d.pos <= 3 ? `p${d.pos}` : '';
-    const isLeader = d.pos === 1;
-
-    // Movement arrow
-    const prev = _prevPositions[d.number];
-    let arrowHtml = '';
-    if (prev !== undefined && prev !== d.pos) {
-      if (d.pos < prev) {
-        arrowHtml = `<span class="pos-arrow up">&#9650;</span>`;
-      } else {
-        arrowHtml = `<span class="pos-arrow down">&#9660;</span>`;
-      }
-    }
-
-    // PIT tag
-    const pitHtml = inPit.has(d.number)
-      ? '<span class="pit-tag">PIT</span>'
-      : '';
-
+    const posClass  = d.pos <= 3 ? `p${d.pos}` : '';
+    const isLeader  = d.pos === 1;
+    const arrow     = _arrowHtml(d.pos, d.number);
+    const pitHtml   = inPit.has(d.number) ? '<span class="pit-tag">PIT</span>' : '';
     const gapDisplay = isLeader
       ? '<span class="leader-badge">LEADER</span>'
       : `<div class="gap-val">${_formatGap(d.gap)}</div>`;
 
     return `
       <tr class="${isLeader ? 'p1' : ''} standings-updated">
-        <td class="td-pos ${posClass}">${d.pos}${arrowHtml}</td>
+        <td class="td-pos ${posClass}">${d.pos}${arrow}</td>
         <td class="td-dot"><span class="team-dot" style="background:${d.colour || '#888'}"></span></td>
         <td class="td-driver">
           <div class="drv-name">${escapeHtml(d.name || d.code)}${pitHtml}</div>
@@ -4401,8 +4376,11 @@ function renderStandings(drivers) {
       </tr>`;
   }).join('');
 
-  // Store positions for next render
-  drivers.forEach(d => { _prevPositions[d.number] = d.pos; });
+  // Save current positions — next render will compare against these
+  const next = {};
+  drivers.forEach(d => { next[d.number] = d.pos; });
+  _prevPositions = next;
+  _savePrevPositions();
 
   _lastUpdateMs = Date.now();
   setTimeout(() => {
@@ -4508,6 +4486,62 @@ function _radioKey(r) {
   return `${r.driver}|${r.team}|${r.message || r.msg || r.text || r.url || ''}`;
 }
 
+// Curated fallback radio — shown between races so the feed never looks empty
+const FALLBACK_RADIO = [
+  {
+    driver: 'NOR', team: 'McLaren',
+    message: 'The balance feels really good today, much better than FP3.',
+    meaning: 'Norris is comfortable — McLaren likely has pace in hand and may run a longer first stint.',
+  },
+  {
+    driver: 'LEC', team: 'Ferrari',
+    message: 'These tyres are dropping off quickly. I need to manage the rears.',
+    meaning: 'Ferrari facing tyre degradation. An early pit stop could be forced, handing rivals a free undercut.',
+  },
+  {
+    driver: 'RUS', team: 'Mercedes',
+    message: 'I think we have the pace. Let\'s just execute the strategy cleanly.',
+    meaning: 'Russell confident in Mercedes pace — team will focus on pit stop execution over raw speed.',
+  },
+  {
+    driver: 'VER', team: 'Red Bull',
+    message: 'Box box box. Understood.',
+    meaning: 'Verstappen pitting — Red Bull responding to a rival\'s stop to protect track position.',
+  },
+];
+
+function _renderFallbackEarlierRadio() {
+  const el = document.getElementById('radioEarlier');
+  if (!el) return;
+  el.innerHTML = FALLBACK_RADIO.slice(1, 3).map(r => {
+    const clr     = _teamColor(r.team);
+    const snippet = `"${r.message.length > 55 ? r.message.slice(0, 52) + '…' : r.message}"`;
+    return `<div class="radio-earlier-row" onclick="openRadioView()">
+      <span class="radio-earlier-dot" style="background:${clr}"></span>
+      <span class="radio-earlier-driver">${escapeHtml(r.driver)}</span>
+      <span class="radio-earlier-msg">${escapeHtml(snippet)}</span>
+      <span class="radio-earlier-arrow">›</span>
+    </div>`;
+  }).join('');
+}
+
+function _renderFallbackRightRadio() {
+  const body = document.getElementById('rightRadioBody');
+  if (!body) return;
+  body.innerHTML = FALLBACK_RADIO.slice(0, 2).map(r => {
+    const clr = _teamColor(r.team);
+    return `<div class="right-radio-entry">
+      <div class="right-radio-driver">
+        <span style="width:7px;height:7px;border-radius:50%;background:${clr};display:inline-block;flex-shrink:0"></span>
+        ${escapeHtml(r.driver)} &middot; <span style="color:var(--gray);font-weight:400">${escapeHtml(r.team)}</span>
+      </div>
+      <div class="right-radio-msg">&ldquo;${escapeHtml(r.message)}&rdquo;</div>
+      <div class="right-radio-meaning-label">What this means</div>
+      <div class="right-radio-meaning-text">${escapeHtml(r.meaning)}</div>
+    </div>`;
+  }).join('');
+}
+
 function renderRadio(radio) {
   const heroMsg  = document.getElementById('radioHeroMsg');
   const heroMeta = document.getElementById('radioHeroMeta');
@@ -4515,9 +4549,17 @@ function renderRadio(radio) {
   if (!heroMsg) return;
 
   if (!radio || !radio.length) {
-    heroMsg.textContent = 'Listening for team radio…';
-    heroMsg.classList.add('listening');
-    if (heroMeta) heroMeta.style.display = 'none';
+    // Show fallback curated radio so the feed never looks empty
+    const f = FALLBACK_RADIO[0];
+    heroMsg.textContent = `"${f.message}"`;
+    heroMsg.classList.remove('listening');
+    if (heroMeta) heroMeta.style.display = 'flex';
+    if (heroDrv) heroDrv.innerHTML =
+      `<span style="width:8px;height:8px;border-radius:50%;background:${_teamColor(f.team)};flex-shrink:0;display:inline-block"></span>
+       ${escapeHtml(f.driver)} &middot; ${escapeHtml(f.team)}`;
+    // Populate earlier rows and right column with fallback
+    _renderFallbackEarlierRadio();
+    _renderFallbackRightRadio();
     if (_radioFullOpen) renderRadioFullView(radio);
     return;
   }
