@@ -1708,8 +1708,34 @@
       letter-spacing: 1.5px;
       text-transform: uppercase;
       color: #444;
-      cursor: default;
+      cursor: pointer;
       border-left: 3px solid transparent;
+      transition: background 0.12s, color 0.12s;
+    }
+    .sport-item-soon:hover { background: rgba(255,255,255,0.03); color: #666; }
+
+    .soon-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #ccc;
+      font-size: 12px;
+      font-family: 'Titillium Web', sans-serif;
+      letter-spacing: 0.5px;
+      padding: 10px 18px;
+      border-radius: 4px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 9999;
+    }
+    .soon-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
 
     .soon-label {
@@ -2258,14 +2284,17 @@
         <span class="sport-live-dot"></span>
         F1
       </div>
-      <div class="sport-item" onclick="selectSport('f2f3')">
-        F2 / F3
-      </div>
+      <div class="sport-item-soon" onclick="selectSportSoon(this)">F2<span class="soon-label">Coming Soon</span></div>
+      <div class="sport-item-soon" onclick="selectSportSoon(this)">F3<span class="soon-label">Coming Soon</span></div>
+      <div class="sport-item-soon" onclick="selectSportSoon(this)">F1 Academy<span class="soon-label">Coming Soon</span></div>
       <div class="sport-divider"></div>
-      <div class="sport-item-soon">NFL Football<span class="soon-label">Coming Soon</span></div>
-      <div class="sport-item-soon">Cricket<span class="soon-label">Coming Soon</span></div>
-      <div class="sport-item-soon">2028 Summer Olympics<span class="soon-label">Coming Soon</span></div>
+      <div class="sport-item-soon" onclick="selectSportSoon(this)">IndyCar<span class="soon-label">Coming Soon</span></div>
+      <div class="sport-item-soon" onclick="selectSportSoon(this)">NASCAR<span class="soon-label">Coming Soon</span></div>
+      <div class="sport-item-soon" onclick="selectSportSoon(this)">MotoGP<span class="soon-label">Coming Soon</span></div>
     </div>
+
+    <!-- Coming Soon toast -->
+    <div class="soon-toast" id="soonToast"></div>
   </div>
 
   <nav class="tab-group">
@@ -3648,16 +3677,21 @@ function selectSport(sport) {
   closeSportMenu();
   if (sport === 'f1') {
     switchTab('live');
-    // mark F1 active, F2/F3 inactive in dropdown
     document.querySelectorAll('#sportDropdown .sport-item').forEach(el => {
       el.classList.toggle('active', el.textContent.trim().startsWith('F1'));
     });
-  } else if (sport === 'f2f3') {
-    switchTab('f2f3');
-    document.querySelectorAll('#sportDropdown .sport-item').forEach(el => {
-      el.classList.toggle('active', el.textContent.trim().startsWith('F2'));
-    });
   }
+}
+
+let _soonToastTimer = null;
+function selectSportSoon(el) {
+  closeSportMenu();
+  const toast = document.getElementById('soonToast');
+  if (!toast) return;
+  toast.textContent = 'Coming after Miami GP \u2014 subscribe to get notified when it launches';
+  toast.classList.add('show');
+  if (_soonToastTimer) clearTimeout(_soonToastTimer);
+  _soonToastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
 }
 
 // Close dropdown when clicking outside
