@@ -1968,6 +1968,63 @@
       margin-top: 2px;
     }
 
+    /* ── POSITION MOVEMENT ARROWS ───────────────────── */
+    .pos-arrow {
+      font-size: 8px;
+      font-weight: 900;
+      margin-left: 3px;
+      vertical-align: middle;
+    }
+    .pos-arrow.up   { color: var(--green); }
+    .pos-arrow.down { color: var(--red); }
+
+    /* ── PIT TAG IN STANDINGS ────────────────────────── */
+    .pit-tag {
+      display: inline-block;
+      font-size: 7px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--yellow);
+      border: 1px solid rgba(245,200,66,0.4);
+      background: rgba(245,200,66,0.08);
+      padding: 1px 4px;
+      border-radius: 2px;
+      margin-left: 4px;
+      vertical-align: middle;
+      animation: wjh-blink 1.4s ease-in-out infinite;
+    }
+
+    /* ── RACE BAR RIGHT ITEMS ────────────────────────── */
+    .race-bar-ai {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--green);
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+    .race-bar-ai-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+      animation: blink 2.5s ease-in-out infinite;
+    }
+    .race-bar-updated {
+      font-size: 8px;
+      letter-spacing: 1px;
+      color: #333;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
     /* ── STANDINGS FLASH ─────────────────────────────── */
     @keyframes row-flash {
       0%   { background: rgba(225,6,0,0.18); }
@@ -2889,6 +2946,12 @@
     <span class="lap-slash">/</span>
     <span class="lap-total" id="lapTotal">58</span>
   </div>
+  <div class="sep"></div>
+  <div class="race-bar-ai" id="raceBarAi" style="display:none">
+    <span class="race-bar-ai-dot"></span>
+    AI context active
+  </div>
+  <div class="race-bar-updated" id="raceBarUpdated"></div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════
@@ -3750,6 +3813,9 @@ Never start with "Currently" or "Right now". Just say it.`,
       _raceReadLastMs = Date.now();
       const lap = liveData.lap || '?';
       if (metaEl) metaEl.textContent = `Updated lap ${lap} \u00b7 AI context active`;
+      // Show AI badge in race bar
+      const badge = document.getElementById('raceBarAi');
+      if (badge) badge.style.display = 'flex';
     }
   } catch {
     quoteEl.className   = 'race-read-quote';
@@ -4283,20 +4349,48 @@ async function fetchChampionshipStandings() {
   }
 }
 
+// Previous positions for movement arrows: driver_number → position
+let _prevPositions = {};
+
 function renderStandings(drivers) {
+  // Build set of drivers currently in pit lane
+  const inPit = new Set(
+    (liveData.pit_stops || [])
+      .filter(p => p.duration === null || p.duration === undefined)
+      .map(p => p.driver_number)
+  );
+
   const tbody = document.getElementById('standingsTbody');
   tbody.innerHTML = drivers.map(d => {
     const posClass = d.pos <= 3 ? `p${d.pos}` : '';
     const isLeader = d.pos === 1;
+
+    // Movement arrow
+    const prev = _prevPositions[d.number];
+    let arrowHtml = '';
+    if (prev !== undefined && prev !== d.pos) {
+      if (d.pos < prev) {
+        arrowHtml = `<span class="pos-arrow up">&#9650;</span>`;
+      } else {
+        arrowHtml = `<span class="pos-arrow down">&#9660;</span>`;
+      }
+    }
+
+    // PIT tag
+    const pitHtml = inPit.has(d.number)
+      ? '<span class="pit-tag">PIT</span>'
+      : '';
+
     const gapDisplay = isLeader
       ? '<span class="leader-badge">LEADER</span>'
       : `<div class="gap-val">${_formatGap(d.gap)}</div>`;
+
     return `
       <tr class="${isLeader ? 'p1' : ''} standings-updated">
-        <td class="td-pos ${posClass}">${d.pos}</td>
+        <td class="td-pos ${posClass}">${d.pos}${arrowHtml}</td>
         <td class="td-dot"><span class="team-dot" style="background:${d.colour || '#888'}"></span></td>
         <td class="td-driver">
-          <div class="drv-name">${escapeHtml(d.name || d.code)}</div>
+          <div class="drv-name">${escapeHtml(d.name || d.code)}${pitHtml}</div>
           <div class="drv-team">${escapeHtml(d.team || '')}</div>
         </td>
         <td class="td-tyre">
@@ -4306,6 +4400,10 @@ function renderStandings(drivers) {
         <td class="td-gap">${gapDisplay}</td>
       </tr>`;
   }).join('');
+
+  // Store positions for next render
+  drivers.forEach(d => { _prevPositions[d.number] = d.pos; });
+
   _lastUpdateMs = Date.now();
   setTimeout(() => {
     tbody.querySelectorAll('.standings-updated').forEach(r => r.classList.remove('standings-updated'));
@@ -5114,10 +5212,13 @@ let _lastUpdateMs = 0;
 function _startUpdateTimer() {
   _lastUpdateMs = Date.now();
   setInterval(() => {
-    const el = document.getElementById('updateTimer');
-    if (!el || !_lastUpdateMs) return;
+    if (!_lastUpdateMs) return;
     const secs = Math.floor((Date.now() - _lastUpdateMs) / 1000);
-    el.textContent = secs < 5 ? 'Just updated' : `Updated ${secs}s ago`;
+    const txt  = secs < 5 ? 'Just updated' : `Updated ${secs}s ago`;
+    const el   = document.getElementById('updateTimer');
+    const barEl = document.getElementById('raceBarUpdated');
+    if (el)    el.textContent    = txt;
+    if (barEl) barEl.textContent = txt;
   }, 1000);
 }
 
