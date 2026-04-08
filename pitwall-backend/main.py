@@ -551,7 +551,7 @@ app.add_middleware(
 )
 
 # ── Serve the frontend HTML ───────────────────────────
-_html_file = Path(__file__).parent.parent / "pitwall-ai.html"
+_html_file = Path(__file__).parent / "pitwall-ai.html"
 
 @app.get("/")
 async def serve_frontend():
