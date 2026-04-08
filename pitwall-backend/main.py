@@ -141,6 +141,7 @@ def _blank_state() -> dict[str, Any]:
         "drivers": [],
         "incidents": [],
         "radio": [],
+        "pit_stops": [],
         "last_updated": "",
     }
 
@@ -305,6 +306,7 @@ async def _refresh() -> dict[str, Any]:
             stints_raw,
             rc_raw,
             radio_raw,
+            pits_raw,
         ) = await asyncio.gather(
             _of1(client, "/drivers",      {"session_key": session_key}),
             _of1(client, "/position",     {"session_key": session_key}),
@@ -312,6 +314,7 @@ async def _refresh() -> dict[str, Any]:
             _of1(client, "/stints",       {"session_key": session_key}),
             _of1(client, "/race_control", {"session_key": session_key}),
             _of1(client, "/team_radio",   {"session_key": session_key}),
+            _of1(client, "/pit",          {"session_key": session_key}),
         )
 
         # For current lap, fetch just one driver's laps (fast, ~50 records)
@@ -450,6 +453,34 @@ async def _refresh() -> dict[str, Any]:
             })
 
         s["drivers"] = drivers_out
+
+        # ── Pit stops ─────────────────────────────────
+        # latest_pit_per_driver gives us the most recent pit record per driver.
+        # pit_duration is None while the car is still in the pit lane.
+        latest_pit = _latest_per_driver(pits_raw, "date")
+        pit_stops_out: list[dict] = []
+        for dn, pit_rec in latest_pit.items():
+            meta = driver_meta.get(dn, {})
+            first = meta.get("first_name", "")
+            last  = meta.get("last_name", "")
+            if first and last:
+                pit_name = f"{first[0]}. {last}"
+            else:
+                pit_name = meta.get("broadcast_name", str(dn))
+            raw_colour = meta.get("team_colour", "888888") or "888888"
+            pit_colour = f"#{raw_colour}" if not raw_colour.startswith("#") else raw_colour
+            pit_stops_out.append({
+                "driver_number": dn,
+                "code":     meta.get("name_acronym", str(dn)),
+                "name":     pit_name,
+                "team":     meta.get("team_name", ""),
+                "colour":   pit_colour,
+                "lap":      pit_rec.get("lap_number"),
+                "date":     pit_rec.get("date", ""),
+                "duration": pit_rec.get("pit_duration"),
+            })
+        s["pit_stops"] = pit_stops_out
+
         s["last_updated"] = datetime.now(timezone.utc).isoformat()
 
     return s
@@ -507,16 +538,46 @@ async def _poll_critical():
             continue
         try:
             async with httpx.AsyncClient(follow_redirects=True) as client:
-                rc_raw = await _of1(client, "/race_control", {"session_key": session_key})
-            if not rc_raw:
-                continue
-            status, msg = _detect_flag(rc_raw)
-            incidents = _build_incidents(rc_raw)
-            async with _lock:
-                _state["status"] = status
-                _state["status_message"] = msg
-                _state["incidents"] = incidents
-            _broadcast(json.dumps(_state))
+                rc_raw, pits_raw = await asyncio.gather(
+                    _of1(client, "/race_control", {"session_key": session_key}),
+                    _of1(client, "/pit",          {"session_key": session_key}),
+                )
+            changed = False
+            if rc_raw:
+                status, msg = _detect_flag(rc_raw)
+                incidents = _build_incidents(rc_raw)
+                async with _lock:
+                    _state["status"] = status
+                    _state["status_message"] = msg
+                    _state["incidents"] = incidents
+                changed = True
+
+            if pits_raw:
+                # Rebuild pit_stops from fresh data
+                dm: dict[int, dict] = {}
+                for d in _state.get("drivers", []):
+                    dm[d["number"]] = d
+
+                latest_pit = _latest_per_driver(pits_raw, "date")
+                pit_stops_out: list[dict] = []
+                for dn, pit_rec in latest_pit.items():
+                    drv = dm.get(dn, {})
+                    pit_stops_out.append({
+                        "driver_number": dn,
+                        "code":     drv.get("code", str(dn)),
+                        "name":     drv.get("name", str(dn)),
+                        "team":     drv.get("team", ""),
+                        "colour":   drv.get("colour", "#888888"),
+                        "lap":      pit_rec.get("lap_number"),
+                        "date":     pit_rec.get("date", ""),
+                        "duration": pit_rec.get("pit_duration"),
+                    })
+                async with _lock:
+                    _state["pit_stops"] = pit_stops_out
+                changed = True
+
+            if changed:
+                _broadcast(json.dumps(_state))
         except Exception:
             log.exception("Critical poller failed")
 

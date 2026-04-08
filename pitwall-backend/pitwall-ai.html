@@ -1154,6 +1154,217 @@
       white-space: nowrap;
     }
 
+    /* ── PIT STOP OVERLAY ────────────────────────────── */
+    @keyframes pitPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(225,6,0,0.55), 0 0 16px rgba(225,6,0,0.15); border-color: var(--red); }
+      50%      { box-shadow: 0 0 0 7px rgba(225,6,0,0), 0 0 28px rgba(225,6,0,0.35); border-color: rgba(225,6,0,0.5); }
+    }
+    @keyframes pitFadeOut {
+      0%,80% { opacity:1; transform:translateY(0); }
+      100%   { opacity:0; transform:translateY(-6px); }
+    }
+    .pit-overlay-wrap {
+      flex-shrink: 0;
+      padding: 0 12px;
+    }
+    .pit-overlay-card {
+      background: #0d0d0d;
+      border: 2px solid var(--red);
+      border-radius: 8px;
+      padding: 14px 16px 12px;
+      margin-bottom: 10px;
+      animation: pitPulse 1.4s ease-in-out infinite;
+      position: relative;
+    }
+    .pit-overlay-card.completed {
+      animation: none;
+      border-color: #2a2a2a;
+    }
+    .pit-overlay-card.fading {
+      animation: pitFadeOut 1.2s ease forwards;
+    }
+    .pit-overlay-label {
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .pit-overlay-label-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--red);
+      flex-shrink: 0;
+      animation: wjh-blink 1s ease-in-out infinite;
+    }
+    .pit-overlay-label.done { color: #555; }
+    .pit-overlay-label.done .pit-overlay-label-dot { display: none; }
+    .pit-overlay-driver {
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 1px;
+    }
+    .pit-overlay-team {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 10px;
+    }
+    .pit-overlay-timer {
+      font-size: 52px;
+      font-weight: 900;
+      color: var(--red);
+      line-height: 1;
+      letter-spacing: -2px;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 6px;
+    }
+    .pit-overlay-timer.done { color: var(--white); }
+    .pit-overlay-bottom {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .pit-rating-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .pit-rating-badge.fast    { background: rgba(0,216,75,.14);   color: #00d84b; border: 1px solid rgba(0,216,75,.3); }
+    .pit-rating-badge.normal  { background: rgba(110,110,110,.14); color: #888;   border: 1px solid rgba(110,110,110,.3); }
+    .pit-rating-badge.slow    { background: rgba(225,6,0,.14);    color: var(--red); border: 1px solid rgba(225,6,0,.3); }
+    .pit-rating-badge.problem { background: rgba(100,0,0,.25);    color: #cc2200; border: 1px solid rgba(100,0,0,.5); }
+    .pit-overlay-ai {
+      font-size: 11px;
+      color: #888;
+      line-height: 1.55;
+      margin-top: 8px;
+      font-style: italic;
+    }
+    .pit-overlay-lap {
+      font-size: 9px;
+      color: #444;
+      letter-spacing: 1px;
+    }
+
+    /* ── PIT HISTORY ─────────────────────────────────── */
+    .pit-history-section {
+      flex-shrink: 0;
+      border-top: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .pit-history-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .pit-history-hdr:hover { background: rgba(255,255,255,.02); }
+    .pit-history-title {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--gray);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .pit-history-cnt {
+      background: var(--red);
+      color: #fff;
+      font-size: 8px;
+      font-weight: 900;
+      padding: 1px 6px;
+      border-radius: 20px;
+      letter-spacing: 0;
+      line-height: 1.4;
+    }
+    .pit-history-chevron {
+      font-size: 11px;
+      color: #444;
+      transition: transform .2s;
+    }
+    .pit-history-chevron.open { transform: rotate(180deg); }
+    .pit-history-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .3s ease;
+    }
+    .pit-history-body.open { max-height: 260px; overflow-y: auto; }
+    .pit-history-row {
+      display: flex;
+      align-items: center;
+      padding: 7px 14px;
+      border-bottom: 1px solid #111;
+      gap: 8px;
+    }
+    .pit-history-row:last-child { border-bottom: none; }
+    .pit-hist-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .pit-hist-name {
+      font-size: 11px;
+      font-weight: 700;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pit-hist-lap  { font-size: 9px; color: #555; letter-spacing: .5px; flex-shrink: 0; }
+    .pit-hist-time { font-size: 12px; font-weight: 700; color: var(--gray-lt); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+    .pit-hist-badge {
+      font-size: 7px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .pit-hist-trophy { font-size: 11px; flex-shrink: 0; }
+
+    /* ── PIT TEST BUTTON ─────────────────────────────── */
+    .pit-test-btn {
+      display: none;
+      background: #120800;
+      border: 1px dashed #664400;
+      color: #ff8c00;
+      font-family: 'Titillium Web', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      cursor: pointer;
+      border-radius: 3px;
+      flex-shrink: 0;
+      margin: 2px 12px 4px;
+      align-self: flex-start;
+    }
+    .pit-test-btn:hover { background: #1e1000; color: #ffaa33; }
+
     /* ── RADIO FULL VIEW ─────────────────────────────── */
     .radio-full-view {
       position: absolute;
@@ -2385,6 +2596,12 @@
       <div class="panel-hdr-title">Ask The Grid AI</div>
     </div>
 
+    <!-- PIT STOP OVERLAY (live timer + completed result) -->
+    <div class="pit-overlay-wrap" id="pitOverlayWrap" style="display:none"></div>
+
+    <!-- TEST BUTTON — visible only with ?test=true in URL -->
+    <button class="pit-test-btn" id="pitTestBtn" onclick="PitMgr.testStart()">⚡ Simulate Pit Stop</button>
+
     <!-- RADIO HERO CARD -->
     <div class="radio-hero" id="radioHero" onclick="openRadioView()">
       <div class="radio-hero-live">
@@ -2414,6 +2631,18 @@
 
     <div class="chat-messages" id="chatMessages">
       <div class="welcome-card" id="welcomeCard"></div>
+    </div>
+
+    <!-- PIT HISTORY (collapsible, shown once first stop is recorded) -->
+    <div class="pit-history-section" id="pitHistorySection" style="display:none">
+      <div class="pit-history-hdr" onclick="togglePitHistory()">
+        <div class="pit-history-title">
+          Pit Stop History
+          <span class="pit-history-cnt" id="pitHistoryCnt">0</span>
+        </div>
+        <span class="pit-history-chevron" id="pitHistoryChevron">&#9660;</span>
+      </div>
+      <div class="pit-history-body" id="pitHistoryBody"></div>
     </div>
 
     <!-- QUICK CHIPS -->
@@ -2826,6 +3055,7 @@ function applyState(data) {
   // ── Info cards ──────────────────────────────────
   if (data.incidents) renderIncidents(data.incidents);
   if (data.radio)     renderRadio(data.radio);
+  if (data.pit_stops) PitMgr.update(data.pit_stops);
 
   // ── Strategy tab (refresh if open or pre-populate) ──
   const stratPanel = document.getElementById('tab-strategy');
@@ -2863,6 +3093,237 @@ function _applyFlag(status, message) {
   pill.textContent   = cfg.label;
   textEl.textContent = message || cfg.label;
   banner.classList.add('visible');
+}
+
+/* ──────────────────────────────────────────────────
+   PIT STOP MANAGER
+────────────────────────────────────────────────── */
+const PitMgr = (() => {
+  // driver_number → { code, name, team, colour, lap, date, startMs }
+  let _active = {};
+  // driver_number → last seen pit date string (to detect new entries)
+  let _seenDate = {};
+  // completed stops, newest first
+  let _history = [];
+  let _timerIv = null;
+  let _dismissIv = {};
+
+  // ── Helpers ───────────────────────────────────────
+  function _rating(dur) {
+    if (dur < 2.5) return { label: 'FAST',    cls: 'fast' };
+    if (dur < 3.5) return { label: 'NORMAL',  cls: 'normal' };
+    if (dur < 5.0) return { label: 'SLOW',    cls: 'slow' };
+    return               { label: 'PROBLEM',  cls: 'problem' };
+  }
+
+  function _fmtMs(ms) {
+    const s   = ms / 1000;
+    return `${Math.floor(s)}.${Math.floor((s % 1) * 10)}`;
+  }
+
+  function _fmtDur(dur) {
+    return `${Math.floor(dur)}.${Math.floor((dur % 1) * 10)}`;
+  }
+
+  // ── Timer tick ───────────────────────────────────
+  function _tick() {
+    const now = Date.now();
+    let any = false;
+    for (const dn of Object.keys(_active)) {
+      any = true;
+      const el = document.getElementById(`pit-tmr-${dn}`);
+      if (el) el.textContent = _fmtMs(now - _active[dn].startMs);
+    }
+    if (!any) { clearInterval(_timerIv); _timerIv = null; }
+  }
+
+  function _startTimer() {
+    if (!_timerIv) _timerIv = setInterval(_tick, 100);
+  }
+
+  // ── Overlay rendering ────────────────────────────
+  function _showActive(dn, pit) {
+    const wrap = document.getElementById('pitOverlayWrap');
+    if (!wrap) return;
+    wrap.style.display = '';
+    wrap.innerHTML = `
+      <div class="pit-overlay-card" id="pit-card-${dn}">
+        <div class="pit-overlay-label">
+          <span class="pit-overlay-label-dot"></span>PIT STOP
+        </div>
+        <div class="pit-overlay-driver" style="color:${pit.colour}">${escapeHtml(pit.name)}</div>
+        <div class="pit-overlay-team">${escapeHtml(pit.team)}</div>
+        <div class="pit-overlay-timer" id="pit-tmr-${dn}">0.0</div>
+        <div class="pit-overlay-lap">Lap ${pit.lap || '—'}</div>
+      </div>`;
+  }
+
+  function _showCompleted(dn, pit, duration, aiText) {
+    const wrap = document.getElementById('pitOverlayWrap');
+    if (!wrap) return;
+    wrap.style.display = '';
+    const { label, cls } = _rating(duration);
+    wrap.innerHTML = `
+      <div class="pit-overlay-card completed" id="pit-card-${dn}">
+        <div class="pit-overlay-label done">PIT STOP COMPLETE</div>
+        <div class="pit-overlay-driver" style="color:${pit.colour}">${escapeHtml(pit.name)}</div>
+        <div class="pit-overlay-team">${escapeHtml(pit.team)}</div>
+        <div class="pit-overlay-timer done">${_fmtDur(duration)}s</div>
+        <div class="pit-overlay-bottom">
+          <span class="pit-rating-badge ${cls}">${label}</span>
+          <span class="pit-overlay-lap">Lap ${pit.lap || '—'}</span>
+        </div>
+        ${aiText ? `<div class="pit-overlay-ai">${escapeHtml(aiText)}</div>` : ''}
+      </div>`;
+
+    // Fade out after 8 seconds
+    if (_dismissIv[dn]) clearTimeout(_dismissIv[dn]);
+    _dismissIv[dn] = setTimeout(() => {
+      const card = document.getElementById(`pit-card-${dn}`);
+      if (card) card.classList.add('fading');
+      setTimeout(() => {
+        if (wrap && !Object.keys(_active).length) {
+          wrap.style.display = 'none';
+          wrap.innerHTML = '';
+        }
+      }, 1200);
+      delete _dismissIv[dn];
+    }, 8000);
+  }
+
+  // ── AI one-liner ─────────────────────────────────
+  async function _ai(name, team, duration, lap) {
+    try {
+      const r = await fetch(`${BACKEND}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system: 'You are a terse F1 pit stop analyst. Reply in exactly ONE sentence, 20 words max. Be specific about race implications.',
+          messages: [{ role: 'user', content: `What does a ${duration.toFixed(1)}s pit stop mean for ${name} (${team}) on lap ${lap}?` }],
+        }),
+        signal: AbortSignal.timeout(9000),
+      });
+      if (!r.ok) return null;
+      return (await r.json()).reply || null;
+    } catch { return null; }
+  }
+
+  // ── History ──────────────────────────────────────
+  function _renderHistory() {
+    const section = document.getElementById('pitHistorySection');
+    const body    = document.getElementById('pitHistoryBody');
+    const cnt     = document.getElementById('pitHistoryCnt');
+    if (!section || !body) return;
+    if (_history.length === 0) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    if (cnt) cnt.textContent = _history.length;
+
+    // Trophy goes to fastest stop
+    const fastIdx = _history.reduce((best, h, i) =>
+      h.duration < _history[best].duration ? i : best, 0);
+
+    body.innerHTML = _history.map((h, i) => {
+      const { label, cls } = _rating(h.duration);
+      return `
+        <div class="pit-history-row">
+          <span class="pit-hist-dot" style="background:${h.colour}"></span>
+          <span class="pit-hist-name">${escapeHtml(h.code)} &mdash; ${escapeHtml(h.name)}</span>
+          <span class="pit-hist-lap">L${h.lap || '?'}</span>
+          <span class="pit-hist-time">${_fmtDur(h.duration)}s</span>
+          <span class="pit-hist-badge pit-rating-badge ${cls}">${label}</span>
+          ${i === fastIdx ? '<span class="pit-hist-trophy">🏆</span>' : ''}
+        </div>`;
+    }).join('');
+  }
+
+  // ── Main update (called from applyState) ─────────
+  async function update(pitStops) {
+    if (!pitStops) return;
+    for (const pit of pitStops) {
+      const dn = pit.driver_number;
+      const prevDate = _seenDate[dn];
+      const isNew = pit.date !== prevDate;
+
+      if (isNew) {
+        _seenDate[dn] = pit.date;
+
+        if (pit.duration == null) {
+          // Driver entering pits — start live timer
+          // Sync with API timestamp if within 60s
+          let startMs = Date.now();
+          try {
+            const apiTs = new Date(pit.date).getTime();
+            if (!isNaN(apiTs) && Date.now() - apiTs < 60_000) startMs = apiTs;
+          } catch {}
+
+          if (_dismissIv[dn]) { clearTimeout(_dismissIv[dn]); delete _dismissIv[dn]; }
+          _active[dn] = { ...pit, startMs };
+          _showActive(dn, _active[dn]);
+          _startTimer();
+
+        } else if (prevDate !== undefined) {
+          // Completed stop we never saw live — add to history only
+          _history.unshift({ ...pit });
+          _renderHistory();
+        }
+      }
+
+      // Active pit just got a duration → stop complete
+      if (_active[dn] && pit.duration != null) {
+        const done = { ..._active[dn], duration: pit.duration };
+        delete _active[dn];
+        _history.unshift(done);
+        _renderHistory();
+        const aiText = await _ai(done.name, done.team, pit.duration, done.lap);
+        _showCompleted(dn, done, pit.duration, aiText);
+      }
+    }
+  }
+
+  // ── Test simulation ──────────────────────────────
+  function testStart() {
+    const drivers = liveData.drivers || [];
+    const d = drivers.length
+      ? drivers[Math.floor(Math.random() * Math.min(5, drivers.length))]
+      : null;
+    const fake = {
+      driver_number: d ? d.number : 44,
+      code:   d ? d.code  : 'HAM',
+      name:   d ? d.name  : 'L. Hamilton',
+      team:   d ? d.team  : 'Ferrari',
+      colour: d ? d.colour: '#e8002d',
+      lap:    liveData.lap || 18,
+      date:   new Date().toISOString(),
+      duration: null,
+    };
+    const dn = fake.driver_number;
+    _seenDate[dn] = fake.date;
+    if (_dismissIv[dn]) { clearTimeout(_dismissIv[dn]); delete _dismissIv[dn]; }
+    _active[dn] = { ...fake, startMs: Date.now() };
+    _showActive(dn, _active[dn]);
+    _startTimer();
+
+    const dur = 2.0 + Math.random() * 3.5;
+    setTimeout(async () => {
+      if (!_active[dn]) return;
+      const done = { ..._active[dn], duration: dur };
+      delete _active[dn];
+      _history.unshift(done);
+      _renderHistory();
+      const aiText = await _ai(done.name, done.team, dur, done.lap);
+      _showCompleted(dn, done, dur, aiText);
+    }, 2000 + Math.random() * 2000);
+  }
+
+  return { update, testStart };
+})();
+
+function togglePitHistory() {
+  const body    = document.getElementById('pitHistoryBody');
+  const chevron = document.getElementById('pitHistoryChevron');
+  if (!body) return;
+  body.classList.toggle('open');
+  if (chevron) chevron.classList.toggle('open');
 }
 
 /* ──────────────────────────────────────────────────
@@ -4595,6 +5056,11 @@ function init() {
     _setOwnerMode(true);
   }
 
+  // Show pit test button when ?test=true is in URL
+  if (new URLSearchParams(location.search).get('test') === 'true') {
+    const btn = document.getElementById('pitTestBtn');
+    if (btn) btn.style.display = 'inline-block';
+  }
 
   updateFreeLimitUI();
 }
