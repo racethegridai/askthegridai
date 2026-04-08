@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+pitwall-backend/__pycache__/
+pitwall-backend/.venv/
+pitwall-backend/venv/
+pitwall-backend/.env
