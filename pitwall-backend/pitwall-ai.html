@@ -1623,16 +1623,12 @@
     .wjh-btn {
       flex-shrink: 0;
       width: 100%;
-      padding: 14px 20px;
+      padding: 12px 20px;
       background: var(--red);
       border: none;
       border-bottom: 1px solid #c50500;
       color: #fff;
       font-family: 'Titillium Web', sans-serif;
-      font-size: 15px;
-      font-weight: 900;
-      letter-spacing: 3px;
-      text-transform: uppercase;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -1647,6 +1643,28 @@
     .wjh-btn:active { background: #a00400; }
     .wjh-btn:disabled { background: #3a0000; color: #666; cursor: not-allowed; box-shadow: none; }
 
+    .wjh-btn-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .wjh-btn-title {
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .wjh-btn-sub {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
+      line-height: 1;
+    }
+
     .wjh-pulse {
       width: 8px;
       height: 8px;
@@ -1659,6 +1677,106 @@
     @keyframes wjh-blink {
       0%, 100% { opacity: 1; transform: scale(1); }
       50%       { opacity: 0.3; transform: scale(0.7); }
+    }
+
+    /* ── EARLIER RADIO CALLS ────────────────────────── */
+    .radio-earlier {
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .radio-earlier-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #111;
+      transition: background .12s;
+    }
+    .radio-earlier-row:last-child { border-bottom: none; }
+    .radio-earlier-row:hover { background: rgba(255,255,255,.025); }
+    .radio-earlier-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .radio-earlier-driver {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: var(--gray-lt);
+      flex-shrink: 0;
+      min-width: 28px;
+    }
+    .radio-earlier-msg {
+      font-size: 11px;
+      color: var(--gray);
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-style: italic;
+    }
+    .radio-earlier-arrow {
+      font-size: 11px;
+      color: #333;
+      flex-shrink: 0;
+    }
+
+    /* ── CHIP GROUPS ─────────────────────────────────── */
+    .chips-bar {
+      flex-shrink: 0;
+      padding: 10px 14px 8px;
+      border-top: 1px solid var(--border);
+      background: var(--bg2);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .chips-group-label {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #444;
+      margin-bottom: 3px;
+    }
+    .chips-group-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .chips-group-row::-webkit-scrollbar { display: none; }
+    .chip {
+      padding: 6px 12px;
+      background: transparent;
+      color: var(--gray-lt);
+      font-family: 'Titillium Web', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+      border-radius: 2px;
+    }
+    .chip.chip-race {
+      border: 1px solid rgba(225,6,0,0.35);
+    }
+    .chip.chip-race:hover {
+      border-color: var(--red);
+      color: var(--white);
+      background: var(--red-dim);
+    }
+    .chip.chip-beginner {
+      border: 1px solid rgba(50,100,200,0.4);
+    }
+    .chip.chip-beginner:hover {
+      border-color: #4a7fd4;
+      color: var(--white);
+      background: rgba(50,100,200,0.12);
     }
 
     /* ── UPDATE TIMER ────────────────────────────────── */
@@ -2655,7 +2773,7 @@
         Race Read &middot; AI
       </div>
       <div class="race-read-quote loading" id="raceReadQuote">Analysing race situation&hellip;</div>
-      <div class="race-read-meta" id="raceReadMeta">Updated every 2 min</div>
+      <div class="race-read-meta" id="raceReadMeta">AI context active</div>
     </div>
 
     <!-- PIT STOP OVERLAY (live timer + completed result) -->
@@ -2677,6 +2795,9 @@
       </div>
     </div>
 
+    <!-- EARLIER RADIO CALLS -->
+    <div class="radio-earlier" id="radioEarlier"></div>
+
     <!-- RADIO FULL VIEW OVERLAY -->
     <div class="radio-full-view" id="radioFullView" style="display:none">
       <div class="radio-full-hdr">
@@ -2688,7 +2809,10 @@
 
     <button class="wjh-btn" id="wjhBtn" onclick="wjhClick()">
       <span class="wjh-pulse"></span>
-      What just happened?
+      <span class="wjh-btn-inner">
+        <span class="wjh-btn-title">What just happened?</span>
+        <span class="wjh-btn-sub" id="wjhSub">AI explains last 5 minutes</span>
+      </span>
     </button>
 
     <div class="chat-messages" id="chatMessages">
@@ -2709,13 +2833,27 @@
 
     <!-- QUICK CHIPS -->
     <div class="chips-bar">
-      <div class="chips-label">Quick Questions</div>
-      <div class="chips-list" id="chipsList"></div>
+      <div>
+        <div class="chips-group-label">This race</div>
+        <div class="chips-group-row">
+          <button class="chip chip-race" onclick="chipClick(this)">Why did he pit?</button>
+          <button class="chip chip-race" onclick="chipClick(this)">Who can still win?</button>
+          <button class="chip chip-race" onclick="chipClick(this)">Safety car impact?</button>
+        </div>
+      </div>
+      <div>
+        <div class="chips-group-label">Explain to me</div>
+        <div class="chips-group-row">
+          <button class="chip chip-beginner" onclick="chipClick(this)">What is DRS?</button>
+          <button class="chip chip-beginner" onclick="chipClick(this)">Explain undercut</button>
+          <button class="chip chip-beginner" onclick="chipClick(this)">Why tyre colours?</button>
+        </div>
+      </div>
     </div>
 
     <!-- UPGRADE PANEL (shown after limit hit) -->
     <div class="upgrade-panel" id="upgradePanel">
-      <div class="upgrade-panel-title">Unlock Full Access</div>
+      <div class="upgrade-panel-title">Never feel lost during a race again</div>
       <div class="upgrade-features">
         <div class="upgrade-feature-line"><span class="chk">✓</span>Unlimited questions</div>
         <div class="upgrade-feature-line"><span class="chk">✓</span>Strategy tab</div>
@@ -2736,7 +2874,7 @@
     <!-- INPUT -->
     <div class="input-bar">
       <input class="chat-input" id="chatInput"
-        placeholder="Confused? Ask what just happened…"
+        placeholder="Ask what just happened, who gained, or what to watch next…"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"
         autocomplete="off">
       <button class="send-btn" id="sendBtn" onclick="sendMsg()">Ask Now</button>
@@ -3119,6 +3257,15 @@ function applyState(data) {
   if (data.radio)     renderRadio(data.radio);
   if (data.pit_stops) PitMgr.update(data.pit_stops);
 
+  // ── WJH subtitle — key events count ────────────────
+  const wjhSub = document.getElementById('wjhSub');
+  if (wjhSub) {
+    const n = (data.incidents || []).length;
+    wjhSub.textContent = n
+      ? `AI explains last 5 minutes \u00b7 ${n} key event${n !== 1 ? 's' : ''}`
+      : 'AI explains last 5 minutes';
+  }
+
   // ── AI Race Read — fetch on first data, then every 2 min ──
   if (_raceReadLastMs === 0) {
     updateRaceRead();
@@ -3218,11 +3365,8 @@ Never start with "Currently" or "Right now". Just say it.`,
       quoteEl.className   = 'race-read-quote';
       quoteEl.textContent = text;
       _raceReadLastMs = Date.now();
-      if (metaEl) metaEl.textContent = 'Just updated';
-      // Fade meta back to "Updated every 2 min" after 5s
-      setTimeout(() => {
-        if (metaEl) metaEl.textContent = 'Updated every 2 min';
-      }, 5000);
+      const lap = liveData.lap || '?';
+      if (metaEl) metaEl.textContent = `Updated lap ${lap} \u00b7 AI context active`;
     }
   } catch {
     quoteEl.className   = 'race-read-quote';
@@ -3913,6 +4057,27 @@ function renderRadio(radio) {
     if (m && !_radioTranslations.has(key)) _translateRadio(r);
   });
 
+  // ── Earlier radio calls (rows 2 & 3) ─────────────
+  const earlierEl = document.getElementById('radioEarlier');
+  if (earlierEl) {
+    const earlier = sorted.slice(1, 3);
+    if (earlier.length) {
+      earlierEl.innerHTML = earlier.map(r => {
+        const clr = _teamColor(r.team);
+        const msg = r.message || r.msg || r.text || '';
+        const snippet = msg ? `"${msg.length > 55 ? msg.slice(0, 52) + '…' : msg}"` : 'Radio call';
+        return `<div class="radio-earlier-row" onclick="openRadioView()">
+          <span class="radio-earlier-dot" style="background:${clr}"></span>
+          <span class="radio-earlier-driver">${escapeHtml(r.driver)}</span>
+          <span class="radio-earlier-msg">${escapeHtml(snippet)}</span>
+          <span class="radio-earlier-arrow">›</span>
+        </div>`;
+      }).join('');
+    } else {
+      earlierEl.innerHTML = '';
+    }
+  }
+
   if (_radioFullOpen) renderRadioFullView(radio);
 }
 
@@ -4049,10 +4214,7 @@ No labels, no jargon, no extra lines. Three sentences only.`,
    CHIPS
 ────────────────────────────────────────────────── */
 function renderChips() {
-  const el = document.getElementById('chipsList');
-  el.innerHTML = CHIPS[mode].map(q =>
-    `<button class="chip" onclick="chipClick(this)">${q}</button>`
-  ).join('');
+  // Chips are now static HTML groups — no-op kept for compatibility
 }
 
 function chipClick(btn) {
