@@ -1154,6 +1154,58 @@
       white-space: nowrap;
     }
 
+    /* ── AI RACE READ CARD ───────────────────────────── */
+    .race-read-card {
+      flex-shrink: 0;
+      margin: 0 12px 10px;
+      background: #0d0d0d;
+      border-left: 4px solid var(--green);
+      border-radius: 0 6px 6px 0;
+      padding: 11px 14px 11px 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .race-read-label {
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--green);
+      opacity: 0.75;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .race-read-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+      animation: blink 2s ease-in-out infinite;
+    }
+    .race-read-quote {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 14px;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--white);
+      line-height: 1.55;
+    }
+    .race-read-quote.loading {
+      color: #444;
+      animation: skeleton-pulse 1.8s ease-in-out infinite;
+      font-style: normal;
+      font-size: 12px;
+    }
+    .race-read-meta {
+      font-size: 8px;
+      letter-spacing: 1px;
+      color: #3a3a3a;
+      text-transform: uppercase;
+    }
+
     /* ── PIT STOP OVERLAY ────────────────────────────── */
     @keyframes pitPulse {
       0%,100% { box-shadow: 0 0 0 0 rgba(225,6,0,0.55), 0 0 16px rgba(225,6,0,0.15); border-color: var(--red); }
@@ -2596,6 +2648,16 @@
       <div class="panel-hdr-title">Ask The Grid AI</div>
     </div>
 
+    <!-- AI RACE READ CARD -->
+    <div class="race-read-card" id="raceReadCard">
+      <div class="race-read-label">
+        <span class="race-read-dot"></span>
+        Race Read &middot; AI
+      </div>
+      <div class="race-read-quote loading" id="raceReadQuote">Analysing race situation&hellip;</div>
+      <div class="race-read-meta" id="raceReadMeta">Updated every 2 min</div>
+    </div>
+
     <!-- PIT STOP OVERLAY (live timer + completed result) -->
     <div class="pit-overlay-wrap" id="pitOverlayWrap" style="display:none"></div>
 
@@ -3057,6 +3119,12 @@ function applyState(data) {
   if (data.radio)     renderRadio(data.radio);
   if (data.pit_stops) PitMgr.update(data.pit_stops);
 
+  // ── AI Race Read — fetch on first data, then every 2 min ──
+  if (_raceReadLastMs === 0) {
+    updateRaceRead();
+    _startRaceReadTimer();
+  }
+
   // ── Strategy tab (refresh if open or pre-populate) ──
   const stratPanel = document.getElementById('tab-strategy');
   if (stratPanel && stratPanel.classList.contains('active')) {
@@ -3093,6 +3161,80 @@ function _applyFlag(status, message) {
   pill.textContent   = cfg.label;
   textEl.textContent = message || cfg.label;
   banner.classList.add('visible');
+}
+
+/* ──────────────────────────────────────────────────
+   AI RACE READ — one-sentence live race summary
+────────────────────────────────────────────────── */
+let _raceReadTimer   = null;
+let _raceReadFetching = false;
+let _raceReadLastMs  = 0;
+const RACE_READ_INTERVAL = 2 * 60 * 1000; // 2 minutes
+
+async function updateRaceRead() {
+  if (_raceReadFetching) return;
+  const quoteEl = document.getElementById('raceReadQuote');
+  const metaEl  = document.getElementById('raceReadMeta');
+  if (!quoteEl) return;
+
+  // Build a tight context string from live data
+  const d       = liveData;
+  const drivers = d.drivers || [];
+  const top5    = drivers.slice(0, 5)
+    .map(dr => `P${dr.pos} ${dr.code} (${dr.tyre}, +${dr.gap === 'LEADER' ? '0' : dr.gap.replace('+','')}s, tyre age ${dr.stintLap}L)`)
+    .join('; ');
+  const ctx = d.session_name
+    ? `${d.session_name}, Lap ${d.lap || '?'}/${d.total_laps || '?'}`
+    : 'Race session — data loading';
+  const flag = d.status && d.status !== 'none'
+    ? ` Flag: ${d.status.toUpperCase()}.` : '';
+  const inc = (d.incidents || []).slice(0, 2).map(i => i.msg).join('. ');
+
+  _raceReadFetching = true;
+  quoteEl.className = 'race-read-quote loading';
+  quoteEl.textContent = 'Analysing race situation\u2026';
+
+  try {
+    const r = await fetch(`${BACKEND}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: `You are a live F1 race commentator giving instant orientation to new fans.
+Write EXACTLY one sentence, maximum 25 words.
+Plain English — no jargon. Present tense. Specific driver names. Dramatic but factual.
+Focus on the most compelling thing happening right now: the lead battle, a tyre cliff, a gap opening, or a looming strategy decision.
+Never start with "Currently" or "Right now". Just say it.`,
+        messages: [{
+          role: 'user',
+          content: `Race state: ${ctx}.${flag} Top 5: ${top5 || 'data loading'}.${inc ? ' Recent: ' + inc : ''} Give me the one-sentence race read.`,
+        }],
+      }),
+      signal: AbortSignal.timeout(12000),
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    const text = (data.reply || '').trim().replace(/^"+|"+$/g, '');
+    if (text) {
+      quoteEl.className   = 'race-read-quote';
+      quoteEl.textContent = text;
+      _raceReadLastMs = Date.now();
+      if (metaEl) metaEl.textContent = 'Just updated';
+      // Fade meta back to "Updated every 2 min" after 5s
+      setTimeout(() => {
+        if (metaEl) metaEl.textContent = 'Updated every 2 min';
+      }, 5000);
+    }
+  } catch {
+    quoteEl.className   = 'race-read-quote';
+    quoteEl.textContent = 'Race data loading — check back shortly.';
+  } finally {
+    _raceReadFetching = false;
+  }
+}
+
+function _startRaceReadTimer() {
+  if (_raceReadTimer) return;
+  _raceReadTimer = setInterval(updateRaceRead, RACE_READ_INTERVAL);
 }
 
 /* ──────────────────────────────────────────────────
