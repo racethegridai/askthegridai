@@ -4548,7 +4548,6 @@ async function sendDriverMsg(id) {
 ────────────────────────────────────────────────── */
 function init() {
   renderChips();
-  updateApiBtn();
   _setBackendStatus(false);
   renderWelcomeState();  // show welcome before backend connects
   connectBackend();   // SSE → polling fallback
