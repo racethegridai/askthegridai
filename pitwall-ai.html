@@ -151,7 +151,6 @@
     .tab-btn.active { color: var(--white); border-bottom-color: var(--red); }
     .tab-btn .tab-lock { color: #444; font-size: 9px; opacity: 0.8; }
 
-
     /* ── RACE BAR ───────────────────────────────────── */
     .race-bar {
       flex-shrink: 0;
@@ -3023,6 +3022,396 @@ document.addEventListener('keydown', function(e) {
     input.placeholder = 'Confused? Ask what just happened…';
   }
 });
+/* ──────────────────────────────────────────────────
+   TAB SWITCHING
+────────────────────────────────────────────────── */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === `tab-${tab}`);
+  });
+  if (tab === 'strategy') renderStrategyTab();
+  if (tab === 'drivers')  { renderDriversGrid(); }
+}
+
+/* ──────────────────────────────────────────────────
+   MODE
+────────────────────────────────────────────────── */
+function setMode(m) {
+  mode = m;
+  history = [];
+  document.querySelectorAll('.mode-pill').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === m);
+  });
+  renderChips();
+}
+
+/* ──────────────────────────────────────────────────
+   STANDINGS  (now accepts driver array from backend)
+────────────────────────────────────────────────── */
+function _formatGap(gap) {
+  if (!gap || gap === '—') return '—';
+  const n = parseFloat(gap);
+  if (isNaN(n)) return gap;
+  return (n >= 0 ? '+' : '') + n.toFixed(1);
+}
+
+/* ──────────────────────────────────────────────────
+   CHAMPIONSHIP STANDINGS
+────────────────────────────────────────────────── */
+function _setStandingsHeaders(mode) {
+  const tr = document.querySelector('#standingsTbody')?.closest('table')?.querySelector('thead tr');
+  if (!tr) return;
+  if (mode === 'champ') {
+    tr.innerHTML = '<th>POS</th><th colspan="2">DRIVER</th><th style="text-align:center">WIN</th><th style="text-align:right;padding-right:12px">PTS</th>';
+  } else {
+    tr.innerHTML = '<th>POS</th><th colspan="2">DRIVER</th><th>TYRE</th><th style="text-align:right;padding-right:12px;">GAP</th>';
+  }
+}
+
+function renderChampionshipStandings(standings, source) {
+  _setStandingsHeaders('champ');
+  const tbody = document.getElementById('standingsTbody');
+  if (!tbody) return;
+  tbody.innerHTML = standings.map(s => {
+    const isLeader = s.position === 1;
+    const posClass = s.position <= 3 ? 'p' + s.position : '';
+    const colour   = _teamColor(s.team);
+    const name     = s.first_name ? escapeHtml(s.first_name[0] + '. ' + s.driver) : escapeHtml(s.driver);
+    const winsBadge = s.wins > 0
+      ? '<span class="leader-badge">' + s.wins + 'W</span>'
+      : '<span style="color:#333">\u2014</span>';
+    return `
+      <tr class="${isLeader ? 'p1' : ''}">
+        <td class="td-pos ${posClass}">${s.position}</td>
+        <td class="td-dot"><span class="team-dot" style="background:${colour}"></span></td>
+        <td class="td-driver">
+          <div class="drv-name">${name}</div>
+          <div class="drv-team">${escapeHtml(s.team)}</div>
+        </td>
+        <td class="td-tyre" style="text-align:center">${winsBadge}</td>
+        <td class="td-gap"><div class="gap-val">${s.points}</div></td>
+      </tr>`;
+  }).join('');
+  const src = document.getElementById('chmpSource');
+  if (src) {
+    if (source === 'live') {
+      src.innerHTML = '\u25cf&nbsp;<span style="color:var(--green)">Live \u00b7 Updated after each race</span>';
+    } else {
+      src.innerHTML = '\u25cb&nbsp;Cached standings';
+    }
+  }
+  const meta = document.getElementById('standingsLapMeta');
+  if (meta) meta.textContent = '2026 Championship';
+}
+
+async function fetchChampionshipStandings() {
+  try {
+    const r = await fetch(BACKEND + '/api/championship-standings', {
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    _chmpData = data;
+    if (!_liveRaceActive) renderChampionshipStandings(data.standings, data.source);
+  } catch (e) {
+    console.warn('Championship standings fetch failed:', e);
+  }
+}
+
+function renderStandings(drivers) {
+  const tbody = document.getElementById('standingsTbody');
+  tbody.innerHTML = drivers.map(d => {
+    const posClass = d.pos <= 3 ? `p${d.pos}` : '';
+    const isLeader = d.pos === 1;
+    const gapDisplay = isLeader
+      ? '<span class="leader-badge">LEADER</span>'
+      : `<div class="gap-val">${_formatGap(d.gap)}</div>`;
+    return `
+      <tr class="${isLeader ? 'p1' : ''} standings-updated">
+        <td class="td-pos ${posClass}">${d.pos}</td>
+        <td class="td-dot"><span class="team-dot" style="background:${d.colour || '#888'}"></span></td>
+        <td class="td-driver">
+          <div class="drv-name">${escapeHtml(d.name || d.code)}</div>
+          <div class="drv-team">${escapeHtml(d.team || '')}</div>
+        </td>
+        <td class="td-tyre">
+          <span class="tyre-badge ${d.tyre || '?'}">${d.tyre || '?'}</span>
+          <div class="tyre-laps">+${d.stintLap || 0}L</div>
+        </td>
+        <td class="td-gap">${gapDisplay}</td>
+      </tr>`;
+  }).join('');
+  _lastUpdateMs = Date.now();
+  setTimeout(() => {
+    tbody.querySelectorAll('.standings-updated').forEach(r => r.classList.remove('standings-updated'));
+  }, 1300);
+}
+
+/* ──────────────────────────────────────────────────
+   TYRE STRATEGY CARD  (uses real stint history)
+────────────────────────────────────────────────── */
+function renderStratCard(drivers) {
+  const el = document.getElementById('stratCard');
+  if (!el) return;
+  el.innerHTML = drivers.map(d => {
+    const stints = d.strategy || [];
+    const stintHtml = stints.map((st, i) => `
+      <div class="strat-stint">
+        <span class="tyre-badge ${st.compound}" style="width:17px;height:17px;font-size:8px;">${st.compound}</span>
+        <span class="strat-laps">${st.laps}L</span>
+      </div>${i < stints.length - 1 ? '<span class="strat-arrow">›</span>' : ''}`
+    ).join('');
+    return `
+      <div class="strat-row">
+        <div class="strat-driver">${escapeHtml(d.code || '')}</div>
+        <div class="strat-stints">${stintHtml || '<span style="color:#444;font-size:10px;">—</span>'}</div>
+      </div>`;
+  }).join('');
+}
+
+/* ──────────────────────────────────────────────────
+   INCIDENTS CARD
+────────────────────────────────────────────────── */
+function _incFlagClass(flag) {
+  const f = (flag || '').toLowerCase();
+  if (f.includes('yellow')) return 'yellow';
+  if (f.includes('red'))    return 'red';
+  if (f.includes('blue'))   return 'blue';
+  if (f.includes('sc') || f.includes('safety')) return 'sc';
+  if (f.includes('chequered') || f.includes('checkered')) return 'chequered';
+  return 'info';
+}
+
+function renderIncidents(incidents) {
+  const el = document.getElementById('incidentsCard');
+  if (!el) return;
+  if (!incidents.length) {
+    el.innerHTML = '<div style="color:var(--gray);font-size:11px;">No incidents recorded</div>';
+    return;
+  }
+  el.innerHTML = incidents.map((inc, i) => {
+    const flagLabel = inc.flag || 'INFO';
+    const flagCls   = _incFlagClass(flagLabel);
+    return `
+    <div class="incident-entry incident-new" style="animation-delay:${i * 60}ms">
+      <div class="inc-header">
+        <span class="inc-flag-badge ${flagCls}">${escapeHtml(flagLabel)}</span>
+        ${inc.lap ? `<span class="inc-lap">Lap ${inc.lap}</span>` : ''}
+      </div>
+      <div class="inc-desc">${escapeHtml(inc.msg || '')}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ──────────────────────────────────────────────────
+   TEAM COLOR LOOKUP
+────────────────────────────────────────────────── */
+function _teamColor(team) {
+  const MAP = {
+    'Red Bull':     '#3671C6',
+    'Ferrari':      '#E8002D',
+    'McLaren':      '#FF8000',
+    'Mercedes':     '#27F4D2',
+    'Aston Martin': '#229971',
+    'Alpine':       '#FF87BC',
+    'Williams':     '#64C4FF',
+    'Haas':         '#B6BABD',
+    'Racing Bulls':  '#6692FF',
+    'Audi':          '#BF0000',
+    'Cadillac':      '#0052A5',
+    'Kick Sauber':   '#52E252',
+    'Sauber':        '#52E252',
+    'RB':            '#6692FF',
+  };
+  if (!team) return '#888';
+  for (const [k, v] of Object.entries(MAP)) {
+    if (team.toLowerCase().includes(k.toLowerCase())) return v;
+  }
+  // Try matching from live driver data
+  if (liveData.drivers) {
+    const drv = liveData.drivers.find(d => d.team === team);
+    if (drv && drv.colour) return drv.colour;
+  }
+  return '#888';
+}
+
+/* ──────────────────────────────────────────────────
+   TEAM RADIO CARD  (with auto AI translation)
+────────────────────────────────────────────────── */
+const _radioTranslations = new Map(); // key -> 'loading' | 'error' | { what, why, next }
+let _radioFullOpen = false;
+
+function _radioKey(r) {
+  return `${r.driver}|${r.team}|${r.message || r.msg || r.text || r.url || ''}`;
+}
+
+function renderRadio(radio) {
+  const heroMsg  = document.getElementById('radioHeroMsg');
+  const heroMeta = document.getElementById('radioHeroMeta');
+  const heroDrv  = document.getElementById('radioHeroDriver');
+  if (!heroMsg) return;
+
+  if (!radio || !radio.length) {
+    heroMsg.textContent = 'Listening for team radio…';
+    heroMsg.classList.add('listening');
+    if (heroMeta) heroMeta.style.display = 'none';
+    if (_radioFullOpen) renderRadioFullView(radio);
+    return;
+  }
+
+  const sorted = [...radio].reverse();
+  const latest = sorted[0];
+  const msg    = latest.message || latest.msg || latest.text || '';
+  const clr    = _teamColor(latest.team);
+
+  heroMsg.textContent = msg ? `"${msg}"` : 'Radio call received';
+  heroMsg.classList.remove('listening');
+
+  if (heroMeta) heroMeta.style.display = 'flex';
+  if (heroDrv)  heroDrv.innerHTML =
+    `<span style="width:8px;height:8px;border-radius:50%;background:${clr};flex-shrink:0;display:inline-block"></span>
+     ${escapeHtml(latest.driver)} &middot; ${escapeHtml(latest.team)}`;
+
+  sorted.forEach(r => {
+    const key = _radioKey(r);
+    const m   = r.message || r.msg || r.text || '';
+    if (m && !_radioTranslations.has(key)) _translateRadio(r);
+  });
+
+  if (_radioFullOpen) renderRadioFullView(radio);
+}
+
+function openRadioView() {
+  _radioFullOpen = true;
+  const el = document.getElementById('radioFullView');
+  if (el) el.style.display = 'flex';
+  renderRadioFullView(liveData.radio);
+}
+
+function closeRadioView() {
+  _radioFullOpen = false;
+  const el = document.getElementById('radioFullView');
+  if (el) el.style.display = 'none';
+}
+
+function _radioSectionHtml(cached) {
+  if (!cached || cached === 'loading') {
+    return `<div class="radio-loading">Translating…</div>`;
+  }
+  if (cached === 'error') {
+    return `<div class="radio-loading" style="color:#444">Translation unavailable</div>`;
+  }
+  return `
+    <div class="radio-full-section">
+      <div class="radio-full-section-label">What it means</div>
+      <div class="radio-full-section-text">${escapeHtml(cached.what)}</div>
+    </div>
+    <div class="radio-full-section">
+      <div class="radio-full-section-label">Why it matters</div>
+      <div class="radio-full-section-text">${escapeHtml(cached.why)}</div>
+    </div>
+    <div class="radio-full-section">
+      <div class="radio-full-section-label">What happens next</div>
+      <div class="radio-full-section-text">${escapeHtml(cached.next)}</div>
+    </div>`;
+}
+
+function renderRadioFullView(radio) {
+  const body = document.getElementById('radioFullBody');
+  if (!body) return;
+
+  if (!radio || !radio.length) {
+    body.innerHTML = `<div style="color:#555;font-size:12px;padding:20px 0">Listening for team radio…</div>`;
+    return;
+  }
+
+  const sorted = [...radio].reverse();
+  const latest = sorted[0];
+  const latestKey    = _radioKey(latest);
+  const latestMsg    = latest.message || latest.msg || latest.text || '';
+  const latestClr    = _teamColor(latest.team);
+  const latestCached = _radioTranslations.get(latestKey);
+
+  let out = `
+    <div class="radio-full-latest">
+      <div class="radio-full-call-driver">
+        <span style="width:8px;height:8px;border-radius:50%;background:${latestClr};flex-shrink:0;display:inline-block"></span>
+        ${escapeHtml(latest.driver)} &middot; ${escapeHtml(latest.team)}
+      </div>
+      ${latestMsg ? `<div class="radio-full-call-msg">"${escapeHtml(latestMsg)}"</div>` : ''}
+      ${_radioSectionHtml(latestCached)}
+    </div>`;
+
+  if (sorted.length > 1) {
+    out += `<div class="radio-full-divider">Earlier calls</div>`;
+    sorted.slice(1).forEach((r, i) => {
+      const key    = _radioKey(r);
+      const msg    = r.message || r.msg || r.text || '';
+      const clr    = _teamColor(r.team);
+      const cached = _radioTranslations.get(key);
+      const eid    = `rfe_${i}`;
+      out += `
+        <div class="radio-full-entry" onclick="_toggleRadioEntry('${eid}')">
+          <div class="radio-full-entry-driver">
+            <span style="width:7px;height:7px;border-radius:50%;background:${clr};flex-shrink:0;display:inline-block"></span>
+            ${escapeHtml(r.driver)} &middot; ${escapeHtml(r.team)}
+          </div>
+          ${msg ? `<div class="radio-full-entry-msg">"${escapeHtml(msg)}"</div>` : ''}
+          <div class="radio-full-entry-expand" id="${eid}" style="display:none">
+            ${_radioSectionHtml(cached)}
+          </div>
+        </div>`;
+    });
+  }
+
+  body.innerHTML = out;
+}
+
+function _toggleRadioEntry(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function _translateRadio(r) {
+  const key = _radioKey(r);
+  const msg = r.message || r.msg || r.text || '';
+  if (!msg || _radioTranslations.has(key)) return;
+
+  _radioTranslations.set(key, 'loading');
+  if (liveData.radio) renderRadio(liveData.radio);
+
+  try {
+    const res = await fetch(`${BACKEND}/api/chat`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        system: `You are explaining F1 team radio to a brand new fan. Reply with EXACTLY 3 lines, nothing else.
+Line 1: Plain English explanation of what the message means, one sentence.
+Line 2: Why this matters for the race, one sentence.
+Line 3: What will likely happen next because of this, one sentence.
+No labels, no jargon, no extra lines. Three sentences only.`,
+        messages: [{ role: 'user', content: `Driver: ${r.driver} (${r.team})\nRadio: "${msg}"` }],
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const lines = (data.reply || '').trim().split('\n').map(l => l.trim()).filter(Boolean);
+    _radioTranslations.set(key, {
+      what: lines[0] || '',
+      why:  lines[1] || '',
+      next: lines[2] || '',
+    });
+  } catch {
+    _radioTranslations.set(key, 'error');
+  }
+
+  if (liveData.radio) renderRadio(liveData.radio);
+}
 
 /* ──────────────────────────────────────────────────
    CHIPS
