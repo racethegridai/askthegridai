@@ -1592,6 +1592,186 @@
     .inc-desc { font-size: 11px; color: var(--gray-lt); line-height: 1.45; }
 
     /* Focus Moment */
+    /* ── SIDE CARDS SCROLLABLE ──────────────────────── */
+    .side-cards {
+      overflow-y: auto;
+    }
+    .side-cards .info-card {
+      flex: none;
+      min-height: 0;
+    }
+
+    /* ── WHO WON & LOST CARD ─────────────────────────── */
+    .wl-card {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .wl-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 7px 0;
+      border-bottom: 1px solid #111;
+    }
+    .wl-row:first-child { padding-top: 0; }
+    .wl-row:last-child  { border-bottom: none; padding-bottom: 0; }
+    .wl-tag {
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 2px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .wl-tag.win  { background: rgba(0,216,75,.15); color: #00d84b; border: 1px solid rgba(0,216,75,.3); }
+    .wl-tag.lose { background: rgba(225,6,0,.14);  color: var(--red); border: 1px solid rgba(225,6,0,.3); }
+    .wl-body { flex: 1; min-width: 0; }
+    .wl-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 2px;
+    }
+    .wl-reason {
+      font-size: 10px;
+      color: var(--gray);
+      line-height: 1.45;
+    }
+    .wl-loading {
+      font-size: 10px;
+      color: #333;
+      font-style: italic;
+      animation: skeleton-pulse 1.8s ease-in-out infinite;
+      padding: 4px 0;
+    }
+
+    /* ── WHAT TO WATCH NEXT ──────────────────────────── */
+    .watch-next-card {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(225,6,0,0.03);
+      border-left: 3px solid var(--red);
+    }
+    .watch-next-card .card-title {
+      color: var(--red);
+      margin-bottom: 8px;
+    }
+    .watch-next-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--white);
+      line-height: 1.55;
+      margin-bottom: 7px;
+    }
+    .watch-next-action {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--yellow);
+      line-height: 1.4;
+    }
+    .watch-next-action.loading {
+      color: #333;
+      font-weight: 400;
+      font-style: italic;
+      animation: skeleton-pulse 1.8s ease-in-out infinite;
+    }
+
+    /* ── RIGHT RADIO FEED ────────────────────────────── */
+    .right-radio-card {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .right-radio-entry {
+      padding: 8px 0;
+      border-bottom: 1px solid #111;
+    }
+    .right-radio-entry:first-child { padding-top: 0; }
+    .right-radio-entry:last-child  { border-bottom: none; padding-bottom: 0; }
+    .right-radio-driver {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+    .right-radio-msg {
+      font-size: 11px;
+      color: var(--gray-lt);
+      font-style: italic;
+      line-height: 1.45;
+      margin-bottom: 5px;
+    }
+    .right-radio-meaning-label {
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 3px;
+    }
+    .right-radio-meaning-text {
+      font-size: 10px;
+      color: #aaa;
+      line-height: 1.5;
+    }
+    .right-radio-meaning-text.loading {
+      color: #333;
+      font-style: italic;
+      animation: skeleton-pulse 1.8s ease-in-out infinite;
+    }
+
+    /* ── COMPACT COUNTDOWN ───────────────────────────── */
+    .compact-countdown-card {
+      padding: 11px 14px;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+    .compact-cd-label {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #444;
+      margin-bottom: 6px;
+    }
+    .compact-cd-race {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gray-lt);
+      margin-bottom: 6px;
+      letter-spacing: .5px;
+    }
+    .compact-cd-units {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .compact-cd-num {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--white);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .compact-cd-unit-label {
+      font-size: 7px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #444;
+      margin-right: 6px;
+    }
+    .compact-cd-sep {
+      font-size: 16px;
+      font-weight: 900;
+      color: #333;
+      margin: 0 1px;
+    }
+
     .focus-card {
       border-top: 2px solid var(--red);
       background: rgba(225,6,0,0.04);
@@ -2884,26 +3064,51 @@
   <!-- SIDE CARDS COLUMN -->
   <div class="side-cards">
 
-    <!-- Race Incidents -->
-    <div class="info-card">
+    <!-- 1. Who Won & Lost Most -->
+    <div class="wl-card">
       <div class="card-title">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Race Incidents
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        Who Won &amp; Lost Most
       </div>
-      <div class="card-body" id="incidentsCard">
-        <div style="color:var(--gray);font-size:11px;">Loading…</div>
+      <div id="winnerLoserBody">
+        <div class="wl-loading">Analysing race positions&hellip;</div>
       </div>
     </div>
 
-    <!-- Focus Moment -->
-    <div class="focus-card">
+    <!-- 2. What To Watch Next -->
+    <div class="watch-next-card">
       <div class="card-title">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Focus Moment
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        What To Watch Next
       </div>
-      <div id="focusMomentContent">
-        <div class="focus-moment-text">Norris on 22-lap-old Mediums — pit window open now</div>
-        <div class="focus-moment-sub">McLaren must decide: stay out and hope for a VSC, or pit and defend on fresh rubber.</div>
+      <div class="watch-next-text" id="watchNextText">Strategy battle developing in the midfield.</div>
+      <div class="watch-next-action loading" id="watchNextAction">Loading watch point&hellip;</div>
+    </div>
+
+    <!-- 3. Team Radio Feed -->
+    <div class="right-radio-card">
+      <div class="card-title">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.18 19.79 19.79 0 01.1 .55 2 2 0 012.07 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.43 7.43a16 16 0 006.14 6.14l.9-.9a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg>
+        Team Radio
+      </div>
+      <div id="rightRadioBody">
+        <div class="wl-loading">Listening for radio&hellip;</div>
+      </div>
+    </div>
+
+    <!-- 4. Next Race Countdown -->
+    <div class="compact-countdown-card">
+      <div class="compact-cd-label">Next Race</div>
+      <div class="compact-cd-race">Miami Grand Prix · May 1–3</div>
+      <div class="compact-cd-units">
+        <span class="compact-cd-num" id="ccd-d">--</span>
+        <span class="compact-cd-unit-label">d</span>
+        <span class="compact-cd-sep">:</span>
+        <span class="compact-cd-num" id="ccd-h">--</span>
+        <span class="compact-cd-unit-label">h</span>
+        <span class="compact-cd-sep">:</span>
+        <span class="compact-cd-num" id="ccd-m">--</span>
+        <span class="compact-cd-unit-label">m</span>
       </div>
     </div>
 
@@ -3253,8 +3458,8 @@ function applyState(data) {
   }
 
   // ── Info cards ──────────────────────────────────
-  if (data.incidents) renderIncidents(data.incidents);
-  if (data.radio)     renderRadio(data.radio);
+  if (data.incidents) { renderIncidents(data.incidents); updateWinnerLoser(); }
+  if (data.radio)     { renderRadio(data.radio); renderRightRadio(data.radio); }
   if (data.pit_stops) PitMgr.update(data.pit_stops);
 
   // ── WJH subtitle — key events count ────────────────
@@ -3266,9 +3471,10 @@ function applyState(data) {
       : 'AI explains last 5 minutes';
   }
 
-  // ── AI Race Read — fetch on first data, then every 2 min ──
+  // ── AI Race Read + Watch Next — fetch on first data, then every 2 min ──
   if (_raceReadLastMs === 0) {
     updateRaceRead();
+    updateWatchNext();
     _startRaceReadTimer();
   }
 
@@ -3308,6 +3514,183 @@ function _applyFlag(status, message) {
   pill.textContent   = cfg.label;
   textEl.textContent = message || cfg.label;
   banner.classList.add('visible');
+}
+
+/* ──────────────────────────────────────────────────
+   WHO WON & LOST MOST — right column card
+────────────────────────────────────────────────── */
+let _wlLastHash = '';
+
+async function updateWinnerLoser() {
+  const body = document.getElementById('winnerLoserBody');
+  if (!body) return;
+
+  const drivers   = liveData.drivers || [];
+  const incidents = liveData.incidents || [];
+  if (!drivers.length) return;
+
+  // Only re-call AI when incidents actually change
+  const hash = JSON.stringify(incidents.slice(0,3));
+  if (hash === _wlLastHash) return;
+  _wlLastHash = hash;
+
+  body.innerHTML = '<div class="wl-loading">Analysing&hellip;</div>';
+
+  const top5 = drivers.slice(0, 5)
+    .map(d => `P${d.pos} ${d.code} gap:${d.gap} tyre:${d.tyre}(${d.stintLap}L)`).join(', ');
+  const recentInc = incidents.slice(0, 3).map(i => i.msg).join('; ');
+
+  try {
+    const r = await fetch(`${BACKEND}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: `You are a terse F1 analyst. Given the race state, identify the ONE driver who gained most and the ONE driver who lost most from recent events.
+Reply in this exact JSON format only, no other text:
+{"winner":{"name":"Lastname","reason":"one sentence max 15 words"},"loser":{"name":"Lastname","reason":"one sentence max 15 words"}}`,
+        messages: [{ role: 'user', content: `Race: ${liveData.session_name || '?'}, Lap ${liveData.lap || '?'}. Top 5: ${top5}. Recent events: ${recentInc || 'none'}. Who won and lost most?` }],
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!r.ok) throw new Error();
+    const raw = (await r.json()).reply || '';
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error();
+    const { winner, loser } = JSON.parse(match[0]);
+    body.innerHTML = `
+      <div class="wl-row">
+        <span class="wl-tag win">WIN</span>
+        <div class="wl-body">
+          <div class="wl-name">${escapeHtml(winner.name)}</div>
+          <div class="wl-reason">${escapeHtml(winner.reason)}</div>
+        </div>
+      </div>
+      <div class="wl-row">
+        <span class="wl-tag lose">LOSE</span>
+        <div class="wl-body">
+          <div class="wl-name">${escapeHtml(loser.name)}</div>
+          <div class="wl-reason">${escapeHtml(loser.reason)}</div>
+        </div>
+      </div>`;
+  } catch {
+    if (drivers.length >= 2) {
+      const leader = drivers[0];
+      const second = drivers[1];
+      body.innerHTML = `
+        <div class="wl-row">
+          <span class="wl-tag win">WIN</span>
+          <div class="wl-body">
+            <div class="wl-name">${escapeHtml(leader.code)}</div>
+            <div class="wl-reason">Leading by ${escapeHtml(second.gap)} in clean air.</div>
+          </div>
+        </div>
+        <div class="wl-row">
+          <span class="wl-tag lose">LOSE</span>
+          <div class="wl-body">
+            <div class="wl-name">${escapeHtml(second.code)}</div>
+            <div class="wl-reason">Gap to leader growing every lap.</div>
+          </div>
+        </div>`;
+    }
+  }
+}
+
+/* ──────────────────────────────────────────────────
+   WHAT TO WATCH NEXT — right column card
+────────────────────────────────────────────────── */
+async function updateWatchNext() {
+  const textEl   = document.getElementById('watchNextText');
+  const actionEl = document.getElementById('watchNextAction');
+  if (!textEl || !actionEl) return;
+
+  const drivers = liveData.drivers || [];
+  if (!drivers.length) return;
+
+  actionEl.className = 'watch-next-action loading';
+  actionEl.textContent = 'Loading watch point\u2026';
+
+  const top5 = drivers.slice(0,5)
+    .map(d => `P${d.pos} ${d.code} (${d.tyre} ${d.stintLap}L, ${d.gap})`).join('; ');
+  const flag = liveData.status !== 'none' ? ` Flag: ${liveData.status}.` : '';
+
+  try {
+    const r = await fetch(`${BACKEND}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: `You are an F1 producer flagging what the audience should watch next.
+Reply in this exact JSON format only, no other text:
+{"situation":"one sentence describing current race story max 18 words","action":"one specific thing to watch in next 5 laps max 15 words"}`,
+        messages: [{ role: 'user', content: `${liveData.session_name || 'Race'}, lap ${liveData.lap || '?'}.${flag} Top 5: ${top5}. What should viewers watch next?` }],
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!r.ok) throw new Error();
+    const raw = (await r.json()).reply || '';
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error();
+    const { situation, action } = JSON.parse(match[0]);
+    if (textEl)   { textEl.textContent = situation; }
+    if (actionEl) { actionEl.className = 'watch-next-action'; actionEl.textContent = `\u25b6 ${action}`; }
+  } catch {
+    if (actionEl) { actionEl.className = 'watch-next-action'; actionEl.textContent = '\u25b6 Watch the gap between P1 and P2.'; }
+  }
+}
+
+/* ──────────────────────────────────────────────────
+   RIGHT COLUMN RADIO FEED
+────────────────────────────────────────────────── */
+function renderRightRadio(radio) {
+  const body = document.getElementById('rightRadioBody');
+  if (!body) return;
+  if (!radio || !radio.length) {
+    body.innerHTML = '<div class="wl-loading">Listening for radio\u2026</div>';
+    return;
+  }
+
+  const sorted  = [...radio].reverse();
+  const entries = sorted.slice(0, 2);
+
+  body.innerHTML = entries.map(r => {
+    const clr  = _teamColor(r.team);
+    const msg  = r.message || r.msg || r.text || '';
+    const key  = _radioKey(r);
+    const trans = _radioTranslations.get(key);
+    const meaningHtml = (!trans || trans === 'loading')
+      ? '<div class="right-radio-meaning-text loading">Translating\u2026</div>'
+      : trans === 'error'
+        ? '<div class="right-radio-meaning-text loading">Translation unavailable</div>'
+        : `<div class="right-radio-meaning-text">${escapeHtml(trans.what || '')}</div>`;
+    return `
+      <div class="right-radio-entry">
+        <div class="right-radio-driver">
+          <span style="width:7px;height:7px;border-radius:50%;background:${clr};display:inline-block;flex-shrink:0"></span>
+          ${escapeHtml(r.driver)} &middot; <span style="color:var(--gray);font-weight:400">${escapeHtml(r.team)}</span>
+        </div>
+        ${msg ? `<div class="right-radio-msg">&ldquo;${escapeHtml(msg)}&rdquo;</div>` : ''}
+        <div class="right-radio-meaning-label">What this means</div>
+        ${meaningHtml}
+      </div>`;
+  }).join('');
+}
+
+/* ──────────────────────────────────────────────────
+   COMPACT COUNTDOWN — right column bottom
+────────────────────────────────────────────────── */
+function _tickCompactCountdown() {
+  const target = new Date('2026-05-01T19:00:00Z').getTime();
+  const now    = Date.now();
+  const diff   = Math.max(0, target - now);
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000)  / 60000);
+  const pad = n => String(n).padStart(2, '0');
+  const dEl = document.getElementById('ccd-d');
+  const hEl = document.getElementById('ccd-h');
+  const mEl = document.getElementById('ccd-m');
+  if (dEl) dEl.textContent = d;
+  if (hEl) hEl.textContent = pad(h);
+  if (mEl) mEl.textContent = pad(m);
 }
 
 /* ──────────────────────────────────────────────────
@@ -3378,7 +3761,10 @@ Never start with "Currently" or "Right now". Just say it.`,
 
 function _startRaceReadTimer() {
   if (_raceReadTimer) return;
-  _raceReadTimer = setInterval(updateRaceRead, RACE_READ_INTERVAL);
+  _raceReadTimer = setInterval(() => {
+    updateRaceRead();
+    updateWatchNext();
+  }, RACE_READ_INTERVAL);
 }
 
 /* ──────────────────────────────────────────────────
@@ -3963,7 +4349,7 @@ function _incFlagClass(flag) {
 
 function renderIncidents(incidents) {
   const el = document.getElementById('incidentsCard');
-  if (!el) return;
+  if (!el) return; // card removed in redesign — incidents feed winner/loser via updateWinnerLoser()
   if (!incidents.length) {
     el.innerHTML = '<div style="color:var(--gray);font-size:11px;">No incidents recorded</div>';
     return;
@@ -5365,6 +5751,10 @@ function init() {
     const btn = document.getElementById('pitTestBtn');
     if (btn) btn.style.display = 'inline-block';
   }
+
+  // Compact countdown
+  _tickCompactCountdown();
+  setInterval(_tickCompactCountdown, 30000);
 
   updateFreeLimitUI();
 }
