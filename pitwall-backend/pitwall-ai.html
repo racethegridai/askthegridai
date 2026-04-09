@@ -383,8 +383,58 @@
     }
 
     .standings-scroll {
+      flex: 0 0 auto;
+      overflow: hidden;
+    }
+
+    /* ── LEFT COLUMN INCIDENTS ───────────────────────── */
+    .left-incidents {
       flex: 1;
+      min-height: 0;
       overflow-y: auto;
+      border-top: 1px solid var(--border);
+    }
+    .left-incidents-hdr {
+      padding: 8px 14px 6px;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--red);
+      border-bottom: 1px solid #141414;
+      flex-shrink: 0;
+    }
+    .left-inc-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid #111;
+    }
+    .left-inc-row:last-child { border-bottom: none; }
+    .left-inc-lap {
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #555;
+      background: #161616;
+      border: 1px solid #222;
+      padding: 2px 5px;
+      border-radius: 2px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      white-space: nowrap;
+    }
+    .left-inc-msg {
+      font-size: 10px;
+      color: #bbb;
+      line-height: 1.45;
+    }
+    .left-inc-empty {
+      padding: 14px 12px;
+      font-size: 10px;
+      color: #333;
+      font-style: italic;
     }
 
     table.standings {
@@ -2976,8 +3026,11 @@
         <tbody id="standingsTbody"></tbody>
       </table>
     </div>
-    <div class="standings-footer">
-      <a onclick="void(0)">View full standings ›</a>
+    <div class="left-incidents" id="leftIncidentsSection">
+      <div class="left-incidents-hdr">Race Incidents</div>
+      <div id="leftIncidentsBody">
+        <div class="left-inc-empty">No incidents yet</div>
+      </div>
     </div>
   </div>
 
@@ -3499,7 +3552,7 @@ function applyState(data) {
   }
 
   // ── Info cards ──────────────────────────────────
-  if (data.incidents) { renderIncidents(data.incidents); updateWinnerLoser(); }
+  if (data.incidents) { renderIncidents(data.incidents); renderLeftIncidents(data.incidents); updateWinnerLoser(); }
   if (data.radio)     { renderRadio(data.radio); renderRightRadio(data.radio); }
   if (data.pit_stops) PitMgr.update(data.pit_stops);
 
@@ -3684,23 +3737,37 @@ Reply in this exact JSON format only, no other text:
 function renderRightRadio(radio) {
   const body = document.getElementById('rightRadioBody');
   if (!body) return;
-  if (!radio || !radio.length) {
-    body.innerHTML = '<div class="wl-loading">Listening for radio\u2026</div>';
+
+  // Always show 3 entries — live if available, fallback if not
+  const hasLive = radio && radio.length;
+  const entries = hasLive
+    ? [...radio].reverse().slice(0, 3)
+    : null;
+
+  if (!entries) {
+    // Use curated fallback
+    body.innerHTML = FALLBACK_RADIO.slice(0, 3).map(r => `
+      <div class="right-radio-entry">
+        <div class="right-radio-driver">
+          <span style="width:7px;height:7px;border-radius:50%;background:${_teamColor(r.team)};display:inline-block;flex-shrink:0"></span>
+          ${escapeHtml(r.driver)} &middot; <span style="color:var(--gray);font-weight:400">${escapeHtml(r.team)}</span>
+        </div>
+        <div class="right-radio-msg">&ldquo;${escapeHtml(r.message)}&rdquo;</div>
+        <div class="right-radio-meaning-label">What this means</div>
+        <div class="right-radio-meaning-text">${escapeHtml(r.meaning)}</div>
+      </div>`).join('');
     return;
   }
 
-  const sorted  = [...radio].reverse();
-  const entries = sorted.slice(0, 2);
-
   body.innerHTML = entries.map(r => {
-    const clr  = _teamColor(r.team);
-    const msg  = r.message || r.msg || r.text || '';
-    const key  = _radioKey(r);
+    const clr = _teamColor(r.team);
+    const msg = r.message || r.msg || r.text || '';
+    const key = _radioKey(r);
     const trans = _radioTranslations.get(key);
     const meaningHtml = (!trans || trans === 'loading')
-      ? '<div class="right-radio-meaning-text loading">Translating\u2026</div>'
+      ? `<div class="right-radio-meaning-text loading">Translating\u2026</div>`
       : trans === 'error'
-        ? '<div class="right-radio-meaning-text loading">Translation unavailable</div>'
+        ? `<div class="right-radio-meaning-text loading">Translation unavailable</div>`
         : `<div class="right-radio-meaning-text">${escapeHtml(trans.what || '')}</div>`;
     return `
       <div class="right-radio-entry">
@@ -4281,7 +4348,7 @@ function renderChampionshipStandings(standings, source) {
   _setStandingsHeaders('champ');
   const tbody = document.getElementById('standingsTbody');
   if (!tbody) return;
-  tbody.innerHTML = standings.map(s => {
+  tbody.innerHTML = standings.slice(0, 10).map(s => {
     const isLeader = s.position === 1;
     const posClass = s.position <= 3 ? 'p' + s.position : '';
     const colour   = _teamColor(s.team);
@@ -4351,8 +4418,24 @@ function _arrowHtml(currentPos, key) {
     : '<span class="pos-arrow down">&#9660;</span>';
 }
 
+function renderLeftIncidents(incidents) {
+  const body = document.getElementById('leftIncidentsBody');
+  if (!body) return;
+  const list = (incidents || []).slice(0, 5);
+  if (!list.length) {
+    body.innerHTML = '<div class="left-inc-empty">No incidents recorded</div>';
+    return;
+  }
+  body.innerHTML = list.map(inc => {
+    const lapBadge = inc.lap ? `<span class="left-inc-lap">L${inc.lap}</span>` : '';
+    return `<div class="left-inc-row">${lapBadge}<span class="left-inc-msg">${escapeHtml(inc.msg || inc.flag || '')}</span></div>`;
+  }).join('');
+}
+
 function renderStandings(drivers) {
   _loadPrevPositions();
+  // Cap at top 10
+  drivers = drivers.slice(0, 10);
 
   // Drivers currently in pit lane
   const inPit = new Set(
