@@ -103,6 +103,10 @@
       text-transform: uppercase;
     }
 
+    /* Short logo only shown on mobile */
+    .logo-short { display: none; }
+    .logo-full  { display: inline; }
+
     .logo-title em {
       color: var(--red);
       font-style: normal;
@@ -2781,6 +2785,55 @@
     /* ── MOBILE LAYOUT (< 768px) ───────────────────── */
     @media (max-width: 767px) {
 
+      /* FIX 1 — Short logo on mobile */
+      .logo-short { display: inline; }
+      .logo-full  { display: none; }
+      .logo-title { font-size: 20px; letter-spacing: 3px; }
+      .logo-sub   { display: none; }
+
+      /* FIX 2 — Header becomes two rows on mobile:
+         top row = logo, bottom row = tab strip */
+      header {
+        height: auto;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0;
+        gap: 0;
+      }
+
+      /* Top row: logo left-aligned */
+      .logo {
+        padding: 10px 14px;
+        flex-shrink: 0;
+      }
+
+      /* Tab group moves below logo, full width, scrollable */
+      .tab-group {
+        width: 100%;
+        height: 40px;
+        border-top: 1px solid #1a1a1a;
+        overflow-x: auto;
+        scrollbar-width: none;
+        flex-shrink: 0;
+        -webkit-overflow-scrolling: touch;
+      }
+      .tab-group::-webkit-scrollbar { display: none; }
+
+      .tab-btn {
+        height: 40px;
+        padding: 0 18px;
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        flex-shrink: 0;
+        top: 0;
+      }
+
+      /* Hide pro/locked tabs on mobile — Live and Drivers only */
+      .tab-btn[data-tab="strategy"],
+      .tab-btn[data-tab="f2f3"],
+      .tab-btn[data-tab="news"],
+      .tab-btn[data-tab="season"] { display: none; }
+
       /* Override html/body overflow so the page can scroll vertically */
       html, body { overflow: auto; height: auto; }
 
@@ -3073,7 +3126,10 @@
     <button class="logo-trigger" id="logoTrigger" onclick="toggleSportMenu()" aria-expanded="false" aria-haspopup="true">
       <div class="logo-icon">P</div>
       <div class="logo-wordmark">
-        <div class="logo-title">ASK THE GRID <em>AI</em></div>
+        <div class="logo-title">
+          <span class="logo-full">ASK THE GRID <em>AI</em></span>
+          <span class="logo-short">ATG<em>ai</em></span>
+        </div>
         <div class="logo-sub">F1 Race Intelligence</div>
       </div>
       <span class="logo-arrow">
