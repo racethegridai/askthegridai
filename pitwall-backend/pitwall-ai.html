@@ -2778,6 +2778,148 @@
       table.standings td { padding: 5px 6px 5px 10px; }
     }
 
+    /* ── MOBILE LAYOUT (< 768px) ───────────────────── */
+    @media (max-width: 767px) {
+
+      /* Override html/body overflow so the page can scroll vertically */
+      html, body { overflow: auto; height: auto; }
+
+      /* Stack the three columns vertically */
+      .main-content {
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+        height: auto;
+      }
+
+      /* Each column takes full width and grows to natural height */
+      .standings-panel,
+      .chat-panel,
+      .side-cards {
+        width: 100%;
+        min-height: 0;
+        overflow: visible;
+        border: none;
+        border-bottom: 2px solid var(--border);
+      }
+
+      /* Left col: standings — show full table, no scroll cap */
+      .standings-scroll {
+        overflow: visible;
+        height: auto;
+        flex: none;
+      }
+      .standings-panel { order: 1; }
+
+      /* Center col: chat/AI panel */
+      .chat-panel { order: 2; }
+
+      /* The scrollable card zone becomes natural height on mobile */
+      .center-cards-scroll {
+        flex: none;
+        overflow: visible;
+        height: auto;
+      }
+
+      /* Chat messages — remove max-height cap */
+      .chat-messages {
+        max-height: none;
+        overflow: visible;
+      }
+
+      /* Right col: side cards */
+      .side-cards { order: 3; overflow: visible; }
+      .side-cards .info-card { flex: none; min-height: 0; overflow: visible; }
+
+      /* Race incidents section */
+      .left-incidents { overflow: visible; max-height: none; }
+
+      /* Radio earlier — remove max-height cap */
+      .radio-earlier { max-height: none; overflow: visible; }
+
+      /* Race read card — remove max-height cap */
+      .race-read-card { max-height: none; overflow: visible; }
+
+      /* Bigger tap targets and text */
+      .wjh-btn {
+        height: 72px;
+        max-height: 72px;
+        font-size: 15px;
+      }
+      .wjh-btn-title { font-size: 15px; }
+      .wjh-btn-sub   { font-size: 12px; }
+
+      .send-btn {
+        padding: 0 20px;
+        font-size: 14px;
+        height: 48px;
+      }
+
+      .chat-input {
+        font-size: 15px;
+        padding: 14px 16px;
+        height: 48px;
+      }
+
+      .input-bar {
+        padding: 10px 12px;
+        gap: 8px;
+      }
+
+      /* Full-width buttons */
+      .chip       { flex: 1 1 auto; text-align: center; font-size: 13px; padding: 8px 10px; }
+      .chips-group-row { flex-wrap: wrap; }
+
+      /* Slightly bigger standings text */
+      table.standings td { padding: 10px 6px 10px 12px; font-size: 13px; }
+      .td-pos { font-size: 16px; }
+      .td-driver .drv-name { font-size: 13px; }
+
+      /* Bigger card titles */
+      .card-title  { font-size: 10px; padding: 12px 14px 4px; }
+      .panel-hdr   { padding: 12px 16px; }
+      .panel-hdr-title { font-size: 11px; }
+
+      /* Radio entries */
+      .radio-hero { margin: 10px 12px; }
+      .radio-hero-msg { font-size: 14px; }
+      .radio-earlier-msg { font-size: 13px; }
+      .radio-earlier-row { padding: 10px 14px; min-height: 44px; }
+
+      /* Race read quote */
+      .race-read-quote { font-size: 15px; }
+
+      /* Right radio entries */
+      .right-radio-entry { padding: 12px 14px; min-height: 60px; }
+
+      /* Shrink header slightly */
+      header { height: 52px; }
+      .logo-title { font-size: 19px; }
+
+      /* Race bar — allow wrapping */
+      .race-bar { height: auto; min-height: 38px; flex-wrap: wrap; padding: 6px 14px; gap: 8px; }
+
+      /* Incident banner */
+      .incident-banner.visible { max-height: 60px; }
+      .banner-inner { height: auto; padding: 10px 14px; }
+
+      /* Pit overlay */
+      .pit-overlay-wrap { margin: 10px 12px 0; padding: 0; }
+
+      /* Compact countdown */
+      .compact-countdown-card { padding: 14px 16px; }
+
+      /* Winner/Loser card rows */
+      .wl-row { padding: 10px 14px; min-height: 48px; }
+
+      /* tab bar */
+      .tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .tab-btn  { font-size: 11px; padding: 0 14px; flex-shrink: 0; }
+
+      /* upgrade panel */
+      .upgrade-pro-btn { font-size: 14px; padding: 14px; width: 100%; }
+    }
+
     /* ── DRIVERS TAB ──────────────────────────────── */
     /* ── DRIVERS TAB ──────────────────────────────── */
     .drv-tab-wrap { flex:1; display:flex; flex-direction:column; overflow:hidden; min-height:0; }
