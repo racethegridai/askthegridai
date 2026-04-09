@@ -2782,6 +2782,11 @@
       table.standings td { padding: 5px 6px 5px 10px; }
     }
 
+    /* Desktop: hide mobile-only elements */
+    .mob-standings-expand { display: none; }
+    .logo-short { display: none; }
+    .logo-full  { display: inline; }
+
     /* ── MOBILE LAYOUT (< 768px) ───────────────────── */
     @media (max-width: 767px) {
 
@@ -2837,7 +2842,7 @@
       /* Override html/body overflow so the page can scroll vertically */
       html, body { overflow: auto; height: auto; }
 
-      /* Stack the three columns vertically */
+      /* ── FIX 3: Column order — AI/radio first, standings below ── */
       .main-content {
         display: flex;
         flex-direction: column;
@@ -2845,131 +2850,119 @@
         height: auto;
       }
 
-      /* Each column takes full width and grows to natural height */
-      .standings-panel,
-      .chat-panel,
-      .side-cards {
-        width: 100%;
-        min-height: 0;
-        overflow: visible;
-        border: none;
-        border-bottom: 2px solid var(--border);
-      }
+      /* Center col (AI + radio + input) comes first */
+      .chat-panel    { order: 1; width: 100%; overflow: visible; border: none; border-bottom: 2px solid var(--border); }
+      /* Left col (standings + incidents) comes second */
+      .standings-panel { order: 2; width: 100%; overflow: visible; border: none; border-bottom: 2px solid var(--border); }
+      /* Right col hidden on mobile — info lives in the other columns */
+      .side-cards    { display: none; }
 
-      /* Left col: standings — show full table, no scroll cap */
-      .standings-scroll {
-        overflow: visible;
-        height: auto;
-        flex: none;
-      }
-      .standings-panel { order: 1; }
+      /* Panel header hidden on mobile — redundant on single-column */
+      .chat-panel > .panel-hdr { display: none; }
 
-      /* Center col: chat/AI panel */
-      .chat-panel { order: 2; }
+      /* Scrollable card zone becomes natural height */
+      .center-cards-scroll { flex: none; overflow: visible; height: auto; }
 
-      /* The scrollable card zone becomes natural height on mobile */
-      .center-cards-scroll {
-        flex: none;
-        overflow: visible;
-        height: auto;
-      }
+      /* Chat messages — no max-height cap */
+      .chat-messages { max-height: none; overflow: visible; }
 
-      /* Chat messages — remove max-height cap */
-      .chat-messages {
-        max-height: none;
-        overflow: visible;
-      }
+      /* Standings scroll — natural height */
+      .standings-scroll { overflow: visible; height: auto; flex: none; }
 
-      /* Right col: side cards */
-      .side-cards { order: 3; overflow: visible; }
-      .side-cards .info-card { flex: none; min-height: 0; overflow: visible; }
-
-      /* Race incidents section */
+      /* Race incidents */
       .left-incidents { overflow: visible; max-height: none; }
 
-      /* Radio earlier — remove max-height cap */
-      .radio-earlier { max-height: none; overflow: visible; }
-
-      /* Race read card — remove max-height cap */
-      .race-read-card { max-height: none; overflow: visible; }
-
-      /* Bigger tap targets and text */
-      .wjh-btn {
-        height: 72px;
-        max-height: 72px;
-        font-size: 15px;
+      /* ── FIX 4: Card sizing — full width, 16px side padding, 12px gaps ── */
+      .race-read-card {
+        max-height: none;
+        overflow: visible;
+        margin: 12px 16px 0;
       }
+      .radio-hero {
+        max-height: 160px;
+        margin: 12px 16px 0;
+      }
+      .radio-earlier {
+        max-height: none;
+        overflow: visible;
+        margin: 0 16px;
+      }
+      .pit-overlay-wrap { margin: 12px 16px 0; padding: 0; }
+      .wjh-btn          { margin-top: 12px; }
+      .chips-bar        { margin-top: 4px; }
+
+      /* ── FIX 4: Text sizing and tap targets ── */
+      .race-read-quote  { font-size: 15px; line-height: 1.6; }
+      .radio-hero-msg   { font-size: 14px; }
+      .radio-earlier-msg { font-size: 13px; }
+      .radio-earlier-row { padding: 10px 16px; min-height: 44px; }
+
+      .wjh-btn       { height: 72px; max-height: 72px; }
       .wjh-btn-title { font-size: 15px; }
       .wjh-btn-sub   { font-size: 12px; }
 
-      .send-btn {
-        padding: 0 20px;
-        font-size: 14px;
-        height: 48px;
-      }
-
-      .chat-input {
-        font-size: 15px;
-        padding: 14px 16px;
-        height: 48px;
-      }
-
-      .input-bar {
-        padding: 10px 12px;
-        gap: 8px;
-      }
-
-      /* Full-width buttons */
-      .chip       { flex: 1 1 auto; text-align: center; font-size: 13px; padding: 8px 10px; }
+      /* ── FIX 4: Chips — 2×3 wrap grid ── */
+      .chip            { flex: 1 1 calc(50% - 6px); text-align: center; font-size: 13px; padding: 9px 10px; }
       .chips-group-row { flex-wrap: wrap; }
 
-      /* Slightly bigger standings text */
+      /* ── FIX 6: Input stacks vertically on mobile ── */
+      .input-bar {
+        flex-direction: column;
+        padding: 12px 16px;
+        gap: 8px;
+      }
+      .chat-input {
+        width: 100%;
+        font-size: 15px;
+        padding: 14px 16px;
+        height: 50px;
+      }
+      .send-btn {
+        width: 100%;
+        height: 50px;
+        font-size: 14px;
+        padding: 0;
+      }
+
+      /* ── FIX 5: Standings — top 5 with expand button ── */
+      .mob-row-hidden { display: none; }
+      .mob-hide-col   { display: none; }   /* hide TYRE column on mobile */
+
       table.standings td { padding: 10px 6px 10px 12px; font-size: 13px; }
       .td-pos { font-size: 16px; }
       .td-driver .drv-name { font-size: 13px; }
 
-      /* Bigger card titles */
-      .card-title  { font-size: 10px; padding: 12px 14px 4px; }
-      .panel-hdr   { padding: 12px 16px; }
-      .panel-hdr-title { font-size: 11px; }
+      .mob-standings-expand {
+        display: block;
+        width: 100%;
+        padding: 11px 16px;
+        background: transparent;
+        border: none;
+        border-top: 1px solid var(--border);
+        color: var(--gray);
+        font-family: 'Titillium Web', sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        text-align: center;
+      }
+      .mob-standings-expand:hover { color: var(--white); background: rgba(255,255,255,.03); }
 
-      /* Radio entries */
-      .radio-hero { margin: 10px 12px; }
-      .radio-hero-msg { font-size: 14px; }
-      .radio-earlier-msg { font-size: 13px; }
-      .radio-earlier-row { padding: 10px 14px; min-height: 44px; }
-
-      /* Race read quote */
-      .race-read-quote { font-size: 15px; }
-
-      /* Right radio entries */
-      .right-radio-entry { padding: 12px 14px; min-height: 60px; }
-
-      /* Shrink header slightly */
-      header { height: 52px; }
-      .logo-title { font-size: 19px; }
-
-      /* Race bar — allow wrapping */
+      /* ── Race bar ── */
       .race-bar { height: auto; min-height: 38px; flex-wrap: wrap; padding: 6px 14px; gap: 8px; }
 
-      /* Incident banner */
+      /* ── Incident banner ── */
       .incident-banner.visible { max-height: 60px; }
       .banner-inner { height: auto; padding: 10px 14px; }
 
-      /* Pit overlay */
-      .pit-overlay-wrap { margin: 10px 12px 0; padding: 0; }
+      /* ── Panel headers / card titles ── */
+      .panel-hdr       { padding: 12px 16px; }
+      .panel-hdr-title { font-size: 11px; }
+      .card-title      { font-size: 10px; padding: 12px 14px 4px; }
 
-      /* Compact countdown */
-      .compact-countdown-card { padding: 14px 16px; }
-
-      /* Winner/Loser card rows */
-      .wl-row { padding: 10px 14px; min-height: 48px; }
-
-      /* tab bar */
-      .tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .tab-btn  { font-size: 11px; padding: 0 14px; flex-shrink: 0; }
-
-      /* upgrade panel */
+      /* ── Upgrade panel ── */
       .upgrade-pro-btn { font-size: 14px; padding: 14px; width: 100%; }
     }
 
@@ -3233,12 +3226,15 @@
           <tr>
             <th>POS</th>
             <th colspan="2">DRIVER</th>
-            <th>TYRE</th>
+            <th class="mob-hide-col">TYRE</th>
             <th style="text-align:right;padding-right:12px;">GAP</th>
           </tr>
         </thead>
         <tbody id="standingsTbody"></tbody>
       </table>
+      <button class="mob-standings-expand" id="mobStandingsBtn" onclick="toggleMobStandings()">
+        View all 20 drivers ▼
+      </button>
     </div>
     <div class="left-incidents" id="leftIncidentsSection">
       <div class="left-incidents-hdr">Race Incidents</div>
@@ -3277,7 +3273,7 @@
     <div class="radio-hero" id="radioHero" onclick="openRadioView()">
       <div class="radio-hero-live">
         <span class="radio-hero-dot"></span>
-        Team Radio &middot; Live
+        <span id="radioHeroLiveLabel">Team Radio &middot; Live</span>
       </div>
       <div class="radio-hero-msg listening" id="radioHeroMsg">Listening for team radio&hellip;</div>
       <div class="radio-hero-meta" id="radioHeroMeta" style="display:none">
@@ -4637,10 +4633,36 @@ function _arrowHtml(currentPos, key) {
     : '<span class="pos-arrow down">&#9660;</span>';
 }
 
+/* ── MOBILE STANDINGS EXPAND ──────────────────────── */
+let _mobStandingsExpanded = false;
+function toggleMobStandings() {
+  _mobStandingsExpanded = !_mobStandingsExpanded;
+  const btn = document.getElementById('mobStandingsBtn');
+  document.querySelectorAll('#standingsTbody tr').forEach((tr, i) => {
+    tr.classList.toggle('mob-row-hidden', !_mobStandingsExpanded && i >= 5);
+  });
+  if (btn) btn.textContent = _mobStandingsExpanded
+    ? 'Show less ▲'
+    : `View all ${document.querySelectorAll('#standingsTbody tr').length} drivers ▼`;
+}
+function _applyMobStandings() {
+  if (window.innerWidth >= 768) return;
+  const rows = document.querySelectorAll('#standingsTbody tr');
+  const btn  = document.getElementById('mobStandingsBtn');
+  rows.forEach((tr, i) => {
+    tr.classList.toggle('mob-row-hidden', !_mobStandingsExpanded && i >= 5);
+  });
+  if (btn) btn.textContent = _mobStandingsExpanded
+    ? 'Show less ▲'
+    : `View all ${rows.length} drivers ▼`;
+}
+
 function renderLeftIncidents(incidents) {
   const body = document.getElementById('leftIncidentsBody');
   if (!body) return;
-  const list = (incidents || []).slice(0, 5);
+  // On mobile show last 3 only; desktop keeps 5
+  const limit = window.innerWidth < 768 ? 3 : 5;
+  const list = (incidents || []).slice(0, limit);
   if (!list.length) {
     body.innerHTML = '<div class="left-inc-empty">No incidents recorded</div>';
     return;
@@ -4699,6 +4721,8 @@ function renderStandings(drivers) {
   setTimeout(() => {
     tbody.querySelectorAll('.standings-updated').forEach(r => r.classList.remove('standings-updated'));
   }, 1300);
+
+  _applyMobStandings();
 }
 
 /* ──────────────────────────────────────────────────
@@ -4866,6 +4890,8 @@ function renderRadio(radio) {
     const f = FALLBACK_RADIO[0];
     heroMsg.textContent = `"${f.message}"`;
     heroMsg.classList.remove('listening');
+    const liveLabel = document.getElementById('radioHeroLiveLabel');
+    if (liveLabel) liveLabel.textContent = 'Team Radio · Last call';
     if (heroMeta) heroMeta.style.display = 'flex';
     if (heroDrv) heroDrv.innerHTML =
       `<span style="width:8px;height:8px;border-radius:50%;background:${_teamColor(f.team)};flex-shrink:0;display:inline-block"></span>
@@ -4884,6 +4910,8 @@ function renderRadio(radio) {
 
   heroMsg.textContent = msg ? `"${msg}"` : 'Radio call received';
   heroMsg.classList.remove('listening');
+  const _liveLabel = document.getElementById('radioHeroLiveLabel');
+  if (_liveLabel) _liveLabel.textContent = 'Team Radio · Live';
 
   if (heroMeta) heroMeta.style.display = 'flex';
   if (heroDrv)  heroDrv.innerHTML =
@@ -6213,6 +6241,12 @@ function init() {
   setInterval(_tickCompactCountdown, 30000);
 
   updateFreeLimitUI();
+
+  // FIX 6 — shorter input placeholder on mobile
+  if (window.innerWidth < 768) {
+    const inp = document.getElementById('chatInput');
+    if (inp) inp.placeholder = 'Ask about the race…';
+  }
 }
 
 init();
