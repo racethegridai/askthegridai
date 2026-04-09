@@ -606,25 +606,34 @@
       min-height: 0;
     }
 
-    .chat-messages {
+    /* Scrollable zone: all cards above chips+input */
+    .center-cards-scroll {
       flex: 1;
+      min-height: 0;
       overflow-y: auto;
-      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding-bottom: 6px;
+    }
+
+    .chat-messages {
+      flex-shrink: 0;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 14px 16px;
       display: flex;
       flex-direction: column;
       gap: 14px;
+      margin: 0 0 2px;
     }
 
     /* ── WELCOME STATE ──────────────────────────────── */
-    .chat-messages:has(#welcomeCard) {
-      justify-content: center;
-    }
-
     .welcome-card {
       margin: 0 auto;
       max-width: 500px;
       width: 100%;
-      padding: 28px 20px 20px;
+      padding: 10px 20px 20px;
     }
 
     .welcome-headline {
@@ -1089,7 +1098,7 @@
       background: #e10600;
       border-radius: 6px;
       padding: 10px 14px;
-      margin-bottom: 8px;
+      margin: 10px 12px 0;
       cursor: pointer;
       flex-shrink: 0;
       transition: background .15s;
@@ -1173,7 +1182,7 @@
     /* ── AI RACE READ CARD ───────────────────────────── */
     .race-read-card {
       flex-shrink: 0;
-      margin: 0 12px 10px;
+      margin: 8px 12px 0;
       background: #0d0d0d;
       border-left: 4px solid var(--green);
       border-radius: 0 6px 6px 0;
@@ -1181,6 +1190,8 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
+      max-height: 130px;
+      overflow: hidden;
     }
     .race-read-label {
       font-size: 8px;
@@ -1234,6 +1245,7 @@
     .pit-overlay-wrap {
       flex-shrink: 0;
       padding: 0 12px;
+      margin-top: 10px;
     }
     .pit-overlay-card {
       background: #0d0d0d;
@@ -1821,6 +1833,7 @@
       width: 100%;
       height: 62px;
       max-height: 70px;
+      margin-top: 10px;
       padding: 0 20px;
       background: var(--red);
       border: none;
@@ -1881,6 +1894,9 @@
     .radio-earlier {
       flex-shrink: 0;
       border-bottom: 1px solid var(--border);
+      max-height: 115px;
+      overflow-y: auto;
+      margin-top: 6px;
     }
     .radio-earlier-row {
       display: flex;
@@ -3040,6 +3056,9 @@
       <div class="panel-hdr-title">Ask The Grid AI</div>
     </div>
 
+    <!-- SCROLLABLE CARDS ZONE -->
+    <div class="center-cards-scroll">
+
     <!-- AI RACE READ CARD -->
     <div class="race-read-card" id="raceReadCard">
       <div class="race-read-label">
@@ -3104,6 +3123,8 @@
       </div>
       <div class="pit-history-body" id="pitHistoryBody"></div>
     </div>
+
+    </div><!-- /center-cards-scroll -->
 
     <!-- QUICK CHIPS -->
     <div class="chips-bar">
