@@ -886,6 +886,108 @@
     }
     .free-limit-upgrade:hover { text-decoration: underline; }
 
+    /* ── EXPLANATION STYLE BAR ──────────────────────── */
+    .style-bar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 18px;
+      background: #060606;
+      border-top: 1px solid #161616;
+      gap: 8px;
+    }
+    .style-bar-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #444;
+      flex-shrink: 0;
+    }
+    .style-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--yellow);
+      letter-spacing: .5px;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .style-change-btn {
+      background: transparent;
+      border: 1px solid #2a2a2a;
+      color: #555;
+      font-family: 'Titillium Web', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: border-color .15s, color .15s;
+    }
+    .style-change-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+
+    /* Style picker popover */
+    .style-picker {
+      position: absolute;
+      bottom: calc(100% + 4px);
+      left: 16px;
+      right: 16px;
+      background: #0f0f0f;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      z-index: 200;
+      overflow: hidden;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 -8px 24px rgba(0,0,0,.6);
+    }
+    .style-picker.open { display: flex; }
+    .style-picker-hdr {
+      padding: 10px 14px 8px;
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #555;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    .style-option {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #131313;
+      transition: background .12s;
+    }
+    .style-option:last-child { border-bottom: none; }
+    .style-option:hover { background: rgba(255,255,255,.03); }
+    .style-option.active { background: rgba(245,200,66,.06); }
+    .style-option-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .style-option.active .style-option-name { color: var(--yellow); }
+    .style-option-check {
+      font-size: 10px;
+      color: var(--yellow);
+      margin-left: auto;
+    }
+    .style-option-desc {
+      font-size: 10px;
+      color: #555;
+      line-height: 1.4;
+    }
+
     /* ── UPGRADE PANEL ───────────────────────────────── */
     .upgrade-panel {
       flex-shrink: 0;
@@ -3720,6 +3822,38 @@
       <a class="free-limit-upgrade" onclick="handleUpgradeClick()">Upgrade for unlimited →</a>
     </div>
 
+    <!-- STYLE PICKER POPOVER (positioned above input bar) -->
+    <div class="style-picker" id="stylePicker">
+      <div class="style-picker-hdr">Explanation Style</div>
+      <div class="style-option active" data-style="beginner" onclick="setExplainStyle('beginner')">
+        <div class="style-option-name">🏁 Complete Beginner <span class="style-option-check">✓</span></div>
+        <div class="style-option-desc">Assume you know nothing. Simple everyday analogies, no jargon.</div>
+      </div>
+      <div class="style-option" data-style="football" onclick="setExplainStyle('football')">
+        <div class="style-option-name">🏈 Football Fan</div>
+        <div class="style-option-desc">Racing explained through American football. Pit stop = timeout, DRS = speed boost.</div>
+      </div>
+      <div class="style-option" data-style="curious" onclick="setExplainStyle('curious')">
+        <div class="style-option-name">🔍 F1 Curious</div>
+        <div class="style-option-desc">You know the basics. Focus on strategy, context, and why it matters.</div>
+      </div>
+      <div class="style-option" data-style="enthusiast" onclick="setExplainStyle('enthusiast')">
+        <div class="style-option-name">📊 Racing Enthusiast</div>
+        <div class="style-option-desc">Technical depth welcome. Data, analysis, full terminology.</div>
+      </div>
+      <div class="style-option" data-style="kid" onclick="setExplainStyle('kid')">
+        <div class="style-option-name">🌟 Kid Friendly</div>
+        <div class="style-option-desc">Super simple, fun comparisons, short sentences, big ideas.</div>
+      </div>
+    </div>
+
+    <!-- STYLE BAR -->
+    <div class="style-bar">
+      <span class="style-bar-label">Style</span>
+      <span class="style-badge" id="styleBadge">Complete Beginner</span>
+      <button class="style-change-btn" onclick="toggleStylePicker()">Change</button>
+    </div>
+
     <!-- INPUT -->
     <div class="input-bar">
       <input class="chat-input" id="chatInput"
@@ -4688,6 +4822,113 @@ function togglePitHistory() {
 }
 
 /* ──────────────────────────────────────────────────
+   EXPLANATION STYLE SELECTOR
+────────────────────────────────────────────────── */
+const STYLE_KEY = 'pitwall_explain_style';
+
+const STYLE_LABELS = {
+  beginner:   'Complete Beginner',
+  football:   'Football Fan',
+  curious:    'F1 Curious',
+  enthusiast: 'Racing Enthusiast',
+  kid:        'Kid Friendly',
+};
+
+const STYLE_INSTRUCTIONS = {
+  beginner: `EXPLANATION STYLE — COMPLETE BEGINNER:
+The user knows absolutely nothing about racing. Follow these rules:
+- Define every single piece of jargon before using it (e.g. "DRS — a flap on the rear wing that opens to give a speed boost")
+- Use simple everyday analogies (tyre deg = "like the soles of your shoes wearing out"; pit stop = "a tyre change and refuel at a garage")
+- Keep sentences short. One idea per sentence.
+- Always answer the "why should I care?" question
+- Be warm, encouraging, and enthusiastic — make the user feel excited, not lost`,
+
+  football: `EXPLANATION STYLE — FOOTBALL FAN:
+The user follows American football but is new to F1. Translate everything through football equivalents:
+- Pit stop = calling a timeout to make substitutions
+- Safety car = game clock stops, everyone resets
+- DRS = like a speed boost or a free play after a penalty
+- Tyre strategy = game plan / play-calling
+- Undercut = a trick play to get position
+- Fastest lap = most yards gained in a drive
+- Constructor championship = team standings / conference rankings
+Use football language freely. Make comparisons feel natural, not forced.`,
+
+  curious: `EXPLANATION STYLE — F1 CURIOUS:
+The user knows the basics (what a pit stop is, who the top drivers are) but wants to understand strategy and context:
+- You can use common F1 terms (DRS, pit window, undercut) without defining them from scratch
+- Focus on WHY decisions are made, not just what happened
+- Give context: how does this compare to normal? What are the stakes?
+- Mention team history and driver rivalries where relevant
+- Keep answers conversational and engaging — not too technical`,
+
+  enthusiast: `EXPLANATION STYLE — RACING ENTHUSIAST:
+The user follows F1 closely and wants technical depth:
+- Use full F1 vocabulary freely: ERS deployment, deg curve, VSC delta, dirty air wake, overcut window, stint length
+- Quantify where useful: lap delta, pit stop time loss (~22s), gap trajectories
+- Discuss strategic trade-offs: why this team chose this approach vs alternatives
+- Reference specific team tendencies, engineering philosophies, driver styles
+- Be direct and analytical — the user wants insight, not hand-holding`,
+
+  kid: `EXPLANATION STYLE — KID FRIENDLY:
+Explain everything like talking to a curious 8-year-old:
+- Super simple words. No complicated sentences.
+- Use fun comparisons to playground games, toy cars, or everyday things
+  (e.g. "a pit stop is like when you have to tie your shoelace during a race")
+- Short punchy sentences. Maximum 2 sentences per idea.
+- Make it exciting! Use words like "amazing", "super fast", "wow"
+- Always end with something fun the kid can watch for next`,
+};
+
+function getExplainStyle() {
+  return localStorage.getItem(STYLE_KEY) || 'beginner';
+}
+
+function setExplainStyle(style) {
+  localStorage.setItem(STYLE_KEY, style);
+  // Update badge
+  const badge = document.getElementById('styleBadge');
+  if (badge) badge.textContent = STYLE_LABELS[style] || style;
+  // Update active option in picker
+  document.querySelectorAll('.style-option').forEach(el => {
+    const isActive = el.dataset.style === style;
+    el.classList.toggle('active', isActive);
+    const check = el.querySelector('.style-option-check');
+    if (check) check.style.display = isActive ? '' : 'none';
+  });
+  // Close picker
+  const picker = document.getElementById('stylePicker');
+  if (picker) picker.classList.remove('open');
+}
+
+function toggleStylePicker() {
+  const picker = document.getElementById('stylePicker');
+  if (picker) picker.classList.toggle('open');
+}
+
+// Close picker when clicking outside
+document.addEventListener('click', e => {
+  const picker = document.getElementById('stylePicker');
+  if (!picker) return;
+  if (!picker.contains(e.target) && !e.target.closest('.style-change-btn')) {
+    picker.classList.remove('open');
+  }
+});
+
+function _initStyleSelector() {
+  const style = getExplainStyle();
+  const badge = document.getElementById('styleBadge');
+  if (badge) badge.textContent = STYLE_LABELS[style] || style;
+  // Sync checkmarks
+  document.querySelectorAll('.style-option').forEach(el => {
+    const isActive = el.dataset.style === style;
+    el.classList.toggle('active', isActive);
+    const check = el.querySelector('.style-option-check');
+    if (check) check.style.display = isActive ? '' : 'none';
+  });
+}
+
+/* ──────────────────────────────────────────────────
    SYSTEM PROMPTS  (always uses live liveData)
 ────────────────────────────────────────────────── */
 function buildSystem(mode) {
@@ -4707,6 +4948,9 @@ function buildSystem(mode) {
   const recentInc = (liveData.incidents || []).slice(0, 3)
     .map(i => `Lap ${i.lap}: ${i.msg}`).join('; ');
 
+  const styleKey  = getExplainStyle();
+  const styleInst = STYLE_INSTRUCTIONS[styleKey] || STYLE_INSTRUCTIONS.beginner;
+
   const base = `You are Ask The Grid AI, the smartest F1 companion for casual fans. You have deep knowledge of:
 
 - All F1 history, rules, regulations, and terminology
@@ -4719,11 +4963,12 @@ function buildSystem(mode) {
 - Driver personalities, rivalries, and career histories
 
 When answering questions:
-- Always explain in plain English assuming the user knows nothing
 - Never just reword the data you receive — add context, history, and meaning to every answer
 - If asked about current F1 news or controversies, use your training knowledge to answer fully
 - Be warm, confident, and conversational
-- Never say you do not have information about F1 topics — you are the expert`;
+- Never say you do not have information about F1 topics — you are the expert
+
+${styleInst}`;
 
   return `${base}
 
@@ -6579,6 +6824,7 @@ function init() {
   setInterval(_tickCompactCountdown, 30000);
 
   updateFreeLimitUI();
+  _initStyleSelector();
 }
 
 /* ══════════════════════════════════════════════════
