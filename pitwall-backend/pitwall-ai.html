@@ -3054,6 +3054,113 @@
       .drv-profile-body { flex-direction: column; }
       .drv-bio-col { width:100%; border-right:none; border-bottom:1px solid var(--border); } }
 
+    /* ── REDESIGNED DRIVER PROFILE ──────────────────── */
+    .drp-header { flex-shrink:0; padding:16px 20px 0; border-bottom:1px solid var(--border); }
+    .drp-header-top { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+    .drp-avatar { width:52px; height:52px; border-radius:50%; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:13px; font-weight:900; letter-spacing:1px; }
+    .drp-header-center { flex:1; min-width:0; }
+    .drp-hdr-name { font-size:17px; font-weight:900; letter-spacing:.5px; line-height:1.1; margin-bottom:5px; }
+    .drp-tags { display:flex; flex-wrap:wrap; gap:5px; }
+    .drp-tag { font-size:10px; font-weight:700; color:#666; padding:2px 8px;
+      border:1px solid #2a2a2a; letter-spacing:.5px; }
+    .drp-pts-big { text-align:right; flex-shrink:0; }
+    .drp-pts-num { font-size:32px; font-weight:900; color:var(--yellow); line-height:1; }
+    .drp-pts-lbl { font-size:9px; color:#444; letter-spacing:2px; text-transform:uppercase; margin-top:2px; }
+    .drp-stat-boxes { display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+      background:var(--border); border-top:1px solid var(--border); }
+    .drp-stat-box { background:var(--bg2); padding:10px 12px; text-align:center; }
+    .drp-stat-num { font-size:18px; font-weight:900; line-height:1; }
+    .drp-stat-lbl { font-size:8px; color:#444; text-transform:uppercase; letter-spacing:.8px; margin-top:3px; }
+
+    .drp-body { flex:1; display:flex; overflow:hidden; min-height:0; }
+
+    /* Left AI column */
+    .drp-ai-col { width:300px; flex-shrink:0; border-right:1px solid var(--border);
+      overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; }
+
+    .drp-who-card { border-left:3px solid #22c55e; background:#0d1f12;
+      padding:12px 14px; border-radius:0 4px 4px 0; }
+    .drp-who-title { font-size:10px; font-weight:700; color:#22c55e;
+      letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; }
+    .drp-who-text { font-size:12px; color:#bbb; line-height:1.6; }
+
+    .drp-free-badge { display:inline-block; font-size:10px; font-weight:700;
+      color:#22c55e; border:1px solid #22c55e; padding:4px 10px;
+      letter-spacing:.5px; align-self:flex-start; }
+
+    .drp-q-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+    .drp-q-btn { background:transparent; border:1px solid #2a2a2a; color:#888;
+      font-family:'Titillium Web',sans-serif; font-size:10px; font-weight:600;
+      padding:8px 10px; cursor:pointer; text-align:left; line-height:1.4;
+      transition:all .15s; border-radius:2px; }
+    .drp-q-btn:hover { border-color:var(--red); color:var(--white); background:var(--red-dim); }
+
+    .drp-input-row { display:flex; border:1px solid #2a2a2a; border-radius:2px; overflow:hidden; }
+    .drp-chat-input { flex:1; background:#111; border:none; color:var(--white);
+      font-family:'Titillium Web',sans-serif; font-size:12px; padding:10px 12px; outline:none; }
+    .drp-chat-input::placeholder { color:#333; }
+    .drp-ask-btn { background:var(--red); color:#fff; border:none; padding:0 16px;
+      font-family:'Titillium Web',sans-serif; font-size:10px; font-weight:900;
+      letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; flex-shrink:0; }
+    .drp-ask-btn:hover { background:#c50500; }
+    .drp-ask-btn:disabled { background:#2a2a2a; color:#444; cursor:not-allowed; }
+
+    .drp-last-resp { border-left:3px solid var(--red); background:#1a0a0a;
+      padding:12px 14px; border-radius:0 4px 4px 0; }
+    .drp-resp-label { font-size:9px; font-weight:700; color:var(--red);
+      letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; }
+    .drp-resp-text { font-size:12px; color:#ccc; line-height:1.6; }
+
+    .drp-counter { font-size:10px; color:#444; text-align:center; padding:2px 0; }
+
+    /* Right stats column */
+    .drp-stats-col { flex:1; overflow-y:auto; padding:16px 20px; min-width:0; }
+    .drp-section-title { font-size:9px; font-weight:700; color:var(--red);
+      letter-spacing:2px; text-transform:uppercase; margin:0 0 10px; }
+    .drp-section-gap { margin-top:20px; }
+
+    .drp-stats-table { width:100%; border-collapse:collapse; margin-bottom:4px; }
+    .drp-stats-table td { padding:7px 0; border-bottom:1px solid #111;
+      font-size:12px; vertical-align:middle; }
+    .drp-stats-table td:first-child { color:#555; width:50%; }
+    .drp-stats-table td:last-child { font-weight:700; color:var(--white); text-align:right; }
+    .drp-stats-table tr:last-child td { border-bottom:none; }
+    .drp-val-gold { color:var(--yellow) !important; }
+    .drp-val-red  { color:var(--red) !important; }
+
+    .drp-facts { display:flex; flex-direction:column; gap:7px; }
+    .drp-fact { display:flex; gap:9px; align-items:flex-start; }
+    .drp-fact-dot { width:5px; height:5px; border-radius:50%; background:var(--red);
+      flex-shrink:0; margin-top:5px; }
+    .drp-fact-txt { font-size:11px; color:#888; line-height:1.5; }
+
+    .drp-h2h-wrap { background:#0d0d0d; border:1px solid var(--border); padding:12px 14px; border-radius:3px; }
+    .drp-h2h-names { display:flex; justify-content:space-between; margin-bottom:7px; }
+    .drp-h2h-name { font-size:10px; font-weight:700; color:var(--white); }
+    .drp-h2h-name.right { text-align:right; }
+    .drp-h2h-bar-wrap { height:6px; background:#1a1a1a; border-radius:3px; overflow:hidden; }
+    .drp-h2h-bar { height:100%; border-radius:3px; }
+    .drp-h2h-pts { display:flex; justify-content:space-between; margin-top:5px; }
+    .drp-h2h-pt { font-size:9px; color:#444; }
+
+    .drp-upgrade-strip { margin-top:20px; background:#1a0a0a; border:1px solid #3a0a0a;
+      border-radius:3px; padding:10px 14px; display:flex; align-items:center;
+      justify-content:space-between; gap:12px; }
+    .drp-upgrade-text { font-size:11px; color:#888; }
+    .drp-upgrade-text strong { color:var(--white); }
+    .drp-upgrade-btn { background:var(--red); color:#fff; border:none; padding:7px 14px;
+      font-family:'Titillium Web',sans-serif; font-size:10px; font-weight:900;
+      letter-spacing:1px; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+    .drp-upgrade-btn:hover { background:#c50500; }
+
+    @media (max-width:700px) {
+      .drp-body { flex-direction:column; }
+      .drp-ai-col { width:100%; border-right:none; border-bottom:1px solid var(--border); }
+      .drp-stat-boxes { grid-template-columns:repeat(2,1fr); }
+    }
+
     /* ── MOBILE HUB — base styles (always present, shown/hidden via JS) ── */
     #mobHub {
       display: none;
@@ -6659,6 +6766,7 @@ function openDriverProfile(id) {
   profileView.style.display = 'flex';
   profileView.innerHTML     = _buildProfileHTML(driver);
   _renderDrvMsgs(id);
+  _updateDrvCounter(id);
 }
 
 function closeDriverProfile() {
@@ -6667,9 +6775,24 @@ function closeDriverProfile() {
   document.getElementById('drvProfileView').style.display = 'none';
 }
 
-function _buildProfileHTML(d) {
-  const isPro = isOwnerMode() || ownerMode;
+/* ── Driver free question tracking (1 per driver, session-only) ── */
+const DRV_FREE_LIMIT = 1;
+const _drvFreeUsed   = {};
+function _getDrvFree(id) { return _drvFreeUsed[id] || 0; }
+function _incDrvFree(id) { _drvFreeUsed[id] = (_drvFreeUsed[id] || 0) + 1; }
 
+function _updateDrvCounter(id) {
+  const el = document.getElementById(`drvCounter_${id}`);
+  if (!el) return;
+  if (isLimitBypassed()) { el.style.display = 'none'; return; }
+  const left = Math.max(0, DRV_FREE_LIMIT - _getDrvFree(id));
+  el.textContent = left > 0
+    ? `${left} free question remaining`
+    : 'Free question used \u00b7 Upgrade for unlimited';
+  el.style.color = left > 0 ? '#555' : 'var(--red)';
+}
+
+function _buildProfileHTML(d) {
   /* Live standings merge */
   let {pos, pts, wins} = _drvLivePos(d);
   let gapToLeader = 'LEADER';
@@ -6681,116 +6804,165 @@ function _buildProfileHTML(d) {
     gapToLeader = '\u2212' + (ld ? ld.pts - d.pts : 0);
   }
 
-  /* Timeline parsing */
-  const tlHTML = d.tl.map(t => {
-    const dash = t.indexOf(' \u2014 ');
-    const yr   = dash > -1 ? t.substring(0, dash) : '';
-    const txt  = dash > -1 ? t.substring(dash + 3) : t;
-    return `<div class="drv-bio-tl"><span class="drv-bio-tl-yr">${escapeHtml(yr)}</span>${escapeHtml(txt)}<\/div>`;
-  }).join('');
+  const tc = d.tc || '#888';
+  const posClass = pos === 1 ? 'drp-val-gold' : '';
 
-  /* AI section */
-  let aiHTML;
-  if (isPro) {
-    const qs = [
-      `Where did ${d.surname} grow up?`,
-      `What makes ${d.surname} special as a driver?`,
-      `What is ${d.surname}'s biggest career moment?`,
-      `Who is ${d.surname}'s biggest rival?`
-    ];
-    aiHTML = `
-      <div class="drv-chips">
-        ${qs.map(q => `<button class="drv-chip" onclick="drvChipClick('${d.id}',this)">${escapeHtml(q)}<\/button>`).join('')}
-      <\/div>
-      <div class="drv-chat-msgs" id="drvMsgs_${d.id}"><\/div>
-      <div class="drv-input-row">
-        <input class="drv-chat-input" id="drvInput_${d.id}"
-          placeholder="Ask anything about ${escapeHtml(d.name)}\u2026"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendDriverMsg('${d.id}');}">
-        <button class="drv-send-btn" id="drvSendBtn_${d.id}" onclick="sendDriverMsg('${d.id}')">ASK NOW<\/button>
-      <\/div>`;
-  } else {
-    const fq = [
-      `Where did ${d.surname} grow up?`,
-      `What makes ${d.surname} special?`,
-      `${d.surname}'s biggest rival?`
-    ];
-    aiHTML = `
-      <div class="drv-lock">
-        <div class="drv-lock-icon">\uD83D\uDD12<\/div>
-        <div class="drv-lock-title">Ask AI anything about ${escapeHtml(d.name)}<\/div>
-        <div class="drv-lock-sub">Get the full story \u2014 career, personality, rivalries, driving style, and what makes them special. In plain English, no F1 knowledge needed.<\/div>
-        <div class="drv-lock-chips">
-          ${fq.map(q => `<div class="drv-lock-chip">${escapeHtml(q)}<\/div>`).join('')}
-        <\/div>
-        <button class="drv-lock-btn" onclick="handleUpgradeClick()">Unlock Driver AI \u2014 $3\/month<\/button>
-        <div class="drv-lock-price">Free during Miami GP weekend \u00b7 No credit card needed<\/div>
-      <\/div>`;
+  /* Teammate H2H */
+  const teammate = DRIVERS.find(x => x.team === d.team && x.id !== d.id);
+  let h2hHTML = '';
+  if (teammate) {
+    const {pts: tmPts} = _drvLivePos(teammate);
+    const total = (pts + tmPts) || 1;
+    const myPct = Math.round((pts / total) * 100);
+    h2hHTML = `
+      <div class="drp-section-gap">
+        <div class="drp-section-title">vs Teammate</div>
+        <div class="drp-h2h-wrap">
+          <div class="drp-h2h-names">
+            <div class="drp-h2h-name">${escapeHtml(d.surname)}</div>
+            <div class="drp-h2h-name right">${escapeHtml(teammate.surname)}</div>
+          </div>
+          <div class="drp-h2h-bar-wrap">
+            <div class="drp-h2h-bar" style="width:${myPct}%;background:${tc}"></div>
+          </div>
+          <div class="drp-h2h-pts">
+            <div class="drp-h2h-pt">${pts} pts</div>
+            <div class="drp-h2h-pt">${tmPts} pts</div>
+          </div>
+        </div>
+      </div>`;
   }
 
-  const champClass = pos === 1 ? 'gold' : '';
-  const tc = d.tc || '#888';
+  /* Bio sentence — built from existing driver data */
+  const bioText = `${d.name} is a ${d.age}-year-old ${d.nat} racing driver competing for ${d.team} in Formula 1. ${d.pf.fun}`;
+
+  /* 6 AI question buttons */
+  const qs = [
+    `Who is ${d.surname} as a person?`,
+    `What is ${d.surname}'s driving style?`,
+    `Where did ${d.surname} grow up?`,
+    `What is ${d.surname}'s biggest career moment?`,
+    `Who is ${d.surname}'s biggest rival?`,
+    `What makes ${d.surname} special?`
+  ];
+
+  const upgradeStrip = isLimitBypassed() ? '' : `
+    <div class="drp-upgrade-strip">
+      <div class="drp-upgrade-text"><strong>Unlimited AI questions</strong> \u2014 $3/month</div>
+      <button class="drp-upgrade-btn" onclick="handleUpgradeClick()">UNLOCK</button>
+    </div>`;
 
   return `
-    <div class="drv-profile-hdr">
-      <button class="drv-back-btn" onclick="closeDriverProfile()">\u2190 All Drivers<\/button>
-      <span class="drv-profile-breadcrumb">${escapeHtml(d.name)} \u00b7 ${escapeHtml(d.team)}<\/span>
-    <\/div>
-    <div class="drv-profile-body">
-
-      <!-- LEFT BIO -->
-      <div class="drv-bio-col">
-        <div class="drv-bio-helmet" style="background:${tc};color:${_helmtText(tc)}">${d.code}<\/div>
-        <div class="drv-bio-name">${escapeHtml(d.name.toUpperCase())}<\/div>
-        <div class="drv-bio-num">#${d.num}<\/div>
-        <div class="drv-bio-team">${escapeHtml(d.team)}<\/div>
-
-        <div class="drv-bio-divider"><\/div>
-        <div class="drv-bio-stitle">2026 Season<\/div>
-        <div class="drv-bio-row"><span class="drv-bio-lbl">Championship<\/span><span class="drv-bio-val ${champClass}">P${pos} \u00b7 ${pts} pts<\/span><\/div>
-        <div class="drv-bio-row"><span class="drv-bio-lbl">Wins<\/span><span class="drv-bio-val">${wins}<\/span><\/div>
-        <div class="drv-bio-row"><span class="drv-bio-lbl">Podiums<\/span><span class="drv-bio-val">${d.sp}<\/span><\/div>
-
-        <div class="drv-bio-divider"><\/div>
-        <div class="drv-bio-stitle">Career Stats<\/div>
-        <div class="drv-bio-row"><span class="drv-bio-lbl">Total Races<\/span><span class="drv-bio-val">${d.cr.races}<\/span><\/div>
-        <div class="drv-bio-row"><span class="drv-bio-lbl">Total Wins<\/span><span class="drv-bio-val">${d.cr.wins}<\/span><\/div>
-        <div class="drv-bio-row"><span class="drv-bio-lbl">Total Podiums<\/span><span class="drv-bio-val">${d.cr.pods}<\/span><\/div>
-        <div class="drv-bio-row"><span class="drv-bio-lbl">First Race<\/span><span class="drv-bio-val" style="font-size:10px">${escapeHtml(d.cr.fr)}<\/span><\/div>
-        <div class="drv-bio-row"><span class="drv-bio-lbl">First Win<\/span><span class="drv-bio-val ${d.cr.fw==='—'?'':'red'}" style="font-size:10px">${d.cr.fw==='—'?'None yet':escapeHtml(d.cr.fw)}<\/span><\/div>
-
-        <div class="drv-bio-divider"><\/div>
-        <div class="drv-bio-stitle">Fast Facts<\/div>
-        <div class="drv-bio-fact"><div class="drv-bio-fact-dot"><\/div><div class="drv-bio-fact-txt">Born in ${escapeHtml(d.pf.home)} \u00b7 Age ${d.age}<\/div><\/div>
-        <div class="drv-bio-fact"><div class="drv-bio-fact-dot"><\/div><div class="drv-bio-fact-txt">Started karting at age ${d.pf.kart}<\/div><\/div>
-        <div class="drv-bio-fact"><div class="drv-bio-fact-dot"><\/div><div class="drv-bio-fact-txt">Known for: ${escapeHtml(d.pf.known)}<\/div><\/div>
-        <div class="drv-bio-fact"><div class="drv-bio-fact-dot"><\/div><div class="drv-bio-fact-txt">${escapeHtml(d.pf.fun)}<\/div><\/div>
-
-        <div class="drv-bio-divider"><\/div>
-        <div class="drv-bio-stitle">Career Path to F1<\/div>
-        ${tlHTML}
-      <\/div>
-
-      <!-- RIGHT CONTENT -->
-      <div class="drv-content-col">
-        <div class="drv-content-stitle">Season Performance<\/div>
-        <div class="drv-perf-cards">
-          <div class="drv-perf-card"><div class="drv-perf-num ${champClass}">P${pos}<\/div><div class="drv-perf-lbl">Championship<\/div><\/div>
-          <div class="drv-perf-card"><div class="drv-perf-num gold">${pts}<\/div><div class="drv-perf-lbl">Points<\/div><\/div>
-          <div class="drv-perf-card"><div class="drv-perf-num">${d.sp}<\/div><div class="drv-perf-lbl">Podiums<\/div><\/div>
-          <div class="drv-perf-card"><div class="drv-perf-num ${pos===1?'':'red'}" style="font-size:${gapToLeader==='LEADER'?'13px':'22px'}">${gapToLeader}<\/div><div class="drv-perf-lbl">Gap to Leader<\/div><\/div>
-        <\/div>
-
-        <div class="drv-content-stitle">Ask AI about ${escapeHtml(d.name)}<\/div>
-        <div class="drv-ai-wrap">
-          <div class="drv-ai-hdr">
-            <span class="drv-ai-title">AI Driver Intelligence<\/span>
-            <span class="drv-ai-pro">PRO<\/span>
+    <!-- HEADER -->
+    <div class="drp-header">
+      <div class="drp-header-top">
+        <button class="drv-back-btn" onclick="closeDriverProfile()" style="flex-shrink:0">\u2190 All Drivers<\/button>
+        <div class="drp-avatar" style="background:${tc};color:${_helmtText(tc)}">${d.code}<\/div>
+        <div class="drp-header-center">
+          <div class="drp-hdr-name">${escapeHtml(d.name.toUpperCase())}<\/div>
+          <div class="drp-tags">
+            <span class="drp-tag">#${d.num}<\/span>
+            <span class="drp-tag">${escapeHtml(d.team)}<\/span>
+            <span class="drp-tag">${d.flag} ${d.nat}<\/span>
           <\/div>
-          <div class="drv-ai-body">${aiHTML}<\/div>
+        <\/div>
+        <div class="drp-pts-big">
+          <div class="drp-pts-num">${pts}<\/div>
+          <div class="drp-pts-lbl">PTS<\/div>
         <\/div>
       <\/div>
+      <div class="drp-stat-boxes">
+        <div class="drp-stat-box">
+          <div class="drp-stat-num ${posClass}">P${pos}<\/div>
+          <div class="drp-stat-lbl">Championship<\/div>
+        <\/div>
+        <div class="drp-stat-box">
+          <div class="drp-stat-num">${wins}<\/div>
+          <div class="drp-stat-lbl">Wins<\/div>
+        <\/div>
+        <div class="drp-stat-box">
+          <div class="drp-stat-num">${d.sp}<\/div>
+          <div class="drp-stat-lbl">Podiums<\/div>
+        <\/div>
+        <div class="drp-stat-box">
+          <div class="drp-stat-num ${pos===1?'drp-val-gold':'drp-val-red'}" style="font-size:${gapToLeader==='LEADER'?'12px':'18px'}">${gapToLeader}<\/div>
+          <div class="drp-stat-lbl">Gap to Leader<\/div>
+        <\/div>
+      <\/div>
+    <\/div>
 
+    <!-- BODY -->
+    <div class="drp-body">
+
+      <!-- LEFT: AI -->
+      <div class="drp-ai-col">
+
+        <!-- Who is card -->
+        <div class="drp-who-card">
+          <div class="drp-who-title">Who is ${escapeHtml(d.surname)}?<\/div>
+          <div class="drp-who-text">${escapeHtml(bioText)}<\/div>
+        <\/div>
+
+        <!-- Free badge -->
+        <div class="drp-free-badge">1 free driver question included<\/div>
+
+        <!-- 6 question buttons -->
+        <div class="drp-q-grid">
+          ${qs.map(q => `<button class="drp-q-btn" onclick="drvChipClick('${d.id}',this)">${escapeHtml(q)}<\/button>`).join('')}
+        <\/div>
+
+        <!-- Input -->
+        <div class="drp-input-row">
+          <input class="drp-chat-input" id="drvInput_${d.id}"
+            placeholder="Ask anything about ${escapeHtml(d.name)}\u2026"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendDriverMsg('${d.id}');}">
+          <button class="drp-ask-btn" id="drvSendBtn_${d.id}" onclick="sendDriverMsg('${d.id}')">ASK<\/button>
+        <\/div>
+
+        <!-- Last AI response (hidden until answered) -->
+        <div class="drp-last-resp" id="drvLastResp_${d.id}" style="display:none">
+          <div class="drp-resp-label">AI Answer<\/div>
+          <div class="drp-resp-text" id="drvRespText_${d.id}"><\/div>
+        <\/div>
+
+        <!-- Counter -->
+        <div class="drp-counter" id="drvCounter_${d.id}"><\/div>
+
+      <\/div>
+
+      <!-- RIGHT: Stats -->
+      <div class="drp-stats-col">
+
+        <div class="drp-section-title">Career Stats<\/div>
+        <table class="drp-stats-table">
+          <tr><td>Total Races<\/td><td>${d.cr.races}<\/td><\/tr>
+          <tr><td>Career Wins<\/td><td class="${d.cr.wins>0?'drp-val-gold':''}">${d.cr.wins}<\/td><\/tr>
+          <tr><td>Career Podiums<\/td><td>${d.cr.pods}<\/td><\/tr>
+          <tr><td>First Race<\/td><td style="font-size:10px">${escapeHtml(d.cr.fr)}<\/td><\/tr>
+          <tr><td>First Win<\/td><td class="${d.cr.fw==='—'?'':'drp-val-red'}" style="font-size:10px">${d.cr.fw==='—'?'None yet':escapeHtml(d.cr.fw)}<\/td><\/tr>
+          <tr><td>Nationality<\/td><td>${d.flag} ${d.nat}<\/td><\/tr>
+          <tr><td>Age<\/td><td>${d.age}<\/td><\/tr>
+          <tr><td>Karting from age<\/td><td>${d.pf.kart}<\/td><\/tr>
+        <\/table>
+
+        <div class="drp-section-gap">
+          <div class="drp-section-title">Fast Facts<\/div>
+          <div class="drp-facts">
+            <div class="drp-fact"><div class="drp-fact-dot"><\/div><div class="drp-fact-txt">Born in ${escapeHtml(d.pf.home)}<\/div><\/div>
+            <div class="drp-fact"><div class="drp-fact-dot"><\/div><div class="drp-fact-txt">Known for: ${escapeHtml(d.pf.known)}<\/div><\/div>
+            ${d.tl.slice(0,3).map(t => {
+              const dash = t.indexOf(' \u2014 ');
+              const yr  = dash > -1 ? t.substring(0, dash) : '';
+              const txt = dash > -1 ? t.substring(dash + 3) : t;
+              return `<div class="drp-fact"><div class="drp-fact-dot"><\/div><div class="drp-fact-txt"><span style="color:var(--yellow);font-weight:700">${escapeHtml(yr)}<\/span> ${escapeHtml(txt)}<\/div><\/div>`;
+            }).join('')}
+          <\/div>
+        <\/div>
+
+        ${h2hHTML}
+        ${upgradeStrip}
+
+      <\/div>
     <\/div>`;
 }
 
@@ -6798,18 +6970,18 @@ function _buildProfileHTML(d) {
    DRIVER PROFILE CHAT
 ────────────────────────────────────────────────── */
 function _renderDrvMsgs(id) {
-  const el = document.getElementById(`drvMsgs_${id}`);
-  if (!el) return;
-  const hist = _drvHistories[id] || [];
-  el.innerHTML = hist.map(m => {
-    const isUser = m.role === 'user';
-    return `
-      <div class="msg-row ${isUser ? 'user' : 'ai'}">
-        <div class="msg-avatar">${isUser ? 'YOU' : 'AI'}</div>
-        <div class="msg-bubble">${escapeHtml(m.content).replace(/\n/g,'<br>')}</div>
-      </div>`;
-  }).join('');
-  el.scrollTop = el.scrollHeight;
+  const respEl = document.getElementById(`drvLastResp_${id}`);
+  const textEl = document.getElementById(`drvRespText_${id}`);
+  if (!respEl || !textEl) return;
+  const hist   = _drvHistories[id] || [];
+  const lastAI = [...hist].reverse().find(m => m.role === 'assistant');
+  if (lastAI) {
+    respEl.style.display = '';
+    textEl.innerHTML = escapeHtml(lastAI.content).replace(/\n/g, '<br>');
+  } else {
+    respEl.style.display = 'none';
+  }
+  _updateDrvCounter(id);
 }
 
 function drvChipClick(id, btn) {
@@ -6822,34 +6994,33 @@ async function sendDriverMsg(id) {
   const driver = DRIVERS.find(d => d.id === id);
   if (!driver) return;
 
+  /* Free limit check */
+  if (!isLimitBypassed() && _getDrvFree(id) >= DRV_FREE_LIMIT) {
+    handleUpgradeClick();
+    return;
+  }
+
   const input   = document.getElementById(`drvInput_${id}`);
   const sendBtn = document.getElementById(`drvSendBtn_${id}`);
-  const msgsEl  = document.getElementById(`drvMsgs_${id}`);
-  if (!input || !msgsEl) return;
+  if (!input) return;
 
   const text = input.value.trim();
   if (!text) return;
 
-  input.value  = '';
-  _drvBusy     = true;
-  if (sendBtn) sendBtn.disabled = true;
+  input.value = '';
+  _drvBusy    = true;
+  if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '...'; }
 
   if (!_drvHistories[id]) _drvHistories[id] = [];
   _drvHistories[id].push({ role:'user', content: text });
-  _renderDrvMsgs(id);
 
-  /* Typing indicator */
-  const typingEl = document.createElement('div');
-  typingEl.className = 'typing-wrap';
-  typingEl.id = 'drvTyping';
-  typingEl.innerHTML = `
-    <div class="msg-avatar" style="width:30px;height:30px;background:var(--red);border-radius:3px;
-         display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0;">AI</div>
-    <div class="typing-dots">
-      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
-    </div>`;
-  msgsEl.appendChild(typingEl);
-  msgsEl.scrollTop = msgsEl.scrollHeight;
+  /* Show thinking state in response card */
+  const respEl = document.getElementById(`drvLastResp_${id}`);
+  const textEl = document.getElementById(`drvRespText_${id}`);
+  if (respEl && textEl) {
+    respEl.style.display = '';
+    textEl.innerHTML = '<span style="color:#444">Thinking\u2026</span>';
+  }
 
   const system = `You are an expert F1 analyst explaining ${driver.name} to a brand new F1 fan. Answer questions about their career, personality, driving style, rivalries, and achievements in plain English. Be engaging and tell stories. Never assume F1 knowledge. Keep answers to 4–5 sentences max.`;
 
@@ -6866,16 +7037,15 @@ async function sendDriverMsg(id) {
     }
     const data = await res.json();
     _drvHistories[id].push({ role:'assistant', content: data.reply ?? '(No response)' });
+    _incDrvFree(id);
   } catch(err) {
     const msg = (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))
-      ? '⚠ Cannot reach the backend. Make sure start.sh is running on port 8000.'
-      : `⚠ ${err.message}`;
+      ? '\u26a0 Cannot reach the backend.'
+      : `\u26a0 ${err.message}`;
     _drvHistories[id].push({ role:'assistant', content: msg });
   } finally {
     _drvBusy = false;
-    if (sendBtn) sendBtn.disabled = false;
-    const t = document.getElementById('drvTyping');
-    if (t) t.remove();
+    if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'ASK'; }
     _renderDrvMsgs(id);
     if (input) input.focus();
   }
