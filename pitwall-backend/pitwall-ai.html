@@ -693,11 +693,10 @@
       min-height: 0;
     }
 
-    /* Scrollable zone: all cards above chips+input */
+    /* Top cards zone: shrinks to content height, no artificial gap */
     .center-cards-scroll {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
+      flex: 0 0 auto;
+      overflow-y: visible;
       display: flex;
       flex-direction: column;
       gap: 0;
@@ -705,8 +704,8 @@
     }
 
     .chat-messages {
-      flex-shrink: 0;
-      max-height: 220px;
+      flex: 1;
+      min-height: 0;
       overflow-y: auto;
       padding: 14px 16px;
       display: flex;
@@ -3747,7 +3746,7 @@
       <div class="panel-hdr-title">Ask The Grid AI</div>
     </div>
 
-    <!-- SCROLLABLE CARDS ZONE -->
+    <!-- TOP CARDS (shrink to content — no artificial height) -->
     <div class="center-cards-scroll">
 
     <!-- AI RACE READ CARD -->
@@ -3766,15 +3765,6 @@
     <!-- TEST BUTTON — visible only with ?test=true in URL -->
     <button class="pit-test-btn" id="pitTestBtn" onclick="PitMgr.testStart()">⚡ Simulate Pit Stop</button>
 
-    <!-- RADIO FULL VIEW OVERLAY (triggered from right column) -->
-    <div class="radio-full-view" id="radioFullView" style="display:none">
-      <div class="radio-full-hdr">
-        <button class="radio-back-btn" onclick="closeRadioView()">&larr; Back</button>
-        <span class="radio-full-title">Team Radio &middot; Live</span>
-      </div>
-      <div class="radio-full-body" id="radioFullBody"></div>
-    </div>
-
     <button class="wjh-btn" id="wjhBtn" onclick="wjhClick()">
       <span class="wjh-pulse"></span>
       <span class="wjh-btn-inner">
@@ -3783,11 +3773,14 @@
       </span>
     </button>
 
+    </div><!-- /center-cards-scroll -->
+
+    <!-- AI CONVERSATION HISTORY (flex:1 — fills remaining space above chips) -->
     <div class="chat-messages" id="chatMessages">
       <div class="welcome-card" id="welcomeCard"></div>
     </div>
 
-    <!-- PIT HISTORY (collapsible, shown once first stop is recorded) -->
+    <!-- PIT HISTORY (collapsible, flex-shrink:0) -->
     <div class="pit-history-section" id="pitHistorySection" style="display:none">
       <div class="pit-history-hdr" onclick="togglePitHistory()">
         <div class="pit-history-title">
@@ -3799,7 +3792,14 @@
       <div class="pit-history-body" id="pitHistoryBody"></div>
     </div>
 
-    </div><!-- /center-cards-scroll -->
+    <!-- RADIO FULL VIEW OVERLAY (position:absolute, triggered from right column) -->
+    <div class="radio-full-view" id="radioFullView" style="display:none">
+      <div class="radio-full-hdr">
+        <button class="radio-back-btn" onclick="closeRadioView()">&larr; Back</button>
+        <span class="radio-full-title">Team Radio &middot; Live</span>
+      </div>
+      <div class="radio-full-body" id="radioFullBody"></div>
+    </div>
 
     <!-- QUICK CHIPS -->
     <div class="chips-bar">
@@ -3863,19 +3863,20 @@
   <!-- SIDE CARDS COLUMN -->
   <div class="side-cards">
 
-    <!-- Who Won & Lost Most moved to left column -->
-
-    <!-- 2. What To Watch Next -->
-    <div class="watch-next-card">
-      <div class="card-title">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        What To Watch Next
+    <!-- 1. Team Radio Hero — red banner, latest call, tap to translate -->
+    <div class="radio-hero" id="rightRadioHero" onclick="openRadioView()">
+      <div class="radio-hero-live">
+        <span class="radio-hero-dot"></span>
+        <span id="rightHeroLiveLabel">Team Radio &middot; Live</span>
       </div>
-      <div class="watch-next-text" id="watchNextText">Strategy battle developing in the midfield.</div>
-      <div class="watch-next-action loading" id="watchNextAction">Loading watch point&hellip;</div>
+      <div class="radio-hero-msg listening" id="rightHeroMsg">Listening for team radio&hellip;</div>
+      <div class="radio-hero-meta" id="rightHeroMeta" style="display:none">
+        <div class="radio-hero-driver" id="rightHeroDriver"></div>
+        <div class="radio-translate-badge">Tap to translate &rarr;</div>
+      </div>
     </div>
 
-    <!-- 3. Team Radio Feed -->
+    <!-- 2. Last 3 radio calls with What This Means -->
     <div class="right-radio-card">
       <div class="card-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.18 19.79 19.79 0 01.1 .55 2 2 0 012.07 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.43 7.43a16 16 0 006.14 6.14l.9-.9a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg>
@@ -3884,6 +3885,16 @@
       <div id="rightRadioBody">
         <div class="wl-loading">Listening for radio&hellip;</div>
       </div>
+    </div>
+
+    <!-- 3. What To Watch Next -->
+    <div class="watch-next-card">
+      <div class="card-title">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        What To Watch Next
+      </div>
+      <div class="watch-next-text" id="watchNextText">Strategy battle developing in the midfield.</div>
+      <div class="watch-next-action loading" id="watchNextAction">Loading watch point&hellip;</div>
     </div>
 
     <!-- 4. Next Race Countdown -->
@@ -4433,6 +4444,22 @@ Reply in this exact JSON format only, no other text:
 /* ──────────────────────────────────────────────────
    RIGHT COLUMN RADIO FEED
 ────────────────────────────────────────────────── */
+function _updateRightHero(r) {
+  const heroMsg  = document.getElementById('rightHeroMsg');
+  const heroMeta = document.getElementById('rightHeroMeta');
+  const heroDrv  = document.getElementById('rightHeroDriver');
+  const liveLabel = document.getElementById('rightHeroLiveLabel');
+  if (!heroMsg) return;
+  const msg = r.message || r.msg || r.text || r.meaning || '';
+  heroMsg.textContent = msg ? `"${msg}"` : 'Radio call received';
+  heroMsg.classList.remove('listening');
+  if (liveLabel) liveLabel.textContent = r._fallback ? 'Team Radio \u00b7 Last call' : 'Team Radio \u00b7 Live';
+  if (heroMeta) heroMeta.style.display = 'flex';
+  if (heroDrv) heroDrv.innerHTML =
+    `<span style="width:8px;height:8px;border-radius:50%;background:${_teamColor(r.team)};flex-shrink:0;display:inline-block"></span>
+     ${escapeHtml(r.driver)} &middot; ${escapeHtml(r.team)}`;
+}
+
 function renderRightRadio(radio) {
   const body = document.getElementById('rightRadioBody');
   if (!body) return;
@@ -4445,7 +4472,9 @@ function renderRightRadio(radio) {
 
   if (!entries) {
     // Use curated fallback
-    body.innerHTML = FALLBACK_RADIO.slice(0, 3).map(r => `
+    const fallback = FALLBACK_RADIO.slice(0, 3);
+    _updateRightHero({ ...fallback[0], _fallback: true });
+    body.innerHTML = fallback.map(r => `
       <div class="right-radio-entry">
         <div class="right-radio-driver">
           <span style="width:7px;height:7px;border-radius:50%;background:${_teamColor(r.team)};display:inline-block;flex-shrink:0"></span>
@@ -4457,6 +4486,9 @@ function renderRightRadio(radio) {
       </div>`).join('');
     return;
   }
+
+  // Update hero with latest live call
+  _updateRightHero(entries[0]);
 
   body.innerHTML = entries.map(r => {
     const clr = _teamColor(r.team);
