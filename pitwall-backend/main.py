@@ -117,11 +117,44 @@ FALLBACK_STANDINGS = [
     {"position": 22, "driver": "Doohan",       "first_name": "Jack",        "team": "Alpine",         "points": 0,   "wins": 0},
 ]
 
+# ── OpenF1 cache TTLs (seconds per endpoint) ─────────
+CACHE_TTL: dict[str, float] = {
+    "/position":     10.0,   # race positions
+    "/intervals":    10.0,   # gaps between cars
+    "/team_radio":    5.0,   # team radio clips
+    "/race_control": 15.0,   # race incidents / flags
+    "/pit":          15.0,   # pit stops
+    "/sessions":     30.0,   # session metadata
+    "/drivers":      30.0,   # driver roster
+    "/stints":       30.0,   # tyre stints
+    "/laps":         30.0,   # lap data
+}
+CACHE_TTL_DEFAULT = 10.0
+
 # ── Per-path backoff state ────────────────────────────
 # Maps endpoint path -> (retry_after_monotonic, current_delay_seconds)
 _backoff: dict[str, tuple[float, float]] = {}
-# Last successful response per endpoint path (used as fallback during backoff)
-_cache: dict[str, list] = {}
+
+# ── OpenF1 response cache ─────────────────────────────
+# Maps cache_key -> {"data": list, "mono": float, "cached_at": str}
+# "mono" is time.monotonic() timestamp of last successful fetch.
+_cache: dict[str, dict] = {}
+# One asyncio.Lock per cache key — collapses concurrent requests into one
+# OpenF1 call (stampede prevention).
+_cache_locks: dict[str, asyncio.Lock] = {}
+
+
+def _cache_key(path: str, params: dict | None) -> str:
+    """Stable cache key from endpoint path + sorted query params."""
+    if not params:
+        return path
+    return path + "?" + "&".join(f"{k}={v}" for k, v in sorted(params.items()))
+
+
+def _get_cache_lock(key: str) -> asyncio.Lock:
+    if key not in _cache_locks:
+        _cache_locks[key] = asyncio.Lock()
+    return _cache_locks[key]
 
 
 def _blank_state() -> dict[str, Any]:
@@ -149,40 +182,72 @@ def _blank_state() -> dict[str, Any]:
 # ── OpenF1 helpers ────────────────────────────────────
 
 async def _of1(client: httpx.AsyncClient, path: str, params: dict | None = None) -> list:
-    """Fetch from OpenF1 REST API; returns [] on error or while in backoff."""
-    now = time.monotonic()
-    if path in _backoff:
-        retry_after, _ = _backoff[path]
-        if now < retry_after:
-            return _cache.get(path, [])
+    """
+    Fetch from OpenF1 REST API with TTL caching and stampede prevention.
 
-    try:
-        r = await client.get(
-            f"{OPENF1}{path}",
-            params=params or {},
-            timeout=15,
-        )
-        if r.status_code == 429:
-            if path in _backoff:
-                new_delay = min(_backoff[path][1] * 2, BACKOFF_MAX)
-            else:
-                new_delay = BACKOFF_BASE
-            _backoff[path] = (now + new_delay, new_delay)
-            log.warning("OpenF1 %s 429 — backing off %.0fs (serving cached)", path, new_delay)
-            return _cache.get(path, [])
-        r.raise_for_status()
-        _backoff.pop(path, None)  # reset on success
-        data = r.json()
-        # Sessions endpoint can return a single object or a list
-        result = data if isinstance(data, list) else [data]
-        _cache[path] = result   # store for future backoff fallback
-        return result
-    except httpx.HTTPStatusError as exc:
-        log.warning("OpenF1 %s failed: %s", path, exc)
-        return _cache.get(path, [])
-    except Exception as exc:
-        log.warning("OpenF1 %s failed: %s", path, exc)
-        return _cache.get(path, [])
+    - Returns cached data immediately if it is still within the TTL window.
+    - Uses a per-key asyncio.Lock so that N simultaneous callers collapse into
+      exactly ONE outbound OpenF1 request; all callers receive the same result.
+    - On 429 or any network error, returns the last known-good cached data so
+      the UI never shows empty sections.
+    """
+    key      = _cache_key(path, params)
+    ttl      = CACHE_TTL.get(path, CACHE_TTL_DEFAULT)
+    now_mono = time.monotonic()
+
+    # Fast path: serve from cache without acquiring any lock.
+    cached = _cache.get(key)
+    if cached and (now_mono - cached["mono"]) < ttl:
+        return cached["data"]
+
+    # Slow path: acquire the per-key lock (stampede protection).
+    lock = _get_cache_lock(key)
+    async with lock:
+        # Re-check inside the lock; another coroutine may have fetched while
+        # we were waiting.
+        now_mono = time.monotonic()
+        cached   = _cache.get(key)
+        if cached and (now_mono - cached["mono"]) < ttl:
+            return cached["data"]
+
+        # Check backoff (rate-limit penalty still active).
+        if path in _backoff:
+            retry_after, _ = _backoff[path]
+            if now_mono < retry_after:
+                cached_data = _cache.get(key, {}).get("data", [])
+                log.debug("OpenF1 %s — in backoff, returning cached (%d records)", path, len(cached_data))
+                return cached_data
+
+        try:
+            r = await client.get(
+                f"{OPENF1}{path}",
+                params=params or {},
+                timeout=15,
+            )
+            if r.status_code == 429:
+                new_delay = min(_backoff[path][1] * 2, BACKOFF_MAX) if path in _backoff else BACKOFF_BASE
+                _backoff[path] = (now_mono + new_delay, new_delay)
+                log.warning("OpenF1 %s 429 — backing off %.0fs (serving cached)", path, new_delay)
+                return _cache.get(key, {}).get("data", [])
+
+            r.raise_for_status()
+            _backoff.pop(path, None)   # successful response — reset penalty
+
+            data   = r.json()
+            result = data if isinstance(data, list) else [data]
+            _cache[key] = {
+                "data":      result,
+                "mono":      now_mono,
+                "cached_at": datetime.now(timezone.utc).isoformat(),
+            }
+            return result
+
+        except httpx.HTTPStatusError as exc:
+            log.warning("OpenF1 %s failed: %s", path, exc)
+            return _cache.get(key, {}).get("data", [])
+        except Exception as exc:
+            log.warning("OpenF1 %s failed: %s", path, exc)
+            return _cache.get(key, {}).get("data", [])
 
 
 def _latest_per_driver(records: list[dict], sort_key: str) -> dict[int, dict]:
