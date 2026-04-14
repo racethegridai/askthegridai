@@ -1754,6 +1754,17 @@
       padding: 12px 14px;
       border-bottom: 1px solid var(--border);
     }
+    /* Left column version — tighter, uses left-incidents-hdr for the label */
+    .left-wl-section {
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .left-wl-section .wl-row {
+      padding: 6px 12px;
+      border-bottom: 1px solid #111;
+    }
+    .left-wl-section .wl-row:first-child { padding-top: 6px; }
+    .left-wl-section .wl-row:last-child  { border-bottom: none; }
     .wl-row {
       display: flex;
       align-items: flex-start;
@@ -3716,17 +3727,19 @@
       </button>
     </div>
 
-    <!-- LEFT COLUMN: TEAM RADIO -->
-    <div class="left-radio-section">
-      <div class="left-radio-hdr">Team Radio</div>
-      <div id="leftRadioBody"><div class="left-radio-empty">Listening for radio…</div></div>
-    </div>
-
     <!-- LEFT COLUMN: RACE INCIDENTS -->
     <div class="left-incidents" id="leftIncidentsSection">
       <div class="left-incidents-hdr">Race Incidents</div>
       <div id="leftIncidentsBody">
         <div class="left-inc-empty">No incidents yet</div>
+      </div>
+    </div>
+
+    <!-- LEFT COLUMN: WHO WON & LOST MOST -->
+    <div class="left-wl-section">
+      <div class="left-incidents-hdr">Who Won &amp; Lost Most</div>
+      <div id="winnerLoserBody" style="padding:4px 0">
+        <div class="wl-loading" style="padding:8px 12px">Analysing race positions&hellip;</div>
       </div>
     </div>
   </div>
@@ -3869,16 +3882,7 @@
   <!-- SIDE CARDS COLUMN -->
   <div class="side-cards">
 
-    <!-- 1. Who Won & Lost Most -->
-    <div class="wl-card">
-      <div class="card-title">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-        Who Won &amp; Lost Most
-      </div>
-      <div id="winnerLoserBody">
-        <div class="wl-loading">Analysing race positions&hellip;</div>
-      </div>
-    </div>
+    <!-- Who Won & Lost Most moved to left column -->
 
     <!-- 2. What To Watch Next -->
     <div class="watch-next-card">
@@ -5287,7 +5291,7 @@ function _applyMobStandings() {
 function renderLeftIncidents(incidents) {
   const body = document.getElementById('leftIncidentsBody');
   if (!body) return;
-  const limit = 4;
+  const limit = 5;
   const list = (incidents || []).slice(0, limit);
   if (!list.length) {
     body.innerHTML = '<div class="left-inc-empty">No incidents recorded</div>';
@@ -5523,10 +5527,9 @@ function renderRadio(radio) {
     if (heroDrv) heroDrv.innerHTML =
       `<span style="width:8px;height:8px;border-radius:50%;background:${_teamColor(f.team)};flex-shrink:0;display:inline-block"></span>
        ${escapeHtml(f.driver)} &middot; ${escapeHtml(f.team)}`;
-    // Populate earlier rows, left radio, and right column with fallback
+    // Populate earlier rows and right column with fallback
     _renderFallbackEarlierRadio();
     _renderFallbackRightRadio();
-    _renderFallbackLeftRadio();
     if (_radioFullOpen) renderRadioFullView(radio);
     return;
   }
@@ -5573,7 +5576,6 @@ function renderRadio(radio) {
     }
   }
 
-  renderLeftRadio(radio);
   if (_radioFullOpen) renderRadioFullView(radio);
 }
 
