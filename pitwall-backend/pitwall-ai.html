@@ -2019,6 +2019,76 @@
       50%       { opacity: 0.3; transform: scale(0.7); }
     }
 
+    /* ── LEFT COLUMN WJH COMPACT BUTTON ─────────────── */
+    .left-wjh-btn {
+      flex-shrink: 0; width: 100%; padding: 12px 14px;
+      background: var(--red); border: none; color: #fff;
+      font-family: 'Titillium Web', sans-serif; cursor: pointer;
+      display: flex; align-items: center; gap: 10px;
+      transition: background .15s; border-top: 1px solid rgba(255,255,255,.1);
+    }
+    .left-wjh-btn:hover { background: #c50500; }
+    .left-wjh-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #fff;
+      flex-shrink: 0; animation: wjh-blink 1.5s ease-in-out infinite;
+    }
+    .left-wjh-inner { flex: 1; text-align: left; }
+    .left-wjh-title { display: block; font-size: 12px; font-weight: 900;
+      letter-spacing: 1px; text-transform: uppercase; line-height: 1.2; }
+    .left-wjh-sub { display: block; font-size: 9px; font-weight: 600;
+      letter-spacing: .5px; color: rgba(255,255,255,.65); margin-top: 2px; }
+    .left-wjh-arrow { font-size: 18px; color: rgba(255,255,255,.6); flex-shrink: 0; }
+
+    /* ── WJH FULL-VIEW OVERLAY ───────────────────────── */
+    .wjh-full-view {
+      position: absolute; inset: 0; background: var(--bg);
+      z-index: 20; display: flex; flex-direction: column; overflow: hidden;
+    }
+    .wjh-full-hdr {
+      flex-shrink: 0; padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .wjh-full-back {
+      flex-shrink: 0; background: transparent; border: 1px solid #2a2a2a;
+      color: #888; font-family: 'Titillium Web', sans-serif;
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; padding: 6px 12px; cursor: pointer;
+      transition: border-color .15s, color .15s; margin-top: 2px;
+    }
+    .wjh-full-back:hover { border-color: var(--red); color: var(--red); }
+    .wjh-full-title {
+      font-size: 16px; font-weight: 900; color: #fff; line-height: 1.2; margin-bottom: 3px;
+    }
+    .wjh-full-sub { font-size: 11px; color: #666; }
+    .wjh-full-body {
+      flex: 1; overflow-y: auto; padding: 16px;
+    }
+    .wjh-full-loading {
+      font-size: 13px; color: #555; font-style: italic; padding: 20px 0;
+    }
+    .wjh-incident-card {
+      margin-bottom: 14px; padding: 14px 16px;
+      background: #0d0d0d; border: 1px solid var(--border); border-radius: 4px;
+    }
+    .wjh-incident-card:last-child { margin-bottom: 0; }
+    .wjh-incident-lap {
+      display: inline-block; font-size: 9px; font-weight: 900; letter-spacing: 1.5px;
+      text-transform: uppercase; color: #fff; background: var(--red);
+      padding: 2px 8px; border-radius: 2px; margin-bottom: 9px;
+    }
+    .wjh-incident-text {
+      font-size: 13px; color: #bbb; line-height: 1.65;
+    }
+    .wjh-full-input-wrap {
+      flex-shrink: 0; padding: 12px 16px 16px;
+      border-top: 1px solid var(--border);
+    }
+    .wjh-full-input-label {
+      font-size: 9px; font-weight: 700; color: #555; letter-spacing: 1.5px;
+      text-transform: uppercase; margin-bottom: 8px;
+    }
+
     /* ── EARLIER RADIO CALLS ────────────────────────── */
     .radio-earlier {
       flex-shrink: 0;
@@ -4229,13 +4299,15 @@
       </div>
     </div>
 
-    <!-- LEFT COLUMN: WHO WON & LOST MOST -->
-    <div class="left-wl-section">
-      <div class="left-incidents-hdr">Who Won &amp; Lost Most</div>
-      <div id="winnerLoserBody" style="padding:4px 0">
-        <div class="wl-loading" style="padding:8px 12px">Analysing race positions&hellip;</div>
-      </div>
-    </div>
+    <!-- LEFT COLUMN: WJH COMPACT BUTTON -->
+    <button class="left-wjh-btn" id="leftWjhBtn" onclick="openWjhView()">
+      <span class="left-wjh-dot"></span>
+      <span class="left-wjh-inner">
+        <span class="left-wjh-title">What just happened?</span>
+        <span class="left-wjh-sub" id="leftWjhSub">AI explains last 5 minutes</span>
+      </span>
+      <span class="left-wjh-arrow">›</span>
+    </button>
   </div>
 
   <!-- CHAT PANEL -->
@@ -4263,14 +4335,6 @@
     <!-- TEST BUTTON — visible only with ?test=true in URL -->
     <button class="pit-test-btn" id="pitTestBtn" onclick="PitMgr.testStart()">⚡ Simulate Pit Stop</button>
 
-    <button class="wjh-btn" id="wjhBtn" onclick="wjhClick()">
-      <span class="wjh-pulse"></span>
-      <span class="wjh-btn-inner">
-        <span class="wjh-btn-title">What just happened?</span>
-        <span class="wjh-btn-sub" id="wjhSub">AI explains last 5 minutes</span>
-      </span>
-    </button>
-
     </div><!-- /center-cards-scroll -->
 
     <!-- AI CONVERSATION HISTORY (flex:1 — fills remaining space above chips) -->
@@ -4288,6 +4352,29 @@
         <span class="pit-history-chevron" id="pitHistoryChevron">&#9660;</span>
       </div>
       <div class="pit-history-body" id="pitHistoryBody"></div>
+    </div>
+
+    <!-- WJH FULL VIEW OVERLAY (position:absolute, triggered from left column WJH button) -->
+    <div class="wjh-full-view" id="wjhFullView" style="display:none">
+      <div class="wjh-full-hdr">
+        <button class="wjh-full-back" onclick="closeWjhView()">← Back</button>
+        <div>
+          <div class="wjh-full-title">What just happened?</div>
+          <div class="wjh-full-sub">AI summary of the last 5 minutes · Updated live</div>
+        </div>
+      </div>
+      <div class="wjh-full-body" id="wjhFullBody">
+        <div class="wjh-full-loading">Analysing the last 5 minutes&hellip;</div>
+      </div>
+      <div class="wjh-full-input-wrap">
+        <div class="wjh-full-input-label">Ask about anything that just happened</div>
+        <div class="drp-input-row">
+          <input class="drp-chat-input" id="wjhFullInput"
+            placeholder="Ask about anything that just happened…"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();_wjhFullAsk();}">
+          <button class="drp-ask-btn" onclick="_wjhFullAsk()">ASK</button>
+        </div>
+      </div>
     </div>
 
     <!-- RADIO FULL VIEW OVERLAY (position:absolute, triggered from right column) -->
@@ -4988,12 +5075,12 @@ function applyState(data) {
   }
 
   // ── Info cards ──────────────────────────────────
-  if (data.incidents) { renderIncidents(data.incidents); renderLeftIncidents(data.incidents); updateWinnerLoser(); }
+  if (data.incidents) { renderIncidents(data.incidents); renderLeftIncidents(data.incidents); }
   if (data.radio)     { renderRadio(data.radio); renderRightRadio(data.radio); renderMobRadio(data.radio); }
   if (data.pit_stops) PitMgr.update(data.pit_stops);
 
   // ── WJH subtitle — key events count ────────────────
-  const wjhSub = document.getElementById('wjhSub');
+  const wjhSub = document.getElementById('leftWjhSub');
   if (wjhSub) {
     const n = (data.incidents || []).length;
     wjhSub.textContent = n
@@ -6985,12 +7072,90 @@ function _tickCountdown() {
    WHAT JUST HAPPENED
 ────────────────────────────────────────────────── */
 function wjhClick() {
-  const btn = document.getElementById('wjhBtn');
-  btn.disabled = true;
-  document.getElementById('chatInput').value =
-    'What just happened? Give me the current race situation right now.';
+  // Legacy — now routes to the overlay
+  openWjhView();
+}
+
+let _wjhOpen = false;
+let _wjhBusy = false;
+
+function openWjhView() {
+  const el = document.getElementById('wjhFullView');
+  if (!el) return;
+  el.style.display = 'flex';
+  _wjhOpen = true;
+  _loadWjhContent();
+}
+
+function closeWjhView() {
+  const el = document.getElementById('wjhFullView');
+  if (el) el.style.display = 'none';
+  _wjhOpen = false;
+}
+
+async function _loadWjhContent() {
+  if (_wjhBusy) return;
+  _wjhBusy = true;
+  const body = document.getElementById('wjhFullBody');
+  if (!body) { _wjhBusy = false; return; }
+
+  body.innerHTML = '<div class="wjh-full-loading">Analysing the last 5 minutes&hellip;</div>';
+
+  const drivers   = liveData.drivers || [];
+  const incidents = liveData.incidents || [];
+  const lap       = liveData.lap || '?';
+  const session   = liveData.session_name || 'current race';
+
+  const top5 = drivers.slice(0, 5)
+    .map(d => `P${d.pos} ${d.code} gap:${d.gap} tyre:${d.tyre||'?'}(${d.stintLap||0}L)`).join(', ');
+  const recentInc = incidents.slice(0, 5).map((i, n) => `${n+1}. Lap ${i.lap||lap}: ${i.msg}`).join('\n');
+
+  const system = `You are an F1 race commentator explaining the last 5 minutes to a brand new fan.
+Reply with EXACTLY 3 to 5 incident cards. Each card must be on its own line in this format:
+LAP [number] | [one paragraph plain English explanation of what happened and why it matters, conversational tone, no bullet points, 2-4 sentences]
+If no incidents happened write: LAP ${lap} | The race is running cleanly right now — no major events in the last few laps.`;
+
+  const userMsg = `Session: ${session}, Lap ${lap}.\nTop 5: ${top5}\nRecent incidents:\n${recentInc || 'None recorded yet.'}`;
+
+  try {
+    const res = await fetch(`${BACKEND}/api/chat`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ system, messages: [{ role: 'user', content: userMsg }] }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const lines = (data.reply || '').trim().split('\n').filter(l => l.trim());
+    const cards = lines.map(line => {
+      const sep = line.indexOf(' | ');
+      if (sep === -1) return `<div class="wjh-incident-card"><div class="wjh-incident-text">${escapeHtml(line)}</div></div>`;
+      const lapLabel = line.substring(0, sep).trim();
+      const txt      = line.substring(sep + 3).trim();
+      return `
+        <div class="wjh-incident-card">
+          <div class="wjh-incident-lap">${escapeHtml(lapLabel)}</div>
+          <div class="wjh-incident-text">${escapeHtml(txt)}</div>
+        </div>`;
+    }).join('');
+    body.innerHTML = cards || '<div class="wjh-full-loading">Nothing to report yet.</div>';
+  } catch(e) {
+    body.innerHTML = `<div class="wjh-full-loading">\u26a0 Could not load summary. ${escapeHtml(e.message)}</div>`;
+  } finally {
+    _wjhBusy = false;
+  }
+}
+
+async function _wjhFullAsk() {
+  const input = document.getElementById('wjhFullInput');
+  if (!input) return;
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  // Route question to main AI chat and close overlay
+  document.getElementById('chatInput').value = q;
+  closeWjhView();
   sendMsg();
-  setTimeout(() => { btn.disabled = false; }, 4000);
 }
 
 /* ──────────────────────────────────────────────────
