@@ -886,106 +886,37 @@
     }
     .free-limit-upgrade:hover { text-decoration: underline; }
 
-    /* ── EXPLANATION STYLE BAR ──────────────────────── */
-    .style-bar {
+    /* ── EXPLANATION STYLE SELECTOR ─────────────────── */
+    #style-selector {
       flex-shrink: 0;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 5px 18px;
+      gap: 5px;
+      flex-wrap: wrap;
+      padding: 8px 16px;
       background: #060606;
       border-top: 1px solid #161616;
-      gap: 8px;
     }
-    .style-bar-label {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #444;
-      flex-shrink: 0;
-    }
-    .style-badge {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--yellow);
-      letter-spacing: .5px;
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .style-change-btn {
-      background: transparent;
+    #style-selector button {
+      padding: 6px 11px;
       border: 1px solid #2a2a2a;
-      color: #555;
+      background: #111;
+      color: #888;
       font-family: 'Titillium Web', sans-serif;
-      font-size: 9px;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      padding: 4px 10px;
+      letter-spacing: 0.5px;
       cursor: pointer;
-      flex-shrink: 0;
-      transition: border-color .15s, color .15s;
+      transition: background .12s, color .12s, border-color .12s;
+      white-space: nowrap;
     }
-    .style-change-btn:hover { border-color: var(--yellow); color: var(--yellow); }
-
-    /* Style picker popover */
-    .style-picker {
-      position: absolute;
-      bottom: calc(100% + 4px);
-      left: 16px;
-      right: 16px;
-      background: #0f0f0f;
-      border: 1px solid #2a2a2a;
-      border-radius: 6px;
-      z-index: 200;
-      overflow: hidden;
-      display: none;
-      flex-direction: column;
-      box-shadow: 0 -8px 24px rgba(0,0,0,.6);
+    #style-selector button:hover {
+      border-color: #e10600;
+      color: #fff;
     }
-    .style-picker.open { display: flex; }
-    .style-picker-hdr {
-      padding: 10px 14px 8px;
-      font-size: 8px;
-      font-weight: 900;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: #555;
-      border-bottom: 1px solid #1a1a1a;
-    }
-    .style-option {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      padding: 10px 14px;
-      cursor: pointer;
-      border-bottom: 1px solid #131313;
-      transition: background .12s;
-    }
-    .style-option:last-child { border-bottom: none; }
-    .style-option:hover { background: rgba(255,255,255,.03); }
-    .style-option.active { background: rgba(245,200,66,.06); }
-    .style-option-name {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--white);
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-    .style-option.active .style-option-name { color: var(--yellow); }
-    .style-option-check {
-      font-size: 10px;
-      color: var(--yellow);
-      margin-left: auto;
-    }
-    .style-option-desc {
-      font-size: 10px;
-      color: #555;
-      line-height: 1.4;
+    #style-selector button.selected {
+      background: #e10600;
+      border-color: #e10600;
+      color: #fff;
     }
 
     /* ── UPGRADE PANEL ───────────────────────────────── */
@@ -3822,36 +3753,13 @@
       <a class="free-limit-upgrade" onclick="handleUpgradeClick()">Upgrade for unlimited →</a>
     </div>
 
-    <!-- STYLE PICKER POPOVER (positioned above input bar) -->
-    <div class="style-picker" id="stylePicker">
-      <div class="style-picker-hdr">Explanation Style</div>
-      <div class="style-option active" data-style="beginner" onclick="setExplainStyle('beginner')">
-        <div class="style-option-name">🏁 Complete Beginner <span class="style-option-check">✓</span></div>
-        <div class="style-option-desc">Assume you know nothing. Simple everyday analogies, no jargon.</div>
-      </div>
-      <div class="style-option" data-style="football" onclick="setExplainStyle('football')">
-        <div class="style-option-name">🏈 Football Fan</div>
-        <div class="style-option-desc">Racing explained through American football. Pit stop = timeout, DRS = speed boost.</div>
-      </div>
-      <div class="style-option" data-style="curious" onclick="setExplainStyle('curious')">
-        <div class="style-option-name">🔍 F1 Curious</div>
-        <div class="style-option-desc">You know the basics. Focus on strategy, context, and why it matters.</div>
-      </div>
-      <div class="style-option" data-style="enthusiast" onclick="setExplainStyle('enthusiast')">
-        <div class="style-option-name">📊 Racing Enthusiast</div>
-        <div class="style-option-desc">Technical depth welcome. Data, analysis, full terminology.</div>
-      </div>
-      <div class="style-option" data-style="kid" onclick="setExplainStyle('kid')">
-        <div class="style-option-name">🌟 Kid Friendly</div>
-        <div class="style-option-desc">Super simple, fun comparisons, short sentences, big ideas.</div>
-      </div>
-    </div>
-
-    <!-- STYLE BAR -->
-    <div class="style-bar">
-      <span class="style-bar-label">Style</span>
-      <span class="style-badge" id="styleBadge">Complete Beginner</span>
-      <button class="style-change-btn" onclick="toggleStylePicker()">Change</button>
+    <!-- STYLE SELECTOR -->
+    <div id="style-selector">
+      <button onclick="setStyle('beginner')">Beginner</button>
+      <button onclick="setStyle('football')">Football terms</button>
+      <button onclick="setStyle('curious')">F1 curious</button>
+      <button onclick="setStyle('enthusiast')">Enthusiast</button>
+      <button onclick="setStyle('kid')">Kid friendly</button>
     </div>
 
     <!-- INPUT -->
@@ -4884,48 +4792,16 @@ function getExplainStyle() {
   return localStorage.getItem(STYLE_KEY) || 'beginner';
 }
 
-function setExplainStyle(style) {
+function setStyle(style) {
   localStorage.setItem(STYLE_KEY, style);
-  // Update badge
-  const badge = document.getElementById('styleBadge');
-  if (badge) badge.textContent = STYLE_LABELS[style] || style;
-  // Update active option in picker
-  document.querySelectorAll('.style-option').forEach(el => {
-    const isActive = el.dataset.style === style;
-    el.classList.toggle('active', isActive);
-    const check = el.querySelector('.style-option-check');
-    if (check) check.style.display = isActive ? '' : 'none';
+  document.querySelectorAll('#style-selector button').forEach(btn => {
+    const btnStyle = btn.getAttribute('onclick').match(/'([^']+)'/)?.[1];
+    btn.classList.toggle('selected', btnStyle === style);
   });
-  // Close picker
-  const picker = document.getElementById('stylePicker');
-  if (picker) picker.classList.remove('open');
 }
-
-function toggleStylePicker() {
-  const picker = document.getElementById('stylePicker');
-  if (picker) picker.classList.toggle('open');
-}
-
-// Close picker when clicking outside
-document.addEventListener('click', e => {
-  const picker = document.getElementById('stylePicker');
-  if (!picker) return;
-  if (!picker.contains(e.target) && !e.target.closest('.style-change-btn')) {
-    picker.classList.remove('open');
-  }
-});
 
 function _initStyleSelector() {
-  const style = getExplainStyle();
-  const badge = document.getElementById('styleBadge');
-  if (badge) badge.textContent = STYLE_LABELS[style] || style;
-  // Sync checkmarks
-  document.querySelectorAll('.style-option').forEach(el => {
-    const isActive = el.dataset.style === style;
-    el.classList.toggle('active', isActive);
-    const check = el.querySelector('.style-option-check');
-    if (check) check.style.display = isActive ? '' : 'none';
-  });
+  setStyle(getExplainStyle());
 }
 
 /* ──────────────────────────────────────────────────
