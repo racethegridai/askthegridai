@@ -3502,11 +3502,10 @@
 
   <!-- MOB TABS -->
   <div class="mob-tabs">
-    <button class="mob-tab active" data-mobtab="hub"      onclick="mobSwitchTab('hub')">Home</button>
-    <button class="mob-tab"        data-mobtab="radio"    onclick="mobOpenPage('radio')">Radio</button>
-    <button class="mob-tab"        data-mobtab="leaders"  onclick="mobOpenPage('leaders')">Standings</button>
-    <button class="mob-tab"        data-mobtab="drivers"  onclick="mobOpenPage('drivers')">Drivers</button>
-    <button class="mob-tab"        data-mobtab="strategy" onclick="mobOpenPage('strategy')">Strategy</button>
+    <button class="mob-tab active" data-mobtab="hub"     onclick="mobSwitchTab('hub')">Home</button>
+    <button class="mob-tab"        data-mobtab="leaders" onclick="mobSwitchTab('leaders');mobOpenPage('leaders')">Standings</button>
+    <button class="mob-tab"        data-mobtab="drivers" onclick="mobSwitchTab('drivers');mobOpenPage('drivers')">Drivers</button>
+    <button class="mob-tab"        data-mobtab="news"    onclick="mobSwitchTab('news');mobOpenPage('news')">News</button>
   </div>
 
   <!-- MOB RACE STRIP -->
@@ -3531,6 +3530,15 @@
         <button class="mob-hero-chip chip-race"     onclick="mobAskChip(this)">Who can still win?</button>
         <button class="mob-hero-chip chip-beginner" onclick="mobAskChip(this)">What is DRS?</button>
         <button class="mob-hero-chip chip-beginner" onclick="mobAskChip(this)">Explain undercut</button>
+      </div>
+
+      <!-- Style selector -->
+      <div id="mobStyleSelector" style="display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch;">
+        <button onclick="setStyle('beginner')"    data-style="beginner"    style="flex-shrink:0;font-family:'Titillium Web',sans-serif;font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;border:1px solid #2a2a2a;background:#111;color:#666;cursor:pointer;transition:all .15s;white-space:nowrap">Beginner</button>
+        <button onclick="setStyle('football')"    data-style="football"    style="flex-shrink:0;font-family:'Titillium Web',sans-serif;font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;border:1px solid #2a2a2a;background:#111;color:#666;cursor:pointer;transition:all .15s;white-space:nowrap">Football terms</button>
+        <button onclick="setStyle('curious')"     data-style="curious"     style="flex-shrink:0;font-family:'Titillium Web',sans-serif;font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;border:1px solid #2a2a2a;background:#111;color:#666;cursor:pointer;transition:all .15s;white-space:nowrap">F1 curious</button>
+        <button onclick="setStyle('enthusiast')"  data-style="enthusiast"  style="flex-shrink:0;font-family:'Titillium Web',sans-serif;font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;border:1px solid #2a2a2a;background:#111;color:#666;cursor:pointer;transition:all .15s;white-space:nowrap">Enthusiast</button>
+        <button onclick="setStyle('kid')"         data-style="kid"         style="flex-shrink:0;font-family:'Titillium Web',sans-serif;font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;border:1px solid #2a2a2a;background:#111;color:#666;cursor:pointer;transition:all .15s;white-space:nowrap">Kid friendly</button>
       </div>
 
       <!-- Input row -->
@@ -3699,6 +3707,20 @@
       <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px">Strategy Tab</div>
       <div style="font-size:13px;color:#555;margin-bottom:20px">Pit windows, undercut alerts, and tyre strategy — unlock with Pro.</div>
       <button class="upgrade-pro-btn" onclick="handleUpgradeClick()" style="width:100%;max-width:280px">UPGRADE TO PRO</button>
+    </div>
+  </div>
+</div>
+
+<div class="mob-page" id="mob-page-news">
+  <div class="mob-page-header">
+    <button class="mob-back-btn" onclick="mobClosePage('news')">← Back</button>
+    <span class="mob-page-title">F1 News</span>
+  </div>
+  <div class="mob-page-body">
+    <div style="padding:32px 20px;text-align:center">
+      <div style="font-size:32px;margin-bottom:14px">📰</div>
+      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px">F1 News — Coming Soon</div>
+      <div style="font-size:13px;color:#555;line-height:1.6">Latest F1 headlines, team updates, and race previews — all explained in plain English. Coming in the next update.</div>
     </div>
   </div>
 </div>
@@ -5047,9 +5069,17 @@ function getExplainStyle() {
 
 function setStyle(style) {
   localStorage.setItem(STYLE_KEY, style);
+  // Desktop selector
   document.querySelectorAll('#style-selector button').forEach(btn => {
     const btnStyle = btn.getAttribute('onclick').match(/'([^']+)'/)?.[1];
     btn.classList.toggle('selected', btnStyle === style);
+  });
+  // Mobile selector
+  document.querySelectorAll('#mobStyleSelector button').forEach(btn => {
+    const active = btn.dataset.style === style;
+    btn.style.background = active ? 'var(--red)' : '#111';
+    btn.style.color      = active ? '#fff'        : '#666';
+    btn.style.borderColor= active ? 'var(--red)'  : '#2a2a2a';
   });
 }
 
