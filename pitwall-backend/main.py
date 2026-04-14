@@ -704,10 +704,52 @@ class ChatRequest(BaseModel):
     messages: list[dict]
 
 
+# Keywords whose presence in a user message signals that live race data is needed.
+# Anything not in this list goes straight to Claude with no cache lookup.
+_LIVE_KEYWORDS: frozenset[str] = frozenset([
+    # positions / timing
+    "position", "positions", "p1", "p2", "p3", "p4", "p5",
+    "gap", "gaps", "interval", "intervals", "leading", "leader",
+    "top 5", "top five", "top 3", "top three",
+    # lap / race progress
+    "what lap", "which lap", "current lap", "lap count",
+    "how many laps",
+    # pit / strategy
+    "pit stop", "pit stops", "pitted", "pitting", "pit wall",
+    "strategy", "undercut", "overcut", "tyre change", "tire change",
+    # live events
+    "just happened", "just now", "right now", "happening now",
+    "live", "current race", "current positions",
+    "what just", "who just",
+    # flags / incidents
+    "safety car", "red flag", "yellow flag", "vsc", "sc deployed",
+    "race control", "incident", "retired", "dnf",
+    # radio
+    "team radio", "radio message",
+])
+
+
+def _needs_live_context(messages: list[dict]) -> bool:
+    """
+    Return True only when the latest user message is asking about live
+    race data (positions, gaps, pit stops, flags, radio).
+    General F1 knowledge questions (rules, history, driver careers,
+    "what is DRS") return False and skip the cache lookup entirely.
+    """
+    text = ""
+    for m in reversed(messages):
+        if m.get("role") == "user":
+            text = (m.get("content") or "").lower()
+            break
+    return any(kw in text for kw in _LIVE_KEYWORDS)
+
+
 def _build_race_context(state: dict) -> str:
     """
-    Compact race snapshot injected into system prompts (Fix 2).
-    Uses the server's already-cached _state so no extra OpenF1 call is made.
+    Compact race snapshot injected into system prompts.
+    Only called when _needs_live_context() returns True.
+    Reads exclusively from the in-memory cache — never triggers a fresh
+    OpenF1 fetch.
     """
     if not state.get("session_key"):
         return ""
@@ -781,15 +823,25 @@ async def chat_stream(req: ChatRequest):
             detail="ANTHROPIC_API_KEY not found. Add it to pitwall-backend/.env"
         )
 
-    # Fix 2: enrich with server-side cached race data (zero extra OpenF1 calls)
+    # Only inject live race data when the question actually needs it.
+    # General knowledge questions ("what is DRS", driver history, rules)
+    # skip the cache lookup entirely and go straight to Claude.
     log.info("[TIMING] Context building starts: %dms", _ms(t0))
-    async with _lock:
-        state_snap = dict(_state)
-    enriched_system = req.system + _build_race_context(state_snap)
-    log.info(
-        "[TIMING] Context built: %dms  (system prompt: %d chars, messages: %d)",
-        _ms(t0), len(enriched_system), len(req.messages),
-    )
+    if _needs_live_context(req.messages):
+        async with _lock:
+            state_snap = dict(_state)
+        enriched_system = req.system + _build_race_context(state_snap)
+        log.info(
+            "[TIMING] Context built (live): %dms  (system: %d chars, messages: %d)",
+            _ms(t0), len(enriched_system), len(req.messages),
+        )
+    else:
+        enriched_system = req.system
+        log.info(
+            "[TIMING] Context built (skip — no live data needed): %dms  "
+            "(system: %d chars, messages: %d)",
+            _ms(t0), len(enriched_system), len(req.messages),
+        )
 
     async def generate():
         ai_client = anthropic.AsyncAnthropic(api_key=api_key)
