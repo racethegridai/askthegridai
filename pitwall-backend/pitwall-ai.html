@@ -398,13 +398,96 @@
       overflow-y: auto;
       border-top: 1px solid var(--border);
     }
+    /* ── LEFT COLUMN EXPAND BUTTON ──────────────────── */
+    .left-expand-btn {
+      display: block;
+      width: 100%;
+      padding: 7px 14px;
+      background: transparent;
+      border: none;
+      border-top: 1px solid var(--border);
+      color: #555;
+      font-family: 'Titillium Web', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-align: center;
+      transition: color .15s, background .15s;
+    }
+    .left-expand-btn:hover { color: var(--white); background: #111; }
+
+    /* ── LEFT COLUMN RADIO SECTION ──────────────────── */
+    .left-radio-section {
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .left-radio-hdr {
+      padding: 8px 14px 6px;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #555;
+      border-bottom: 1px solid #141414;
+    }
+    .left-radio-entry {
+      padding: 8px 12px;
+      border-bottom: 1px solid #111;
+    }
+    .left-radio-entry:last-child { border-bottom: none; }
+    .left-radio-driver {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 3px;
+    }
+    .left-radio-msg {
+      font-size: 10px;
+      font-style: italic;
+      color: var(--gray-lt);
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+    .left-radio-meaning-label {
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 2px;
+    }
+    .left-radio-meaning-text {
+      font-size: 10px;
+      color: #aaa;
+      line-height: 1.45;
+      margin-bottom: 4px;
+    }
+    .left-radio-expand-link {
+      font-size: 9px;
+      color: #444;
+      cursor: pointer;
+      letter-spacing: .5px;
+    }
+    .left-radio-expand-link:hover { color: var(--gray-lt); }
+    .left-radio-empty {
+      padding: 10px 12px;
+      font-size: 10px;
+      color: #333;
+      font-style: italic;
+    }
+
     .left-incidents-hdr {
       padding: 8px 14px 6px;
       font-size: 8px;
       font-weight: 700;
       letter-spacing: 3px;
       text-transform: uppercase;
-      color: var(--red);
+      color: #555;
       border-bottom: 1px solid #141414;
       flex-shrink: 0;
     }
@@ -3628,7 +3711,18 @@
       <button class="mob-standings-expand" id="mobStandingsBtn" onclick="toggleMobStandings()">
         View all 20 drivers ▼
       </button>
+      <button class="left-expand-btn" id="leftStandingsBtn" onclick="toggleLeftStandings()">
+        View all drivers ▼
+      </button>
     </div>
+
+    <!-- LEFT COLUMN: TEAM RADIO -->
+    <div class="left-radio-section">
+      <div class="left-radio-hdr">Team Radio</div>
+      <div id="leftRadioBody"><div class="left-radio-empty">Listening for radio…</div></div>
+    </div>
+
+    <!-- LEFT COLUMN: RACE INCIDENTS -->
     <div class="left-incidents" id="leftIncidentsSection">
       <div class="left-incidents-hdr">Race Incidents</div>
       <div id="leftIncidentsBody">
@@ -5092,6 +5186,80 @@ function _arrowHtml(currentPos, key) {
     : '<span class="pos-arrow down">&#9660;</span>';
 }
 
+/* ── LEFT COLUMN STANDINGS EXPAND (desktop) ──────── */
+let _leftStandingsExpanded = false;
+
+function _applyLeftStandings() {
+  const rows = document.querySelectorAll('#standingsTbody tr');
+  const btn  = document.getElementById('leftStandingsBtn');
+  rows.forEach((tr, i) => {
+    tr.style.display = (!_leftStandingsExpanded && i >= 5) ? 'none' : '';
+  });
+  if (btn) btn.textContent = _leftStandingsExpanded
+    ? 'Show top 5 ▲'
+    : `View all ${rows.length} drivers ▼`;
+}
+
+function toggleLeftStandings() {
+  _leftStandingsExpanded = !_leftStandingsExpanded;
+  _applyLeftStandings();
+}
+
+/* ── LEFT COLUMN RADIO ────────────────────────────── */
+function renderLeftRadio(radio) {
+  const body = document.getElementById('leftRadioBody');
+  if (!body) return;
+
+  if (!radio || !radio.length) {
+    _renderFallbackLeftRadio();
+    return;
+  }
+
+  const sorted = [...radio].reverse().slice(0, 3);
+  body.innerHTML = sorted.map(r => {
+    const clr     = _teamColor(r.team);
+    const msg     = r.message || r.msg || r.text || '';
+    const snippet = msg.length > 60 ? msg.slice(0, 57) + '\u2026' : msg;
+    const key     = _radioKey(r);
+    const trans   = _radioTranslations.get(key);
+    const meaningHtml = !trans || trans === 'loading'
+      ? `<div class="left-radio-meaning-text" style="color:#333;font-style:italic">Translating\u2026</div>`
+      : trans === 'error'
+        ? `<div class="left-radio-meaning-text" style="color:#333;font-style:italic">Translation unavailable</div>`
+        : `<div class="left-radio-meaning-text">${escapeHtml(trans.what || '')}</div>`;
+    return `
+      <div class="left-radio-entry">
+        <div class="left-radio-driver">
+          <span style="width:7px;height:7px;border-radius:50%;background:${clr};display:inline-block;flex-shrink:0"></span>
+          ${escapeHtml(r.driver)} &middot; <span style="color:var(--gray);font-weight:400">${escapeHtml(r.team || '')}</span>
+        </div>
+        ${msg ? `<div class="left-radio-msg">&ldquo;${escapeHtml(snippet)}&rdquo;</div>` : ''}
+        <div class="left-radio-meaning-label">What this means</div>
+        ${meaningHtml}
+        <span class="left-radio-expand-link" onclick="openRadioView()">Tap to expand &rarr;</span>
+      </div>`;
+  }).join('');
+}
+
+function _renderFallbackLeftRadio() {
+  const body = document.getElementById('leftRadioBody');
+  if (!body) return;
+  body.innerHTML = (typeof FALLBACK_RADIO !== 'undefined' ? FALLBACK_RADIO : []).slice(0, 3).map(r => {
+    const clr = _teamColor(r.team);
+    return `
+      <div class="left-radio-entry">
+        <div class="left-radio-driver">
+          <span style="width:7px;height:7px;border-radius:50%;background:${clr};display:inline-block;flex-shrink:0"></span>
+          ${escapeHtml(r.driver)} &middot; <span style="color:var(--gray);font-weight:400">${escapeHtml(r.team)}</span>
+        </div>
+        <div class="left-radio-msg">&ldquo;${escapeHtml(r.message)}&rdquo;</div>
+        <div class="left-radio-meaning-label">What this means</div>
+        <div class="left-radio-meaning-text">${escapeHtml(r.meaning)}</div>
+        <span class="left-radio-expand-link" onclick="openRadioView()">Tap to expand &rarr;</span>
+      </div>`;
+  }).join('');
+}
+
 /* ── MOBILE STANDINGS EXPAND ──────────────────────── */
 let _mobStandingsExpanded = false;
 function toggleMobStandings() {
@@ -5119,8 +5287,7 @@ function _applyMobStandings() {
 function renderLeftIncidents(incidents) {
   const body = document.getElementById('leftIncidentsBody');
   if (!body) return;
-  // On mobile show last 3 only; desktop keeps 5
-  const limit = window.innerWidth < 768 ? 3 : 5;
+  const limit = 4;
   const list = (incidents || []).slice(0, limit);
   if (!list.length) {
     body.innerHTML = '<div class="left-inc-empty">No incidents recorded</div>';
@@ -5134,8 +5301,8 @@ function renderLeftIncidents(incidents) {
 
 function renderStandings(drivers) {
   _loadPrevPositions();
-  // Cap at top 10
-  drivers = drivers.slice(0, 10);
+  // Show all drivers (up to 20); left column hides rows 6+ until expanded
+  drivers = drivers.slice(0, 20);
 
   // Drivers currently in pit lane
   const inPit = new Set(
@@ -5182,6 +5349,7 @@ function renderStandings(drivers) {
   }, 1300);
 
   _applyMobStandings();
+  _applyLeftStandings();
 }
 
 /* ──────────────────────────────────────────────────
@@ -5355,9 +5523,10 @@ function renderRadio(radio) {
     if (heroDrv) heroDrv.innerHTML =
       `<span style="width:8px;height:8px;border-radius:50%;background:${_teamColor(f.team)};flex-shrink:0;display:inline-block"></span>
        ${escapeHtml(f.driver)} &middot; ${escapeHtml(f.team)}`;
-    // Populate earlier rows and right column with fallback
+    // Populate earlier rows, left radio, and right column with fallback
     _renderFallbackEarlierRadio();
     _renderFallbackRightRadio();
+    _renderFallbackLeftRadio();
     if (_radioFullOpen) renderRadioFullView(radio);
     return;
   }
@@ -5404,6 +5573,7 @@ function renderRadio(radio) {
     }
   }
 
+  renderLeftRadio(radio);
   if (_radioFullOpen) renderRadioFullView(radio);
 }
 
