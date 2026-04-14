@@ -704,8 +704,37 @@ class ChatRequest(BaseModel):
     messages: list[dict]
 
 
+def _build_race_context(state: dict) -> str:
+    """
+    Compact race snapshot injected into system prompts (Fix 2).
+    Uses the server's already-cached _state so no extra OpenF1 call is made.
+    """
+    if not state.get("session_key"):
+        return ""
+    top5 = state.get("drivers", [])[:5]
+    top5_str = ", ".join(
+        f"P{d['pos']} {d['code']} tyre:{d.get('tyre','?')} "
+        f"+{d.get('stintLap', 0)}L gap:{d.get('gap', '?')}"
+        for d in top5
+    ) if top5 else "no driver data"
+    incidents = "; ".join(
+        f"Lap {i.get('lap', '?')}: {i.get('msg', '')}"
+        for i in (state.get("incidents") or [])[:3]
+    ) or "none"
+    updated = (state.get("last_updated") or "")[:19] or "unknown"
+    return (
+        f"\n\n[SERVER RACE DATA — cached {updated} UTC]\n"
+        f"Session: {state.get('session_name', '—')} | "
+        f"Lap: {state.get('lap', 0)}/{state.get('total_laps', '?')} | "
+        f"Status: {state.get('status', 'none')}\n"
+        f"Top 5: {top5_str}\n"
+        f"Incidents: {incidents}"
+    )
+
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
+    """Non-streaming chat used by background features (radio translation, strategy)."""
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise HTTPException(
@@ -728,6 +757,62 @@ async def chat(req: ChatRequest):
         raise HTTPException(status_code=429, detail="Anthropic rate limit hit — try again shortly")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/chat-stream")
+async def chat_stream(req: ChatRequest):
+    """
+    Streaming chat endpoint (Fix 1 + Fix 2).
+    Emits SSE tokens so the UI can render text word-by-word.
+    Injects the server's cached _state into the system prompt so no fresh
+    OpenF1 fetch is needed per question.
+    """
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="ANTHROPIC_API_KEY not found. Add it to pitwall-backend/.env"
+        )
+
+    # Fix 2: enrich with server-side cached race data (zero extra OpenF1 calls)
+    async with _lock:
+        state_snap = dict(_state)
+    enriched_system = req.system + _build_race_context(state_snap)
+
+    async def generate():
+        ai_client = anthropic.AsyncAnthropic(api_key=api_key)
+        try:
+            async with ai_client.messages.stream(
+                model="claude-sonnet-4-20250514",
+                max_tokens=600,
+                system=enriched_system,
+                messages=req.messages,
+            ) as stream:
+                async for text in stream.text_stream:
+                    yield f"data: {json.dumps({'token': text})}\n\n"
+            yield "data: [DONE]\n\n"
+        except anthropic.AuthenticationError:
+            yield f"data: {json.dumps({'error': 'Invalid Anthropic API key'})}\n\n"
+        except anthropic.RateLimitError:
+            yield f"data: {json.dumps({'error': 'Anthropic rate limit hit — try again shortly'})}\n\n"
+        except Exception as exc:
+            yield f"data: {json.dumps({'error': str(exc)})}\n\n"
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control":     "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection":        "keep-alive",
+        },
+    )
+
+
+@app.get("/api/ping")
+async def ping():
+    """Keep-alive endpoint — frontend pings every 4 minutes to prevent Railway cold starts."""
+    return {"ok": True}
 
 
 @app.get("/api/championship-standings")

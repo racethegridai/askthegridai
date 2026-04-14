@@ -3701,6 +3701,61 @@ function escapeHtml(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+/* ──────────────────────────────────────────────────
+   STREAMING HELPERS  (Fix 1)
+   Used by sendMsg() and sendDriverMsg() to render
+   tokens word-by-word as Claude generates them.
+────────────────────────────────────────────────── */
+
+// Creates an AI message bubble inside `container` (element or ID string).
+// Returns the bubble <div> so the caller can update its text token-by-token.
+function _appendStreamingBubble(container) {
+  const box = (typeof container === 'string')
+    ? document.getElementById(container)
+    : container;
+  if (!box) return null;
+  if (typeof container === 'string') clearWelcome(); // main-chat only
+  const row = document.createElement('div');
+  row.className = 'msg-row ai';
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.textContent = 'AI';
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  box.appendChild(row);
+  box.scrollTop = box.scrollHeight;
+  return bubble;
+}
+
+// Reads an SSE fetch response produced by /api/chat-stream.
+// Calls onUpdate(accumulatedText) after every token.
+// Returns the complete reply string when the stream ends.
+async function _readTokenStream(res, onUpdate) {
+  const reader  = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer   = '';
+  let fullText = '';
+  outer: while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop(); // keep any incomplete trailing line
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const payload = line.slice(6).trim();
+      if (payload === '[DONE]') break outer;
+      let obj;
+      try { obj = JSON.parse(payload); } catch { continue; }
+      if (obj.error) throw new Error(obj.error);
+      if (obj.token) { fullText += obj.token; onUpdate(fullText); }
+    }
+  }
+  return fullText;
+}
+
 async function sendMsg() {
   if (busy) return;
   if (!isLimitBypassed() && getFreeCount() >= FREE_LIMIT) return;
@@ -3719,7 +3774,8 @@ async function sendMsg() {
   showTyping();
 
   try {
-    const res = await fetch(`${BACKEND}/api/chat`, {
+    // Fix 1: streaming endpoint — first token visible in ~1 s instead of ~10 s
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -3733,12 +3789,17 @@ async function sendMsg() {
       throw new Error(err.detail || `HTTP ${res.status}`);
     }
 
-    const data = await res.json();
-    const reply = data.reply ?? '(No response)';
-    history.push({ role: 'assistant', content: reply });
-
+    // Replace typing indicator with a live streaming bubble
     hideTyping();
-    appendMessage('ai', reply);
+    const chatBox = document.getElementById('chatMessages');
+    const bubble  = _appendStreamingBubble(chatBox);
+
+    const reply = await _readTokenStream(res, txt => {
+      bubble.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
+    history.push({ role: 'assistant', content: reply || '(No response)' });
     incrementFreeCount();
 
   } catch (err) {
@@ -4652,7 +4713,8 @@ async function sendDriverMsg(id) {
   const system = `You are an expert F1 analyst explaining ${driver.name} to a brand new F1 fan. Answer questions about their career, personality, driving style, rivalries, and achievements in plain English. Be engaging and tell stories. Never assume F1 knowledge. Keep answers to 4–5 sentences max.`;
 
   try {
-    const res = await fetch(`${BACKEND}/api/chat`, {
+    // Fix 1: use streaming endpoint so text appears word-by-word
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ system, messages: _drvHistories[id] }),
@@ -4662,8 +4724,18 @@ async function sendDriverMsg(id) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || `HTTP ${res.status}`);
     }
-    const data = await res.json();
-    _drvHistories[id].push({ role:'assistant', content: data.reply ?? '(No response)' });
+
+    // Swap typing indicator for a live streaming bubble
+    const t = document.getElementById('drvTyping');
+    if (t) t.remove();
+    const bubble = _appendStreamingBubble(msgsEl);
+
+    const reply = await _readTokenStream(res, txt => {
+      bubble.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+    });
+
+    _drvHistories[id].push({ role:'assistant', content: reply || '(No response)' });
   } catch(err) {
     const msg = (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))
       ? '⚠ Cannot reach the backend. Make sure start.sh is running on port 8000.'
@@ -4704,6 +4776,9 @@ function init() {
   renderDriversGrid(); // pre-populate drivers grid
   fetchChampionshipStandings();
   setInterval(fetchChampionshipStandings, 30 * 60 * 1000);
+
+  // Fix 3: keep Railway server warm — ping every 4 minutes so it never cold-starts
+  setInterval(() => { fetch(`${BACKEND}/api/ping`).catch(() => {}); }, 4 * 60 * 1000);
 
   if (new URLSearchParams(location.search).get('owner') === 'true') {
     _setOwnerMode(true);
