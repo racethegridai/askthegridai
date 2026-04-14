@@ -387,14 +387,16 @@
     }
 
     .standings-scroll {
-      flex: 0 0 auto;
-      overflow: hidden;
+      flex-shrink: 0;
+      height: 230px;
+      overflow-y: scroll;
+      scrollbar-width: none;
     }
+    .standings-scroll::-webkit-scrollbar { display: none; }
 
     /* ── LEFT COLUMN INCIDENTS ───────────────────────── */
     .left-incidents {
-      flex: 1;
-      min-height: 0;
+      flex-shrink: 0;
       overflow-y: auto;
       border-top: 1px solid var(--border);
     }
@@ -3715,12 +3717,6 @@
         </thead>
         <tbody id="standingsTbody"></tbody>
       </table>
-      <button class="mob-standings-expand" id="mobStandingsBtn" onclick="toggleMobStandings()">
-        View all 20 drivers ▼
-      </button>
-      <button class="left-expand-btn" id="leftStandingsBtn" onclick="toggleLeftStandings()">
-        View all drivers ▼
-      </button>
     </div>
 
     <!-- LEFT COLUMN: RACE INCIDENTS -->
@@ -5366,7 +5362,6 @@ function renderStandings(drivers) {
   }, 1300);
 
   _applyMobStandings();
-  _applyLeftStandings();
 }
 
 /* ──────────────────────────────────────────────────
