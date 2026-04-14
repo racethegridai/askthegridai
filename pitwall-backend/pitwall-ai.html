@@ -4166,6 +4166,43 @@ function _stopPolling() {
   if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
 }
 
+/* ── OPENF1 LIVE POSITION POLL (10s during live race) ── */
+let _openF1PollTimer = null;
+
+async function _fetchOpenF1Positions() {
+  if (!liveData.is_live || !liveData.is_race) { _stopOpenF1Poll(); return; }
+  try {
+    const r = await fetch('https://api.openf1.org/v1/position?session_key=latest', {
+      signal: AbortSignal.timeout(5000)
+    });
+    if (!r.ok) return;
+    const positions = await r.json();
+    if (!positions || !positions.length || !liveData.drivers || !liveData.drivers.length) return;
+    // Get latest position per driver_number (last entry wins)
+    const latestPos = {};
+    positions.forEach(p => { latestPos[p.driver_number] = p.position; });
+    // Merge into existing driver objects (preserves name/team/tyre/gap)
+    liveData.drivers.forEach(d => {
+      if (latestPos[d.number] !== undefined) d.pos = latestPos[d.number];
+    });
+    liveData.drivers.sort((a, b) => a.pos - b.pos);
+    renderStandings(liveData.drivers);
+  } catch(e) {
+    console.warn('OpenF1 positions fetch failed:', e.message);
+  }
+}
+
+function _startOpenF1Poll() {
+  if (_openF1PollTimer) return;
+  _fetchOpenF1Positions();
+  _openF1PollTimer = setInterval(_fetchOpenF1Positions, 10_000);
+}
+
+function _stopOpenF1Poll() {
+  if (_openF1PollTimer) { clearInterval(_openF1PollTimer); _openF1PollTimer = null; }
+}
+
+
 async function _fetchState() {
   try {
     const r = await fetch(`${BACKEND}/api/state`, {
@@ -4243,7 +4280,9 @@ function applyState(data) {
     _setStandingsHeaders('race');
     renderStandings(data.drivers);
     renderStratCard(data.drivers.slice(0, 5));
+    _startOpenF1Poll();
   } else {
+    _stopOpenF1Poll();
     if (_liveRaceActive) {
       _liveRaceActive = false;
       if (_chmpData) renderChampionshipStandings(_chmpData.standings, _chmpData.source);
@@ -5129,7 +5168,7 @@ function renderChampionshipStandings(standings, source) {
   _setStandingsHeaders('champ');
   const tbody = document.getElementById('standingsTbody');
   if (!tbody) return;
-  tbody.innerHTML = standings.slice(0, 10).map(s => {
+  tbody.innerHTML = standings.map(s => {
     const isLeader = s.position === 1;
     const posClass = s.position <= 3 ? 'p' + s.position : '';
     const colour   = _teamColor(s.team);
@@ -5153,6 +5192,8 @@ function renderChampionshipStandings(standings, source) {
   if (src) {
     if (source === 'live') {
       src.innerHTML = '\u25cf&nbsp;<span style="color:var(--green)">Live \u00b7 Updated after each race</span>';
+    } else if (source === 'fallback') {
+      src.innerHTML = '\u25cb&nbsp;2026 standings (after Bahrain)';
     } else {
       src.innerHTML = '\u25cb&nbsp;Cached standings';
     }
@@ -5160,6 +5201,31 @@ function renderChampionshipStandings(standings, source) {
   const meta = document.getElementById('standingsLapMeta');
   if (meta) meta.textContent = '2026 Championship';
 }
+
+const FALLBACK_2026_STANDINGS = [
+  { position:  1, driver: 'Antonelli', first_name: 'Kimi',      team: 'Mercedes',     points: 72, wins: 2 },
+  { position:  2, driver: 'Russell',   first_name: 'George',    team: 'Mercedes',     points: 63, wins: 1 },
+  { position:  3, driver: 'Leclerc',   first_name: 'Charles',   team: 'Ferrari',      points: 49, wins: 1 },
+  { position:  4, driver: 'Hamilton',  first_name: 'Lewis',     team: 'Ferrari',      points: 41, wins: 0 },
+  { position:  5, driver: 'Norris',    first_name: 'Lando',     team: 'McLaren',      points: 37, wins: 0 },
+  { position:  6, driver: 'Piastri',   first_name: 'Oscar',     team: 'McLaren',      points: 18, wins: 0 },
+  { position:  7, driver: 'Bearman',   first_name: 'Ollie',     team: 'Haas',         points: 17, wins: 0 },
+  { position:  8, driver: 'Gasly',     first_name: 'Pierre',    team: 'Alpine',       points: 13, wins: 0 },
+  { position:  9, driver: 'Verstappen',first_name: 'Max',       team: 'Red Bull',     points: 12, wins: 0 },
+  { position: 10, driver: 'Lawson',    first_name: 'Liam',      team: 'RB',           points: 10, wins: 0 },
+  { position: 11, driver: 'Lindblad',  first_name: 'Isack',     team: 'RB',           points:  4, wins: 0 },
+  { position: 12, driver: 'Hadjar',    first_name: 'Isack',     team: 'Red Bull',     points:  4, wins: 0 },
+  { position: 13, driver: 'Bortoleto', first_name: 'Gabriel',   team: 'Audi',         points:  2, wins: 0 },
+  { position: 14, driver: 'Sainz',     first_name: 'Carlos',    team: 'Williams',     points:  2, wins: 0 },
+  { position: 15, driver: 'Ocon',      first_name: 'Esteban',   team: 'Haas',         points:  1, wins: 0 },
+  { position: 16, driver: 'Colapinto', first_name: 'Franco',    team: 'Alpine',       points:  1, wins: 0 },
+  { position: 17, driver: 'Hulkenberg',first_name: 'Nico',      team: 'Audi',         points:  0, wins: 0 },
+  { position: 18, driver: 'Albon',     first_name: 'Alex',      team: 'Williams',     points:  0, wins: 0 },
+  { position: 19, driver: 'Bottas',    first_name: 'Valtteri',  team: 'Cadillac',     points:  0, wins: 0 },
+  { position: 20, driver: 'Perez',     first_name: 'Sergio',    team: 'Cadillac',     points:  0, wins: 0 },
+  { position: 21, driver: 'Alonso',    first_name: 'Fernando',  team: 'Aston Martin', points:  0, wins: 0 },
+  { position: 22, driver: 'Stroll',    first_name: 'Lance',     team: 'Aston Martin', points:  0, wins: 0 },
+];
 
 async function fetchChampionshipStandings() {
   try {
@@ -5172,6 +5238,9 @@ async function fetchChampionshipStandings() {
     if (!_liveRaceActive) renderChampionshipStandings(data.standings, data.source);
   } catch (e) {
     console.warn('Championship standings fetch failed:', e);
+    if (!_liveRaceActive && !_chmpData) {
+      renderChampionshipStandings(FALLBACK_2026_STANDINGS, 'fallback');
+    }
   }
 }
 
@@ -5314,8 +5383,8 @@ function renderLeftIncidents(incidents) {
 
 function renderStandings(drivers) {
   _loadPrevPositions();
-  // Show all drivers (up to 20); left column hides rows 6+ until expanded
-  drivers = drivers.slice(0, 20);
+  // Show all drivers (up to 22 on a full grid)
+  drivers = drivers.slice(0, 22);
 
   // Drivers currently in pit lane
   const inPit = new Set(
