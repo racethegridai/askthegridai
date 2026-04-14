@@ -6071,7 +6071,11 @@ let ownerMode = false;
 
 function _setOwnerMode(on) {
   ownerMode = on;
+  window._ownerBypass = on; // keep isLimitBypassed() in sync with keyboard toggle
+
   document.getElementById('ownerBadge').style.display = on ? 'block' : 'none';
+
+  // Unlock pro-gated UI
   document.querySelectorAll('.pro-gate').forEach(el => {
     el.style.display = on ? 'none' : '';
   });
@@ -6082,6 +6086,21 @@ function _setOwnerMode(on) {
   document.querySelectorAll('.tab-lock').forEach(el => {
     el.style.display = on ? 'none' : '';
   });
+
+  // Unlimited questions: hide counter + paywall, re-enable input
+  const freeLimitBar = document.getElementById('freeLimitBar');
+  const upgradePanel = document.getElementById('upgradePanel');
+  const chatInput    = document.getElementById('chatInput');
+  const sendBtn      = document.getElementById('sendBtn');
+
+  if (on) {
+    if (freeLimitBar) freeLimitBar.classList.add('hidden');
+    if (upgradePanel) upgradePanel.classList.remove('visible');
+    if (chatInput)    { chatInput.disabled = false; chatInput.placeholder = 'Ask what just happened, who gained, or what to watch next\u2026'; }
+    if (sendBtn)      sendBtn.disabled = false;
+  } else {
+    updateFreeLimitUI(); // restore normal limit state when toggled off
+  }
 }
 
 function _toggleOwnerMode() {
@@ -6458,7 +6477,7 @@ function closeDriverProfile() {
 }
 
 function _buildProfileHTML(d) {
-  const isPro = isOwnerMode();
+  const isPro = isOwnerMode() || ownerMode;
 
   /* Live standings merge */
   let {pos, pts, wins} = _drvLivePos(d);
