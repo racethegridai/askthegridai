@@ -3054,6 +3054,149 @@
       .drv-profile-body { flex-direction: column; }
       .drv-bio-col { width:100%; border-right:none; border-bottom:1px solid var(--border); } }
 
+    /* ── NEWS TAB ──────────────────────────────────── */
+    #tab-news { flex-direction: column; overflow: hidden; }
+    .news-sub-tabs {
+      flex-shrink: 0; display: flex; gap: 2px; padding: 10px 16px 0;
+      border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none;
+    }
+    .news-sub-tabs::-webkit-scrollbar { display: none; }
+    .news-sub-tab {
+      flex-shrink: 0; background: transparent; border: none; border-bottom: 2px solid transparent;
+      color: #555; font-family: 'Titillium Web', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase; padding: 6px 14px 8px;
+      cursor: pointer; transition: color .15s, border-color .15s;
+    }
+    .news-sub-tab:hover { color: #888; }
+    .news-sub-tab.active { color: var(--white); border-bottom-color: var(--red); }
+    .news-panel { display: none; flex: 1; min-height: 0; overflow: hidden; }
+    .news-panel.active { display: flex; flex-direction: column; }
+    .news-layout {
+      flex: 1; display: grid; grid-template-columns: 1fr 300px;
+      gap: 0; min-height: 0; overflow: hidden;
+    }
+    .news-left { overflow-y: auto; padding: 16px 20px; border-right: 1px solid var(--border); }
+    .news-right { overflow-y: auto; padding: 16px; background: var(--bg2); }
+
+    /* Breaking strip */
+    .news-breaking {
+      background: var(--red); color: #fff; padding: 9px 14px;
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 18px; border-radius: 2px;
+    }
+    .news-breaking-badge {
+      font-size: 9px; font-weight: 900; letter-spacing: 1.5px; flex-shrink: 0;
+      background: rgba(0,0,0,.25); padding: 2px 7px;
+    }
+    .news-breaking-text { font-size: 12px; font-weight: 700; flex: 1; line-height: 1.3; }
+    .news-breaking-time { font-size: 10px; color: rgba(255,255,255,.6); flex-shrink: 0; }
+
+    /* Section labels */
+    .news-sec-label {
+      font-size: 9px; font-weight: 700; color: var(--red); letter-spacing: 2px;
+      text-transform: uppercase; margin: 0 0 12px;
+    }
+    .news-sec-gap { margin-top: 22px; }
+
+    /* Main news cards */
+    .news-card {
+      background: #0d0d0d; border: 1px solid var(--border); border-radius: 4px;
+      padding: 14px 16px; margin-bottom: 10px;
+    }
+    .news-card:last-child { margin-bottom: 0; }
+    .news-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+    .news-cat {
+      font-size: 9px; font-weight: 900; letter-spacing: 1.5px; padding: 2px 8px;
+      border-radius: 2px; flex-shrink: 0;
+    }
+    .news-cat-champ    { background: rgba(60,110,220,.2);  color: #5b8df5; }
+    .news-cat-ferrari  { background: rgba(232,0,45,.15);   color: var(--red); }
+    .news-cat-mclaren  { background: rgba(255,128,0,.15);  color: #ff8000; }
+    .news-cat-mercedes { background: rgba(39,244,210,.12); color: #27f4d2; }
+    .news-cat-weekend  { background: rgba(0,216,75,.12);   color: #00d84b; }
+    .news-cat-drama    { background: rgba(245,200,66,.12); color: var(--yellow); }
+    .news-cat-rules    { background: rgba(160,80,220,.15); color: #b060e8; }
+    .news-card-title { font-size: 14px; font-weight: 900; color: var(--white); margin-bottom: 8px; line-height: 1.3; }
+    .news-card-body  { font-size: 12px; color: #888; line-height: 1.65; margin-bottom: 10px; }
+    .news-card-foot  { display: flex; align-items: center; justify-content: space-between; }
+    .news-card-time  { font-size: 10px; color: #333; }
+    .news-card-ask   {
+      font-size: 10px; font-weight: 700; color: var(--red); cursor: pointer;
+      letter-spacing: .3px; background: none; border: none; font-family: 'Titillium Web', sans-serif;
+      padding: 0; transition: color .15s;
+    }
+    .news-card-ask:hover { color: #ff4444; }
+
+    /* Mini rows */
+    .news-mini { border-top: 1px solid #111; padding: 10px 0; display: flex; align-items: flex-start; gap: 10px; }
+    .news-mini:first-child { border-top: none; }
+    .news-mini-dot { width: 5px; height: 5px; border-radius: 50%; background: #333; flex-shrink: 0; margin-top: 5px; }
+    .news-mini-body { flex: 1; min-width: 0; }
+    .news-mini-title { font-size: 12px; font-weight: 700; color: #aaa; margin-bottom: 3px; line-height: 1.3; }
+    .news-mini-sub   { font-size: 11px; color: #444; margin-bottom: 4px; }
+    .news-mini-ask   { font-size: 10px; color: var(--red); cursor: pointer; font-weight: 700; background: none; border: none; font-family: 'Titillium Web', sans-serif; padding: 0; }
+
+    /* Right column — AI box */
+    .news-ai-box {
+      background: #0d0d0d; border: 1px solid var(--border); border-radius: 4px;
+      padding: 14px; margin-bottom: 16px;
+    }
+    .news-ai-box-title { font-size: 9px; font-weight: 700; color: var(--red); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+    .news-ai-chips { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+    .news-ai-chip {
+      background: transparent; border: 1px solid #2a2a2a; color: #666;
+      font-family: 'Titillium Web', sans-serif; font-size: 10px; font-weight: 600;
+      padding: 6px 10px; text-align: left; cursor: pointer; border-radius: 2px;
+      transition: all .15s; line-height: 1.3;
+    }
+    .news-ai-chip:hover { border-color: var(--red); color: var(--white); }
+    .news-ai-input-row { display: flex; border: 1px solid #2a2a2a; border-radius: 2px; overflow: hidden; }
+    .news-ai-input {
+      flex: 1; background: #111; border: none; color: var(--white);
+      font-family: 'Titillium Web', sans-serif; font-size: 11px; padding: 8px 10px; outline: none;
+    }
+    .news-ai-input::placeholder { color: #333; }
+    .news-ai-btn {
+      background: var(--red); color: #fff; border: none; padding: 0 14px;
+      font-family: 'Titillium Web', sans-serif; font-size: 10px; font-weight: 900;
+      letter-spacing: 1px; cursor: pointer; flex-shrink: 0;
+    }
+    .news-ai-btn:hover { background: #c50500; }
+    .news-ai-resp {
+      margin-top: 10px; font-size: 12px; color: #aaa; line-height: 1.6;
+      border-left: 2px solid var(--red); padding-left: 10px;
+    }
+
+    /* Right column — People are asking */
+    .news-paq { margin-bottom: 16px; }
+    .news-paq-title { font-size: 9px; font-weight: 700; color: #555; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+    .news-paq-item {
+      padding: 8px 0; border-bottom: 1px solid #111; font-size: 12px; color: #888;
+      cursor: pointer; transition: color .15s; display: flex; align-items: center; gap: 8px;
+    }
+    .news-paq-item:hover { color: var(--white); }
+    .news-paq-item:last-child { border-bottom: none; }
+    .news-paq-num { font-size: 10px; color: #333; font-weight: 700; flex-shrink: 0; width: 14px; }
+
+    /* Right column — Coming up */
+    .news-upcoming-title { font-size: 9px; font-weight: 700; color: #555; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+    .news-upcoming-card {
+      background: #0d0d0d; border: 1px solid var(--border); padding: 10px 12px;
+      margin-bottom: 6px; border-radius: 3px;
+    }
+    .news-upcoming-session { font-size: 11px; font-weight: 700; color: var(--white); margin-bottom: 2px; }
+    .news-upcoming-time   { font-size: 10px; color: #444; margin-bottom: 6px; }
+    .news-upcoming-ask    { font-size: 10px; color: var(--red); cursor: pointer; font-weight: 700; background: none; border: none; font-family: 'Titillium Web', sans-serif; padding: 0; }
+
+    /* Coming-soon panels */
+    .news-coming-soon {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; color: #333; gap: 10px; padding: 40px;
+    }
+    .news-coming-soon-icon { font-size: 32px; }
+    .news-coming-soon-title { font-size: 15px; font-weight: 700; color: #555; }
+    .news-coming-soon-sub { font-size: 12px; color: #333; text-align: center; max-width: 240px; line-height: 1.5; }
+
     /* ── REDESIGNED DRIVER PROFILE ──────────────────── */
     .drp-header { flex-shrink:0; padding:16px 20px 0; border-bottom:1px solid var(--border); }
     .drp-header-top { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
@@ -4001,7 +4144,7 @@
     <button class="tab-btn active" data-tab="live"     onclick="switchTab('live')">Live</button>
     <button class="tab-btn"        data-tab="strategy" onclick="switchTab('strategy')"><span class="tab-lock"><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></span>Strategy</button>
     <button class="tab-btn"        data-tab="f2f3"     onclick="switchTab('f2f3')"><span class="tab-lock"><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></span>F2 / F3</button>
-    <button class="tab-btn"        data-tab="news"     onclick="switchTab('news')"><span class="tab-lock"><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></span>News</button>
+    <button class="tab-btn"        data-tab="news"     onclick="switchTab('news')">News</button>
     <button class="tab-btn"        data-tab="season"   onclick="switchTab('season')"><span class="tab-lock"><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></span>Season</button>
     <button class="tab-btn"        data-tab="drivers"  onclick="switchTab('drivers')">Drivers</button>
   </nav>
@@ -4361,16 +4504,205 @@
 
 <!-- ─── TAB: NEWS ─────────────────────────────── -->
 <div class="tab-panel" id="tab-news">
-  <div class="pro-gate">
-    <p class="pro-tease-text">"This just changed the race because…"</p>
-    <div class="pro-lock-bar">🔒 Unlock full explanation<span class="pro-price">— Pro $4.99/mo</span></div>
+
+  <!-- SUB-TAB BAR -->
+  <div class="news-sub-tabs">
+    <button class="news-sub-tab active" data-ntab="daily"   onclick="switchNewsTab('daily')">Daily</button>
+    <button class="news-sub-tab"        data-ntab="drivers" onclick="switchNewsTab('drivers')">Drivers</button>
+    <button class="news-sub-tab"        data-ntab="drama"   onclick="switchNewsTab('drama')">Drama</button>
+    <button class="news-sub-tab"        data-ntab="strategy"onclick="switchNewsTab('strategy')">Strategy</button>
+    <button class="news-sub-tab"        data-ntab="rules"   onclick="switchNewsTab('rules')">Rules</button>
+    <button class="news-sub-tab"        data-ntab="preview" onclick="switchNewsTab('preview')">Race Preview</button>
   </div>
-  <div class="pro-blur-wrap" style="padding:16px;gap:10px;display:flex;flex-direction:column;overflow:hidden;">
-    <div class="pro-fake-card"><div class="pro-fake-title">F1 Headlines — Updated Today</div><div class="pro-fake-bar" style="width:92%;height:11px;margin-bottom:5px"></div><div class="pro-fake-bar" style="width:75%;height:10px;margin-bottom:10px"></div><div class="pro-fake-bar" style="width:85%;height:10px;margin-bottom:5px"></div><div class="pro-fake-bar" style="width:65%;height:10px"></div></div>
-    <div class="pro-fake-card"><div class="pro-fake-bar" style="width:88%;height:11px;margin-bottom:5px"></div><div class="pro-fake-bar" style="width:72%;height:10px;margin-bottom:10px"></div><div class="pro-fake-bar" style="width:80%;height:10px;margin-bottom:5px"></div><div class="pro-fake-bar" style="width:60%;height:10px"></div></div>
-    <div class="pro-fake-card"><div class="pro-fake-bar" style="width:80%;height:11px;margin-bottom:5px"></div><div class="pro-fake-bar" style="width:68%;height:10px;margin-bottom:10px"></div><div class="pro-fake-bar" style="width:76%;height:10px;margin-bottom:5px"></div><div class="pro-fake-bar" style="width:55%;height:10px"></div></div>
+
+  <!-- ═══ DAILY TAB ═══ -->
+  <div class="news-panel active" id="news-daily">
+    <div class="news-layout">
+
+      <!-- LEFT COLUMN -->
+      <div class="news-left">
+
+        <!-- ★ BREAKING STRIP — update manually before each race weekend ★ -->
+        <div class="news-breaking">
+          <span class="news-breaking-badge">BREAKING</span>
+          <span class="news-breaking-text">McLaren and Mercedes both confirm major aerodynamic upgrade packages for Miami International Autodrome</span>
+          <span class="news-breaking-time">2h ago</span>
+        </div>
+
+        <div class="news-sec-label">Today in F1 — AI explained</div>
+
+        <!-- MAIN CARD 1 -->
+        <div class="news-card">
+          <div class="news-card-top">
+            <span class="news-cat news-cat-champ">CHAMPIONSHIP</span>
+          </div>
+          <div class="news-card-title">Antonelli's lead grows as Mercedes control both ends of the standings</div>
+          <div class="news-card-body">Andrea Kimi Antonelli has extended his championship lead to nine points over teammate George Russell after four rounds of the 2026 season. What makes this situation unusual is that both drivers occupy the top two positions in the standings — meaning Mercedes are effectively racing themselves for the title. Antonelli's ability to manage the pressure of leading the championship at just 19 years old has surprised even the most optimistic predictions inside the team.</div>
+          <div class="news-card-foot">
+            <span class="news-card-time">4 hours ago · Championship</span>
+            <button class="news-card-ask" onclick="newsAsk('Can Antonelli really win the 2026 F1 championship at 19?')">Ask AI to explain →</button>
+          </div>
+        </div>
+
+        <!-- MAIN CARD 2 -->
+        <div class="news-card">
+          <div class="news-card-top">
+            <span class="news-cat news-cat-ferrari">FERRARI</span>
+          </div>
+          <div class="news-card-title">Hamilton at Ferrari: the numbers behind a slow start to his new chapter</div>
+          <div class="news-card-body">Lewis Hamilton's move to Ferrari was billed as one of the most anticipated driver transfers in the sport's history, but through the opening four rounds of 2026 the seven-time champion finds himself fourth in the standings — 31 points behind Antonelli. Ferrari engineers confirm Hamilton has adapted to the car's handling characteristics, but the qualifying gap to Mercedes continues to put him on the back foot for race strategy. The question is whether this is a setup evolution problem or something more fundamental about the SF-26's architecture.</div>
+          <div class="news-card-foot">
+            <span class="news-card-time">6 hours ago · Team analysis</span>
+            <button class="news-card-ask" onclick="newsAsk('Why is Hamilton struggling at Ferrari in 2026?')">Ask AI to explain →</button>
+          </div>
+        </div>
+
+        <!-- MAIN CARD 3 -->
+        <div class="news-card">
+          <div class="news-card-top">
+            <span class="news-cat news-cat-weekend">MIAMI WEEKEND</span>
+          </div>
+          <div class="news-card-title">Pirelli selects softer compounds for Miami as teams prepare for tyre war</div>
+          <div class="news-card-body">Pirelli has confirmed C2, C3, and C4 compounds for the Miami Grand Prix following the annual track surface inspection at the International Autodrome. The selection of three relatively soft compounds signals that Pirelli expect multiple pit stop strategies and possible degradation in the afternoon heat. Teams are already flagging that Miami's combination of slow technical sections and high-speed sweepers creates a particularly demanding front-left loading situation that could split strategies as early as lap fifteen.</div>
+          <div class="news-card-foot">
+            <span class="news-card-time">Today · Race weekend</span>
+            <button class="news-card-ask" onclick="newsAsk('Why do tyre compound choices matter so much at Miami?')">Ask AI to explain →</button>
+          </div>
+        </div>
+
+        <!-- EARLIER TODAY -->
+        <div class="news-sec-label news-sec-gap">Earlier today</div>
+        <div>
+          <div class="news-mini">
+            <div class="news-mini-dot"></div>
+            <div class="news-mini-body">
+              <div class="news-mini-title">FIA confirms DRS detection zones remain unchanged for Miami layout</div>
+              <div class="news-mini-sub">Teams had lobbied for revised zones after last year's overtaking difficulties in sector two.</div>
+              <button class="news-mini-ask" onclick="newsAsk('What is DRS and why do teams care about where the detection zones are?')">Ask AI →</button>
+            </div>
+          </div>
+          <div class="news-mini">
+            <div class="news-mini-dot"></div>
+            <div class="news-mini-body">
+              <div class="news-mini-title">Verstappen admits Red Bull are still searching for consistent race pace</div>
+              <div class="news-mini-sub">The four-time champion has been out of the points conversation despite Red Bull bringing updates to recent rounds.</div>
+              <button class="news-mini-ask" onclick="newsAsk('What has gone wrong at Red Bull in 2026?')">Ask AI →</button>
+            </div>
+          </div>
+          <div class="news-mini">
+            <div class="news-mini-dot"></div>
+            <div class="news-mini-body">
+              <div class="news-mini-title">Alpine confirm unchanged Gasly and Colapinto lineup for the remainder of 2026</div>
+              <div class="news-mini-sub">Speculation about a mid-season driver change has been officially dismissed by the team.</div>
+              <button class="news-mini-ask" onclick="newsAsk('Why do F1 teams sometimes change drivers mid-season?')">Ask AI →</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /news-left -->
+
+      <!-- RIGHT COLUMN -->
+      <div class="news-right">
+
+        <!-- AI EXPLAIN BOX -->
+        <div class="news-ai-box">
+          <div class="news-ai-box-title">Ask AI about today's news</div>
+          <div class="news-ai-chips">
+            <button class="news-ai-chip" onclick="newsAsk('How does the 2026 championship math work with 4 races gone?')">How does the 2026 championship math work?</button>
+            <button class="news-ai-chip" onclick="newsAsk('Why does Miami heat affect tyre choices in F1?')">Why does Miami heat matter for tyres?</button>
+            <button class="news-ai-chip" onclick="newsAsk('What are the biggest rule changes in 2026 F1?')">What changed in the 2026 regulations?</button>
+          </div>
+          <div class="news-ai-input-row">
+            <input class="news-ai-input" id="newsAiInput"
+              placeholder="Ask anything about today's F1 news…"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();sendNewsAI();}">
+            <button class="news-ai-btn" onclick="sendNewsAI()">ASK</button>
+          </div>
+          <div class="news-ai-resp" id="newsAiResp" style="display:none"></div>
+        </div>
+
+        <!-- ★ PEOPLE ARE ASKING — update manually before each race weekend ★ -->
+        <div class="news-paq">
+          <div class="news-paq-title">People are asking</div>
+          <div class="news-paq-item" onclick="newsAsk('Can anyone stop Mercedes dominating the 2026 championship?')">
+            <span class="news-paq-num">1</span>Can anyone stop Mercedes in 2026?
+          </div>
+          <div class="news-paq-item" onclick="newsAsk('Why is Lewis Hamilton struggling at Ferrari in 2026?')">
+            <span class="news-paq-num">2</span>Why is Hamilton struggling at Ferrari?
+          </div>
+          <div class="news-paq-item" onclick="newsAsk('What makes the Miami International Autodrome different from other F1 circuits?')">
+            <span class="news-paq-num">3</span>What makes Miami different from other tracks?
+          </div>
+          <div class="news-paq-item" onclick="newsAsk('Does Lando Norris still have a realistic chance of winning the 2026 championship?')">
+            <span class="news-paq-num">4</span>Can Norris still win the championship?
+          </div>
+          <div class="news-paq-item" onclick="newsAsk('Why do F1 teams bring upgrade packages to specific races instead of every race?')">
+            <span class="news-paq-num">5</span>Why bring upgrades to specific races?
+          </div>
+        </div>
+
+        <!-- COMING UP THIS WEEKEND -->
+        <div>
+          <div class="news-upcoming-title">Coming up this weekend</div>
+          <div class="news-upcoming-card">
+            <div class="news-upcoming-session">Free Practice 1</div>
+            <div class="news-upcoming-time">Fri 1 May · 12:30–13:30 local · Hard Rock Stadium</div>
+            <button class="news-upcoming-ask" onclick="newsAsk('What should I watch for in Free Practice 1 at Miami?')">Ask AI what to watch for →</button>
+          </div>
+          <div class="news-upcoming-card">
+            <div class="news-upcoming-session">Qualifying</div>
+            <div class="news-upcoming-time">Sat 2 May · 16:00–17:00 local · Miami International Autodrome</div>
+            <button class="news-upcoming-ask" onclick="newsAsk('How does F1 qualifying work — Q1, Q2 and Q3 explained simply?')">Ask AI to explain qualifying →</button>
+          </div>
+          <div class="news-upcoming-card">
+            <div class="news-upcoming-session">Miami Grand Prix · Race</div>
+            <div class="news-upcoming-time">Sun 3 May · 16:00 local · 57 laps</div>
+            <button class="news-upcoming-ask" onclick="newsAsk('What race strategy options will teams consider at Miami 2026?')">Ask AI about race strategy →</button>
+          </div>
+        </div>
+
+      </div><!-- /news-right -->
+    </div><!-- /news-layout -->
+  </div><!-- /news-daily -->
+
+  <!-- COMING SOON panels for other sub-tabs -->
+  <div class="news-panel" id="news-drivers">
+    <div class="news-coming-soon">
+      <div class="news-coming-soon-icon">🏎</div>
+      <div class="news-coming-soon-title">Driver News</div>
+      <div class="news-coming-soon-sub">Contract updates, transfers, and driver-specific storylines. Coming before Miami weekend.</div>
+    </div>
   </div>
-</div>
+  <div class="news-panel" id="news-drama">
+    <div class="news-coming-soon">
+      <div class="news-coming-soon-icon">🔥</div>
+      <div class="news-coming-soon-title">Drama &amp; Controversies</div>
+      <div class="news-coming-soon-sub">Stewards decisions, team arguments, and the storylines making headlines. Coming soon.</div>
+    </div>
+  </div>
+  <div class="news-panel" id="news-strategy">
+    <div class="news-coming-soon">
+      <div class="news-coming-soon-icon">📊</div>
+      <div class="news-coming-soon-title">Strategy News</div>
+      <div class="news-coming-soon-sub">Technical analysis, setup revelations, and pit stop strategy previews. Coming soon.</div>
+    </div>
+  </div>
+  <div class="news-panel" id="news-rules">
+    <div class="news-coming-soon">
+      <div class="news-coming-soon-icon">📋</div>
+      <div class="news-coming-soon-title">2026 Rules Explained</div>
+      <div class="news-coming-soon-sub">Every major regulation change this season explained in plain English for new fans. Coming soon.</div>
+    </div>
+  </div>
+  <div class="news-panel" id="news-preview">
+    <div class="news-coming-soon">
+      <div class="news-coming-soon-icon">🏁</div>
+      <div class="news-coming-soon-title">Miami GP Preview</div>
+      <div class="news-coming-soon-sub">Full race preview — circuit guide, key battles, weather outlook, and predictions. Coming Thursday.</div>
+    </div>
+  </div>
+
+</div><!-- /tab-news -->
 
 <!-- ─── TAB: SEASON ───────────────────────────── -->
 <div class="tab-panel" id="tab-season">
@@ -5497,6 +5829,60 @@ function switchTab(tab) {
   });
   if (tab === 'strategy') renderStrategyTab();
   if (tab === 'drivers')  { renderDriversGrid(); }
+}
+
+/* ──────────────────────────────────────────────────
+   NEWS TAB
+────────────────────────────────────────────────── */
+function switchNewsTab(name) {
+  document.querySelectorAll('.news-sub-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.ntab === name);
+  });
+  document.querySelectorAll('.news-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'news-' + name);
+  });
+}
+
+let _newsBusy = false;
+
+function newsAsk(q) {
+  const inp = document.getElementById('newsAiInput');
+  if (inp) { inp.value = q; inp.focus(); }
+  sendNewsAI();
+}
+
+async function sendNewsAI() {
+  const inp  = document.getElementById('newsAiInput');
+  const resp = document.getElementById('newsAiResp');
+  if (!inp || !resp || _newsBusy) return;
+  const q = inp.value.trim();
+  if (!q) return;
+
+  _newsBusy = true;
+  inp.value = '';
+  resp.style.display = '';
+  resp.textContent   = 'Thinking\u2026';
+
+  const system = `You are an F1 expert explaining today's Formula 1 news to someone brand new to the sport.
+Answer in plain English with no jargon. Keep answers to 3-4 sentences maximum.
+Focus on why this matters for a new fan watching their first season.
+Never quote articles or reproduce headlines. Write only original explanations.`;
+
+  try {
+    const res = await fetch(`${BACKEND}/api/chat`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ system, messages: [{ role: 'user', content: q }] }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    resp.textContent = data.reply || '(No response)';
+  } catch(e) {
+    resp.textContent = '\u26a0 Could not connect to AI.';
+  } finally {
+    _newsBusy = false;
+  }
 }
 
 /* ──────────────────────────────────────────────────
