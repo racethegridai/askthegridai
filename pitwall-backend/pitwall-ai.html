@@ -3463,6 +3463,93 @@
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
+    /* ── Mobile radio page ── */
+    .mob-radio-live-pill {
+      margin-left: auto; font-size: 9px; font-weight: 700; color: #00d84b;
+      letter-spacing: 1px; flex-shrink: 0;
+    }
+    .mob-radio-hero {
+      background: var(--red); padding: 16px; cursor: pointer;
+      border-bottom: 1px solid rgba(0,0,0,.3);
+    }
+    .mob-radio-hero-top {
+      display: flex; align-items: center; gap: 7px; margin-bottom: 10px;
+    }
+    .mob-radio-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #fff;
+      flex-shrink: 0; animation: pulse 1.4s ease-in-out infinite;
+    }
+    .mob-radio-hero-label {
+      font-size: 10px; font-weight: 700; color: rgba(255,255,255,.75);
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .mob-radio-hero-quote {
+      font-family: Georgia, serif; font-size: 16px; font-weight: 700;
+      color: #fff; line-height: 1.4; margin-bottom: 10px;
+    }
+    .mob-radio-hero-footer {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .mob-radio-hero-driver {
+      font-size: 11px; font-weight: 700; color: rgba(255,255,255,.8);
+    }
+    .mob-radio-tap-badge {
+      font-size: 10px; color: rgba(255,255,255,.7); font-weight: 700;
+      letter-spacing: .5px;
+    }
+    .mob-radio-trans {
+      background: #0d0d0d; border-bottom: 1px solid var(--border);
+      padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .mob-radio-section {
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .mob-radio-section-num {
+      font-size: 20px; font-weight: 900; line-height: 1; flex-shrink: 0; width: 20px;
+    }
+    .mob-radio-section-lbl {
+      font-size: 9px; font-weight: 700; color: #444; letter-spacing: 1.5px;
+      text-transform: uppercase; margin-bottom: 3px;
+    }
+    .mob-radio-section-txt {
+      font-size: 13px; color: #ccc; line-height: 1.5;
+    }
+    .mob-radio-entry {
+      padding: 12px 0; border-bottom: 1px solid #111;
+    }
+    .mob-radio-entry:last-child { border-bottom: none; }
+    .mob-radio-entry-top {
+      display: flex; align-items: center; gap: 7px; margin-bottom: 5px;
+    }
+    .mob-radio-entry-driver {
+      font-size: 11px; font-weight: 700; color: var(--white);
+    }
+    .mob-radio-entry-team {
+      font-size: 10px; color: #555; font-weight: 400;
+    }
+    .mob-radio-entry-lap {
+      font-size: 10px; color: #333; margin-left: auto; flex-shrink: 0;
+    }
+    .mob-radio-entry-quote {
+      font-size: 12px; color: #999; font-style: italic;
+      line-height: 1.4; margin-bottom: 6px;
+    }
+    .mob-radio-entry-label {
+      font-size: 9px; font-weight: 700; color: var(--red);
+      letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px;
+    }
+    .mob-radio-entry-meaning {
+      font-size: 12px; color: #888; line-height: 1.5; margin-bottom: 5px;
+    }
+    .mob-radio-entry-more {
+      font-size: 11px; color: #444; cursor: pointer;
+    }
+    .mob-radio-entry-more:hover { color: var(--red); }
+    .mob-radio-entry-expand {
+      margin-top: 8px; padding-top: 8px; border-top: 1px solid #111;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+
     .mob-wjh-result {
       padding: 16px;
       font-family: Georgia, serif;
@@ -3616,10 +3703,64 @@
   <div class="mob-page-header">
     <button class="mob-back-btn" onclick="mobClosePage('radio')">← Back</button>
     <span class="mob-page-title">Team Radio</span>
+    <span class="mob-radio-live-pill" id="mobRadioLivePill">● LIVE</span>
   </div>
-  <div class="mob-page-body">
-    <div class="radio-hero" id="mobPageRadioHero" onclick="openRadioView()" style="margin:12px 16px 0;max-height:none"></div>
-    <div class="radio-earlier" id="mobPageRadioEarlier" style="margin:8px 16px 0;max-height:none;overflow:visible"></div>
+  <div class="mob-page-body" style="padding:0;overflow-y:auto">
+
+    <!-- Latest call hero -->
+    <div class="mob-radio-hero" id="mobRadioHero" onclick="_mobToggleHeroTrans()">
+      <div class="mob-radio-hero-top">
+        <span class="mob-radio-dot"></span>
+        <span class="mob-radio-hero-label" id="mobRadioHeroLabel">Latest call · Just now</span>
+      </div>
+      <div class="mob-radio-hero-quote" id="mobRadioHeroQuote">Listening for team radio…</div>
+      <div class="mob-radio-hero-footer" id="mobRadioHeroFooter" style="display:none">
+        <span class="mob-radio-hero-driver" id="mobRadioHeroDriver"></span>
+        <span class="mob-radio-tap-badge">Tap to translate ›</span>
+      </div>
+    </div>
+
+    <!-- Hero translation panel (hidden until tapped) -->
+    <div class="mob-radio-trans" id="mobRadioHeroTrans" style="display:none">
+      <div class="mob-radio-section">
+        <div class="mob-radio-section-num" style="color:var(--red)">1</div>
+        <div>
+          <div class="mob-radio-section-lbl">What it means</div>
+          <div class="mob-radio-section-txt" id="mobRadioTransWhat">…</div>
+        </div>
+      </div>
+      <div class="mob-radio-section">
+        <div class="mob-radio-section-num" style="color:var(--yellow)">2</div>
+        <div>
+          <div class="mob-radio-section-lbl">Why it matters</div>
+          <div class="mob-radio-section-txt" id="mobRadioTransWhy">…</div>
+        </div>
+      </div>
+      <div class="mob-radio-section">
+        <div class="mob-radio-section-num" style="color:#22c55e">3</div>
+        <div>
+          <div class="mob-radio-section-lbl">What happens next</div>
+          <div class="mob-radio-section-txt" id="mobRadioTransNext">…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Earlier calls -->
+    <div class="mob-section-label" style="margin-top:4px">Earlier calls this race</div>
+    <div id="mobRadioList" style="padding:0 16px"></div>
+
+    <!-- AI input -->
+    <div style="padding:12px 16px 20px">
+      <div style="font-size:10px;color:#555;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Ask about any radio call</div>
+      <div class="mob-input-row">
+        <input class="mob-chat-input" id="mobRadioInput"
+          placeholder="Why did they say that?"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();_mobRadioAsk();}"
+          autocomplete="off">
+        <button class="mob-ask-btn" onclick="_mobRadioAsk()">Ask</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -4424,7 +4565,7 @@ function applyState(data) {
 
   // ── Info cards ──────────────────────────────────
   if (data.incidents) { renderIncidents(data.incidents); renderLeftIncidents(data.incidents); updateWinnerLoser(); }
-  if (data.radio)     { renderRadio(data.radio); renderRightRadio(data.radio); }
+  if (data.radio)     { renderRadio(data.radio); renderRightRadio(data.radio); renderMobRadio(data.radio); }
   if (data.pit_stops) PitMgr.update(data.pit_stops);
 
   // ── WJH subtitle — key events count ────────────────
@@ -7169,14 +7310,154 @@ function _mobUpdateStrip() {
 
 // ── Sync radio page ──────────────────────────────
 function _mobSyncRadio() {
-  // Clone hero content into mob page hero
-  const src  = document.getElementById('radioHero');
-  const dest = document.getElementById('mobPageRadioHero');
-  if (src && dest) dest.innerHTML = src.innerHTML;
+  renderMobRadio(liveData.radio);
+}
 
-  const srcE  = document.getElementById('radioEarlier');
-  const destE = document.getElementById('mobPageRadioEarlier');
-  if (srcE && destE) destE.innerHTML = srcE.innerHTML;
+let _mobHeroTransOpen = false;
+
+function _mobToggleHeroTrans() {
+  _mobHeroTransOpen = !_mobHeroTransOpen;
+  const el = document.getElementById('mobRadioHeroTrans');
+  if (el) el.style.display = _mobHeroTransOpen ? 'flex' : 'none';
+}
+
+function _mobRadioAsk() {
+  const input = document.getElementById('mobRadioInput');
+  const main  = document.getElementById('mobChatInput');
+  if (!input || !main) return;
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  main.value  = q;
+  mobClosePage('radio');
+  mobSendMsg();
+}
+
+function renderMobRadio(radio) {
+  const heroEl    = document.getElementById('mobRadioHero');
+  const quoteEl   = document.getElementById('mobRadioHeroQuote');
+  const footerEl  = document.getElementById('mobRadioHeroFooter');
+  const driverEl  = document.getElementById('mobRadioHeroDriver');
+  const labelEl   = document.getElementById('mobRadioHeroLabel');
+  const transEl   = document.getElementById('mobRadioHeroTrans');
+  const whatEl    = document.getElementById('mobRadioTransWhat');
+  const whyEl     = document.getElementById('mobRadioTransWhy');
+  const nextEl    = document.getElementById('mobRadioTransNext');
+  const listEl    = document.getElementById('mobRadioList');
+  const pillEl    = document.getElementById('mobRadioLivePill');
+  if (!quoteEl || !listEl) return;
+
+  const sorted = radio && radio.length ? [...radio].reverse() : null;
+  const isLive = !!(liveData && liveData.is_live);
+
+  if (pillEl) {
+    pillEl.textContent = isLive ? '● LIVE' : '○ OFF-SEASON';
+    pillEl.style.color = isLive ? '#00d84b' : '#555';
+  }
+
+  if (!sorted) {
+    // Fallback mode
+    const fb = FALLBACK_RADIO[0];
+    if (quoteEl)  quoteEl.textContent  = '\u201c' + fb.message + '\u201d';
+    if (footerEl) footerEl.style.display = '';
+    if (driverEl) driverEl.textContent = fb.driver + ' \u00b7 ' + fb.team;
+    if (labelEl)  labelEl.textContent  = 'Example call \u00b7 Between races';
+    if (whatEl)   whatEl.textContent   = fb.meaning;
+    if (whyEl)    whyEl.textContent    = 'No live session is running.';
+    if (nextEl)   nextEl.textContent   = 'Check back when the next race starts.';
+    // Earlier fallback entries
+    listEl.innerHTML = FALLBACK_RADIO.slice(1).map((r, i) => `
+      <div class="mob-radio-entry">
+        <div class="mob-radio-entry-top">
+          <span style="width:7px;height:7px;border-radius:50%;background:${_teamColor(r.team)};display:inline-block;flex-shrink:0"></span>
+          <span class="mob-radio-entry-driver">${escapeHtml(r.driver)}</span>
+          <span class="mob-radio-entry-team">${escapeHtml(r.team)}</span>
+        </div>
+        <div class="mob-radio-entry-quote">&ldquo;${escapeHtml(r.message)}&rdquo;</div>
+        <div class="mob-radio-entry-label">What this means</div>
+        <div class="mob-radio-entry-meaning">${escapeHtml(r.meaning)}</div>
+      </div>`).join('');
+    return;
+  }
+
+  // Live data — latest call in hero
+  const latest = sorted[0];
+  const latestMsg = latest.message || latest.msg || latest.text || '';
+  const latestKey = _radioKey(latest);
+  const latestTrans = _radioTranslations.get(latestKey);
+
+  if (quoteEl)  quoteEl.textContent  = latestMsg ? '\u201c' + latestMsg + '\u201d' : 'Listening\u2026';
+  if (footerEl) footerEl.style.display = latestMsg ? '' : 'none';
+  if (driverEl) {
+    const lapStr = latest.lap ? ' \u00b7 Lap ' + latest.lap : '';
+    driverEl.textContent = escapeHtml(latest.driver) + ' \u00b7 ' + escapeHtml(latest.team) + lapStr;
+  }
+  if (labelEl) labelEl.textContent = 'Latest call \u00b7 Just now';
+
+  // Hero translation sections
+  if (whatEl && whyEl && nextEl) {
+    if (!latestTrans || latestTrans === 'loading') {
+      whatEl.textContent = whyEl.textContent = nextEl.textContent = 'Translating\u2026';
+    } else if (latestTrans === 'error') {
+      whatEl.textContent = 'Translation unavailable.';
+      whyEl.textContent = nextEl.textContent = '';
+    } else {
+      whatEl.textContent = latestTrans.what || '';
+      whyEl.textContent  = latestTrans.why  || '';
+      nextEl.textContent = latestTrans.next || '';
+    }
+  }
+
+  // Earlier calls list
+  if (sorted.length <= 1) {
+    listEl.innerHTML = '<div style="padding:16px 0;color:#444;font-size:12px">No earlier calls yet</div>';
+    return;
+  }
+
+  listEl.innerHTML = sorted.slice(1).map((r, i) => {
+    const msg   = r.message || r.msg || r.text || '';
+    const clr   = _teamColor(r.team);
+    const key   = _radioKey(r);
+    const trans = _radioTranslations.get(key);
+    const lapStr = r.lap ? ' \u00b7 Lap ' + r.lap : '';
+    const eid = 'mrfe_' + i;
+
+    let meaningHtml;
+    if (!trans || trans === 'loading') {
+      meaningHtml = '<div class="mob-radio-entry-meaning" style="color:#333">Translating\u2026</div>';
+    } else if (trans === 'error') {
+      meaningHtml = '<div class="mob-radio-entry-meaning" style="color:#333">Translation unavailable</div>';
+    } else {
+      meaningHtml = `<div class="mob-radio-entry-meaning">${escapeHtml(trans.what || '')}</div>`;
+    }
+
+    const fullTrans = (trans && trans !== 'loading' && trans !== 'error') ? `
+      <div class="mob-radio-entry-expand" id="${eid}" style="display:none">
+        <div class="mob-radio-section" style="gap:8px">
+          <div class="mob-radio-section-num" style="color:var(--yellow);font-size:14px">2</div>
+          <div><div class="mob-radio-section-lbl">Why it matters</div><div class="mob-radio-section-txt" style="font-size:12px">${escapeHtml(trans.why||'')}</div></div>
+        </div>
+        <div class="mob-radio-section" style="gap:8px">
+          <div class="mob-radio-section-num" style="color:#22c55e;font-size:14px">3</div>
+          <div><div class="mob-radio-section-lbl">What happens next</div><div class="mob-radio-section-txt" style="font-size:12px">${escapeHtml(trans.next||'')}</div></div>
+        </div>
+      </div>
+      <div class="mob-radio-entry-more" onclick="document.getElementById('${eid}').style.display=document.getElementById('${eid}').style.display==='none'?'flex':'none'">Tap for full translation ›</div>` : '';
+
+    return `
+      <div class="mob-radio-entry">
+        <div class="mob-radio-entry-top">
+          <span style="width:7px;height:7px;border-radius:50%;background:${clr};display:inline-block;flex-shrink:0"></span>
+          <span class="mob-radio-entry-driver">${escapeHtml(r.driver)}</span>
+          <span class="mob-radio-entry-team">${escapeHtml(r.team)}</span>
+          <span class="mob-radio-entry-lap">${lapStr}</span>
+        </div>
+        ${msg ? `<div class="mob-radio-entry-quote">&ldquo;${escapeHtml(msg)}&rdquo;</div>` : ''}
+        <div class="mob-radio-entry-label">What this means</div>
+        ${meaningHtml}
+        ${fullTrans}
+      </div>`;
+  }).join('');
 }
 
 // ── Sync standings page ──────────────────────────
