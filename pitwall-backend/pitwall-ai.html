@@ -3463,6 +3463,71 @@
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
+    /* ── Mobile drivers page ── */
+    .mob-drv-search {
+      width: 100%; box-sizing: border-box;
+      background: #111; border: 1px solid #2a2a2a; border-radius: 4px;
+      color: var(--white); font-family: 'Titillium Web', sans-serif;
+      font-size: 13px; padding: 9px 12px; outline: none;
+    }
+    .mob-drv-search:focus { border-color: var(--red); }
+    .mob-drv-search::placeholder { color: #333; }
+
+    .mob-drv-leader-card {
+      flex-shrink: 0; width: 110px; background: #111;
+      border: 1px solid #2a2a2a; border-radius: 6px; padding: 12px 10px;
+      cursor: pointer; text-align: center; transition: border-color .15s;
+    }
+    .mob-drv-leader-card.p1 { border-color: var(--yellow); }
+    .mob-drv-leader-card:hover { border-color: var(--red); }
+    .mob-drv-leader-avatar {
+      width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 900; letter-spacing: .5px;
+    }
+    .mob-drv-leader-pos {
+      font-size: 9px; font-weight: 700; color: #555;
+      letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px;
+    }
+    .mob-drv-leader-name {
+      font-size: 11px; font-weight: 700; color: var(--white);
+      line-height: 1.2; margin-bottom: 2px;
+    }
+    .mob-drv-leader-team { font-size: 10px; color: #444; margin-bottom: 4px; }
+    .mob-drv-leader-pts { font-size: 13px; font-weight: 900; color: var(--yellow); }
+
+    .mob-drv-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 0; border-bottom: 1px solid #111; cursor: pointer;
+    }
+    .mob-drv-row:last-child { border-bottom: none; }
+    .mob-drv-row:hover { background: rgba(255,255,255,.02); }
+    .mob-drv-row-pos {
+      font-size: 13px; font-weight: 900; color: #333;
+      width: 22px; text-align: center; flex-shrink: 0;
+    }
+    .mob-drv-row-pos.p1 { color: var(--yellow); }
+    .mob-drv-row-pos.p2 { color: #ccc; }
+    .mob-drv-row-pos.p3 { color: #cd7f32; }
+    .mob-drv-row-avatar {
+      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 900;
+    }
+    .mob-drv-row-info { flex: 1; min-width: 0; }
+    .mob-drv-row-name { font-size: 13px; font-weight: 700; color: var(--white); }
+    .mob-drv-row-team { font-size: 10px; color: #444; }
+    .mob-drv-row-pts { font-size: 13px; font-weight: 700; color: #888; flex-shrink: 0; }
+    .mob-drv-row-arrow { font-size: 18px; color: #2a2a2a; flex-shrink: 0; }
+
+    /* Mobile driver profile body overrides for single-column */
+    #mobDrvProfileBody .drp-header { border-bottom: 1px solid var(--border); }
+    #mobDrvProfileBody .drp-body { flex-direction: column; }
+    #mobDrvProfileBody .drp-ai-col { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+    #mobDrvProfileBody .drp-stat-boxes { grid-template-columns: repeat(2, 1fr); }
+    /* hide upgrade strip on mobile profile (avoid double paywall) */
+    #mobDrvProfileBody .drp-upgrade-strip { display: none; }
+
     /* ── Mobile radio page ── */
     .mob-radio-live-pill {
       margin-left: auto; font-size: 9px; font-weight: 700; color: #00d84b;
@@ -3817,12 +3882,39 @@
   <div class="mob-page-header">
     <button class="mob-back-btn" onclick="mobClosePage('drivers')">← Back</button>
     <span class="mob-page-title">Drivers</span>
+    <span style="margin-left:auto;font-size:10px;color:#444;font-weight:700;letter-spacing:.5px">2026 Season</span>
   </div>
-  <div class="mob-page-body" id="mobDriversBody">
-    <div class="drv-grid-scroll" style="padding:12px 16px">
-      <div class="drv-grid" id="mobDrvGrid"></div>
+  <div class="mob-page-body" id="mobDriversBody" style="padding:0;overflow-y:auto">
+
+    <!-- Search -->
+    <div style="padding:10px 16px">
+      <input class="mob-drv-search" id="mobDrvSearch"
+        placeholder="Search driver or team…"
+        oninput="_mobDrvFilter(this.value)"
+        autocomplete="off">
     </div>
+
+    <!-- Championship leaders -->
+    <div class="mob-section-label" style="display:flex;align-items:center;gap:6px">
+      <span style="width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block"></span>
+      Championship leaders
+    </div>
+    <div id="mobDrvLeaders" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 12px;scrollbar-width:none"></div>
+
+    <!-- Full grid -->
+    <div class="mob-section-label">Full grid · Tap any driver for profile + AI chat</div>
+    <div id="mobDrvList" style="padding:0 16px"></div>
+
   </div>
+</div>
+
+<!-- Mobile driver profile page -->
+<div class="mob-page" id="mob-page-drv-profile">
+  <div class="mob-page-header">
+    <button class="mob-back-btn" onclick="mobClosePage('drv-profile')">← Drivers</button>
+    <span class="mob-page-title" id="mobDrvProfileTitle">Driver</span>
+  </div>
+  <div class="mob-page-body" id="mobDrvProfileBody" style="overflow-y:auto;padding:0"></div>
 </div>
 
 <!-- Championship page -->
@@ -7476,9 +7568,87 @@ function _mobSyncIncidents() {
 
 // ── Sync drivers grid ────────────────────────────
 function _mobSyncDrivers() {
-  const src  = document.getElementById('driverGrid') || document.querySelector('.drv-grid');
-  const dest = document.getElementById('mobDrvGrid');
-  if (src && dest) dest.innerHTML = src.innerHTML;
+  renderMobDrivers();
+}
+
+function renderMobDrivers() {
+  const leadersEl = document.getElementById('mobDrvLeaders');
+  const listEl    = document.getElementById('mobDrvList');
+  if (!leadersEl || !listEl) return;
+
+  const sorted = [...DRIVERS].sort((a, b) => a.cp - b.cp);
+
+  // Championship leaders (top 4 horizontal cards)
+  leadersEl.innerHTML = sorted.slice(0, 4).map(d => {
+    const { pos, pts } = _drvLivePos(d);
+    const tc  = d.tc || '#888';
+    const txt = _helmtText(tc);
+    return `
+      <div class="mob-drv-leader-card ${pos === 1 ? 'p1' : ''}" onclick="mobOpenDriverProfile('${d.id}')">
+        <div class="mob-drv-leader-avatar" style="background:${tc};color:${txt}">${d.code}</div>
+        <div class="mob-drv-leader-pos">P${pos}</div>
+        <div class="mob-drv-leader-name">${escapeHtml(d.surname)}</div>
+        <div class="mob-drv-leader-team">${escapeHtml(d.team)}</div>
+        <div class="mob-drv-leader-pts">${pts} pts</div>
+      </div>`;
+  }).join('');
+
+  // Full driver list
+  _renderMobDrvRows(sorted);
+}
+
+function _renderMobDrvRows(sorted) {
+  const listEl = document.getElementById('mobDrvList');
+  if (!listEl) return;
+  listEl.innerHTML = sorted.map(d => {
+    const { pos, pts } = _drvLivePos(d);
+    const tc  = d.tc || '#888';
+    const txt = _helmtText(tc);
+    const posClass = pos === 1 ? 'p1' : pos === 2 ? 'p2' : pos === 3 ? 'p3' : '';
+    return `
+      <div class="mob-drv-row" data-name="${escapeHtml(d.name.toLowerCase())}" data-team="${escapeHtml(d.team.toLowerCase())}"
+           onclick="mobOpenDriverProfile('${d.id}')">
+        <div class="mob-drv-row-pos ${posClass}">${pos}</div>
+        <div class="mob-drv-row-avatar" style="background:${tc};color:${txt}">${d.code}</div>
+        <div class="mob-drv-row-info">
+          <div class="mob-drv-row-name">${escapeHtml(d.name)}</div>
+          <div class="mob-drv-row-team">${escapeHtml(d.team)}</div>
+        </div>
+        <div class="mob-drv-row-pts">${pts}</div>
+        <div class="mob-drv-row-arrow">›</div>
+      </div>`;
+  }).join('');
+}
+
+function _mobDrvFilter(q) {
+  const val = q.trim().toLowerCase();
+  const rows = document.querySelectorAll('#mobDrvList .mob-drv-row');
+  rows.forEach(row => {
+    const match = !val || row.dataset.name.includes(val) || row.dataset.team.includes(val);
+    row.style.display = match ? '' : 'none';
+  });
+}
+
+function mobOpenDriverProfile(id) {
+  const driver = DRIVERS.find(d => d.id === id);
+  if (!driver) return;
+  _activeDrvId = id;
+  if (!_drvHistories[id]) _drvHistories[id] = [];
+
+  const titleEl = document.getElementById('mobDrvProfileTitle');
+  const bodyEl  = document.getElementById('mobDrvProfileBody');
+  if (titleEl) titleEl.textContent = driver.surname;
+  if (bodyEl) bodyEl.innerHTML = _buildMobProfileHTML(driver);
+
+  mobOpenPage('drv-profile');
+  _renderDrvMsgs(id);
+  _updateDrvCounter(id);
+}
+
+function _buildMobProfileHTML(d) {
+  // Same as desktop profile but back button calls mobClosePage
+  let html = _buildProfileHTML(d);
+  return html.replace('onclick="closeDriverProfile()"', 'style="display:none"');
 }
 
 // ── Sync championship ────────────────────────────
