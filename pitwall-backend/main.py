@@ -767,6 +767,13 @@ async def chat_stream(req: ChatRequest):
     Injects the server's cached _state into the system prompt so no fresh
     OpenF1 fetch is needed per question.
     """
+    t0 = time.perf_counter()
+
+    def _ms(since: float) -> int:
+        return round((time.perf_counter() - since) * 1000)
+
+    log.info("[TIMING] Request received: 0ms")
+
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise HTTPException(
@@ -775,13 +782,20 @@ async def chat_stream(req: ChatRequest):
         )
 
     # Fix 2: enrich with server-side cached race data (zero extra OpenF1 calls)
+    log.info("[TIMING] Context building starts: %dms", _ms(t0))
     async with _lock:
         state_snap = dict(_state)
     enriched_system = req.system + _build_race_context(state_snap)
+    log.info(
+        "[TIMING] Context built: %dms  (system prompt: %d chars, messages: %d)",
+        _ms(t0), len(enriched_system), len(req.messages),
+    )
 
     async def generate():
         ai_client = anthropic.AsyncAnthropic(api_key=api_key)
         try:
+            log.info("[TIMING] Claude API call starts: %dms", _ms(t0))
+            first_token = True
             async with ai_client.messages.stream(
                 model="claude-sonnet-4-20250514",
                 max_tokens=600,
@@ -789,13 +803,20 @@ async def chat_stream(req: ChatRequest):
                 messages=req.messages,
             ) as stream:
                 async for text in stream.text_stream:
+                    if first_token:
+                        log.info("[TIMING] First token arrived: %dms", _ms(t0))
+                        first_token = False
                     yield f"data: {json.dumps({'token': text})}\n\n"
+            log.info("[TIMING] Complete: %dms", _ms(t0))
             yield "data: [DONE]\n\n"
         except anthropic.AuthenticationError:
+            log.error("[TIMING] Auth error at %dms", _ms(t0))
             yield f"data: {json.dumps({'error': 'Invalid Anthropic API key'})}\n\n"
         except anthropic.RateLimitError:
+            log.error("[TIMING] Rate limit at %dms", _ms(t0))
             yield f"data: {json.dumps({'error': 'Anthropic rate limit hit — try again shortly'})}\n\n"
         except Exception as exc:
+            log.error("[TIMING] Error at %dms: %s", _ms(t0), exc)
             yield f"data: {json.dumps({'error': str(exc)})}\n\n"
 
     return StreamingResponse(
