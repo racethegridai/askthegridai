@@ -838,6 +838,61 @@
       box-shadow: 0 0 0 1px var(--red);
     }
 
+    /* ── STYLE SELECTOR ─────────────────────────────── */
+    .style-bar {
+      flex-shrink: 0;
+      padding: 8px 16px 6px;
+      border-top: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .style-bar-label {
+      font-size: 8px;
+      letter-spacing: 3px;
+      color: var(--gray);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .style-btns {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .style-btn {
+      padding: 5px 10px;
+      border: 1px solid #2a2a2a;
+      background: transparent;
+      color: var(--gray-lt);
+      font-family: 'Titillium Web', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+    .style-btn:hover {
+      border-color: var(--red);
+      color: var(--white);
+      background: var(--red-dim);
+    }
+    .style-btn.active {
+      border-color: var(--red);
+      background: var(--red);
+      color: #fff;
+    }
+    .style-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--red);
+      background: var(--red-dim);
+      border: 1px solid rgba(225,6,0,0.4);
+      padding: 2px 7px;
+      flex-shrink: 0;
+      align-self: center;
+    }
+
     /* ── FREE LIMIT BAR ─────────────────────────────── */
     .free-limit-bar {
       flex-shrink: 0;
@@ -2416,6 +2471,18 @@
       <div class="welcome-card" id="welcomeCard"></div>
     </div>
 
+    <!-- STYLE SELECTOR -->
+    <div class="style-bar">
+      <div class="style-bar-label">Explanation Style</div>
+      <div class="style-btns">
+        <button class="style-btn active" data-mode="beginner"   onclick="setMode('beginner')">Beginner</button>
+        <button class="style-btn"        data-mode="football"   onclick="setMode('football')">Football Terms</button>
+        <button class="style-btn"        data-mode="f1curious"  onclick="setMode('f1curious')">F1 Curious</button>
+        <button class="style-btn"        data-mode="enthusiast" onclick="setMode('enthusiast')">Enthusiast</button>
+        <button class="style-btn"        data-mode="kid"        onclick="setMode('kid')">Kid Friendly</button>
+      </div>
+    </div>
+
     <!-- QUICK CHIPS -->
     <div class="chips-bar">
       <div class="chips-label">Quick Questions</div>
@@ -2444,6 +2511,7 @@
 
     <!-- INPUT -->
     <div class="input-bar">
+      <span class="style-badge" id="styleBadge">Beginner</span>
       <input class="chat-input" id="chatInput"
         placeholder="Confused? Ask what just happened…"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"
@@ -2885,8 +2953,16 @@ function buildSystem(mode) {
   const recentInc = (liveData.incidents || []).slice(0, 3)
     .map(i => `Lap ${i.lap}: ${i.msg}`).join('; ');
 
+  const styleLabels = {
+    beginner:   'Beginner',
+    football:   'Football Terms',
+    f1curious:  'F1 Curious',
+    enthusiast: 'Enthusiast',
+    kid:        'Kid Friendly',
+  };
+
   const bases = {
-    beginner: `You are Ask The Grid AI, a friendly F1 explainer for complete beginners watching their first race.
+    beginner: `You are Ask The Grid AI, a friendly F1 explainer for complete beginners watching their first race. Explain in Beginner mode — assume I know nothing.
 Rules:
 • Explain ALL jargon in simple everyday terms — never assume prior knowledge
 • Use fun analogies (tyre degradation = "like soles wearing off your shoes"; DRS = "a speed boost button")
@@ -2894,26 +2970,34 @@ Rules:
 • Focus on drama and storytelling, not technical detail
 • Always explain why the viewer should care about this moment`,
 
-    casual: `You are Ask The Grid AI, an F1 race analyst for casual fans who know the basics.
+    football: `You are Ask The Grid AI, an F1 explainer who uses NFL football comparisons to make racing understandable. Explain in Football Terms mode — use NFL comparisons.
+Rules:
+• Compare everything to NFL concepts (a pit stop = a timeout + substitution; DRS = a free play after a penalty; safety car = the 2-minute warning slowing the game; tyre strategy = playcalling)
+• Always give the NFL analogy first, then the F1 reality
+• Keep it energetic and relatable for football fans
+• Never assume F1 knowledge, but assume the reader knows football`,
+
+    f1curious: `You are Ask The Grid AI, an F1 race analyst for fans who know the basics. Explain in F1 Curious mode — I know the basics.
 Rules:
 • Explain strategy in accessible but somewhat detailed terms
 • Give context — why does this moment matter? What are the stakes?
 • Use F1 terminology but briefly clarify non-obvious terms
 • Balance entertainment with insight; reference drivers and teams by name`,
 
-    enthusiast: `You are Ask The Grid AI, an F1 race analyst for enthusiasts who follow the sport closely.
+    enthusiast: `You are Ask The Grid AI, an F1 race analyst for enthusiasts who follow the sport closely. Explain in Enthusiast mode — give me technical depth.
 Rules:
 • Discuss undercut/overcut windows, tyre degradation, safety car timing
 • Reference specific driver and team strategic tendencies
 • Use full F1 terminology (ERS, DRS, VSC, stint, delta, pit window)
 • Quantify where useful: lap delta, pit stop time loss, gap trajectories`,
 
-    expert: `You are Ask The Grid AI, an elite F1 technical analyst. No hand-holding.
+    kid: `You are Ask The Grid AI, a super fun F1 explainer for kids. Explain in Kid Friendly mode — simple, fun language.
 Rules:
-• Full technical vocabulary: deg curves, fuel-adjusted pace, ERS deployment, DRS, dirty air
-• Quantify everything: stint lengths, gap trajectories, pit delta, undercut/overcut EV
-• Aerodynamics: dirty air wake, thermal management, racing line trade-offs
-• Be direct and precise; the reader has deep F1 knowledge`,
+• Use the simplest possible words — imagine explaining to a curious 8-year-old
+• Make it exciting! Use exclamation points, short sentences, vivid imagery
+• Compare to things kids know (video games, running races, school)
+• No technical terms — replace every F1 word with a fun, simple description
+• Always focus on the drama and the people, not the numbers`,
   };
 
   const FORMAT = `
@@ -2946,7 +3030,14 @@ const CHIPS = {
     'Can he still win?',
     'What is DRS?',
   ],
-  casual: [
+  football: [
+    'Why did he pit — football version?',
+    'What does the safety car mean for strategy?',
+    'Who just moved up and why?',
+    'Can he still win like a 4th quarter comeback?',
+    'Explain DRS like a football play',
+  ],
+  f1curious: [
     'Why did he pit?',
     'What does this safety car mean?',
     'Who just moved up?',
@@ -2960,12 +3051,12 @@ const CHIPS = {
     'Can he still win?',
     'Undercut potential for P2?',
   ],
-  expert: [
-    'Why did he pit?',
-    'What does this safety car mean?',
-    'Who just moved up?',
+  kid: [
+    'Why did the car stop?',
+    'What is the safety car doing?',
+    'Who is winning now?',
     'Can he still win?',
-    'Safety car pit window: optimal response',
+    'Why do the tyres matter?',
   ],
 };
 
@@ -3068,12 +3159,23 @@ function switchTab(tab) {
 /* ──────────────────────────────────────────────────
    MODE
 ────────────────────────────────────────────────── */
+const STYLE_LABELS = {
+  beginner:   'Beginner',
+  football:   'Football Terms',
+  f1curious:  'F1 Curious',
+  enthusiast: 'Enthusiast',
+  kid:        'Kid Friendly',
+};
+
 function setMode(m) {
   mode = m;
   history = [];
-  document.querySelectorAll('.mode-pill').forEach(b => {
+  localStorage.setItem('pitwall_explain_mode', m);
+  document.querySelectorAll('.style-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.mode === m);
   });
+  const badge = document.getElementById('styleBadge');
+  if (badge) badge.textContent = STYLE_LABELS[m] || m;
   renderChips();
 }
 
@@ -4581,6 +4683,18 @@ async function sendDriverMsg(id) {
    INIT
 ────────────────────────────────────────────────── */
 function init() {
+  // Restore saved explanation style from localStorage
+  const savedMode = localStorage.getItem('pitwall_explain_mode');
+  if (savedMode && STYLE_LABELS[savedMode]) {
+    mode = savedMode;
+  }
+  // Sync style buttons and badge to initial mode
+  document.querySelectorAll('.style-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+  const badge = document.getElementById('styleBadge');
+  if (badge) badge.textContent = STYLE_LABELS[mode] || mode;
+
   renderChips();
   _setBackendStatus(false);
   renderWelcomeState();  // show welcome before backend connects
