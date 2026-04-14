@@ -43,10 +43,17 @@ fastf1.Cache.enable_cache(str(_cache_dir))
 # ── Constants ────────────────────────────────────────
 
 OPENF1 = "https://api.openf1.org/v1"
-POLL_INTERVAL_REGULAR = 15   # seconds — full data refresh
-POLL_INTERVAL_CRITICAL = 5   # seconds — race_control / flag check only
-BACKOFF_BASE = 10.0          # initial backoff on 429 (seconds)
-BACKOFF_MAX  = 120.0         # cap backoff at 2 minutes
+POLL_INTERVAL_LIVE     = 15   # seconds — full refresh during a live session
+POLL_INTERVAL_IDLE     = 60   # seconds — full refresh when no live session
+POLL_CRITICAL_LIVE     = 5    # seconds — flag/pit check during live session
+POLL_CRITICAL_IDLE     = 20   # seconds — flag/pit check when idle
+OPENF1_TIMEOUT         = 3.0  # seconds — fail fast; cached data serves immediately
+BACKOFF_BASE = 10.0           # initial backoff on 429 (seconds)
+BACKOFF_MAX  = 120.0          # cap backoff at 2 minutes
+
+# Keep legacy names so nothing else in the file breaks
+POLL_INTERVAL_REGULAR  = POLL_INTERVAL_LIVE
+POLL_INTERVAL_CRITICAL = POLL_CRITICAL_LIVE
 
 COMPOUND_SHORT: dict[str, str] = {
     "SOFT": "S", "MEDIUM": "M", "HARD": "H",
@@ -222,7 +229,7 @@ async def _of1(client: httpx.AsyncClient, path: str, params: dict | None = None)
             r = await client.get(
                 f"{OPENF1}{path}",
                 params=params or {},
-                timeout=15,
+                timeout=OPENF1_TIMEOUT,
             )
             if r.status_code == 429:
                 new_delay = min(_backoff[path][1] * 2, BACKOFF_MAX) if path in _backoff else BACKOFF_BASE
@@ -557,7 +564,9 @@ async def _poller():
     global _state
     while True:
         try:
-            log.info("Fetching race data (session_key=latest)…")
+            is_live = _state.get("is_live", False)
+            interval = POLL_INTERVAL_LIVE if is_live else POLL_INTERVAL_IDLE
+            log.info("Fetching race data (session_key=latest, live=%s, next=%ds)…", is_live, interval)
             new_state = await _refresh()
             async with _lock:
                 _state = new_state
@@ -574,8 +583,9 @@ async def _poller():
             )
         except Exception:
             log.exception("Poller iteration failed")
+            interval = POLL_INTERVAL_IDLE  # back off on error
 
-        await asyncio.sleep(POLL_INTERVAL_REGULAR)
+        await asyncio.sleep(interval)
 
 
 def _broadcast(payload: str) -> None:
@@ -594,10 +604,12 @@ def _broadcast(payload: str) -> None:
 
 
 async def _poll_critical():
-    """Fetch race_control every POLL_INTERVAL_CRITICAL seconds and push flag/incident updates."""
+    """Fetch race_control and pit at a faster cadence during live sessions only."""
     global _state
     while True:
-        await asyncio.sleep(POLL_INTERVAL_CRITICAL)
+        is_live = _state.get("is_live", False)
+        interval = POLL_CRITICAL_LIVE if is_live else POLL_CRITICAL_IDLE
+        await asyncio.sleep(interval)
         session_key = _state.get("session_key")
         if not session_key:
             continue
