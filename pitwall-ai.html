@@ -3708,7 +3708,9 @@ function escapeHtml(s) {
 ────────────────────────────────────────────────── */
 
 // Creates an AI message bubble inside `container` (element or ID string).
-// Returns the bubble <div> so the caller can update its text token-by-token.
+// Starts with pulsing typing dots so the user sees a response immediately
+// on click. The first token from _readTokenStream replaces the dots with text.
+// Returns the bubble <div> so the caller can update its content.
 function _appendStreamingBubble(container) {
   const box = (typeof container === 'string')
     ? document.getElementById(container)
@@ -3722,6 +3724,7 @@ function _appendStreamingBubble(container) {
   avatar.textContent = 'AI';
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
+  bubble.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
   row.appendChild(avatar);
   row.appendChild(bubble);
   box.appendChild(row);
@@ -3771,10 +3774,12 @@ async function sendMsg() {
   appendMessage('user', text);
   history.push({ role: 'user', content: text });
 
-  showTyping();
+  // Create the AI bubble with pulsing dots BEFORE the fetch so it appears
+  // instantly on click. First arriving token replaces the dots with real text.
+  const chatBox = document.getElementById('chatMessages');
+  const bubble  = _appendStreamingBubble(chatBox);
 
   try {
-    // Fix 1: streaming endpoint — first token visible in ~1 s instead of ~10 s
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -3789,11 +3794,6 @@ async function sendMsg() {
       throw new Error(err.detail || `HTTP ${res.status}`);
     }
 
-    // Replace typing indicator with a live streaming bubble
-    hideTyping();
-    const chatBox = document.getElementById('chatMessages');
-    const bubble  = _appendStreamingBubble(chatBox);
-
     const reply = await _readTokenStream(res, txt => {
       bubble.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
       chatBox.scrollTop = chatBox.scrollHeight;
@@ -3803,12 +3803,10 @@ async function sendMsg() {
     incrementFreeCount();
 
   } catch (err) {
-    hideTyping();
-    if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-      appendMessage('ai', '⚠ Cannot reach the backend. Make sure start.sh is running on port 8000.');
-    } else {
-      appendMessage('ai', `⚠ ${err.message}`);
-    }
+    const msg = (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))
+      ? '⚠ Cannot reach the backend. Make sure start.sh is running on port 8000.'
+      : `⚠ ${err.message}`;
+    bubble.innerHTML = escapeHtml(msg);
   } finally {
     busy = false;
     document.getElementById('sendBtn').disabled = false;
@@ -4697,23 +4695,12 @@ async function sendDriverMsg(id) {
   _drvHistories[id].push({ role:'user', content: text });
   _renderDrvMsgs(id);
 
-  /* Typing indicator */
-  const typingEl = document.createElement('div');
-  typingEl.className = 'typing-wrap';
-  typingEl.id = 'drvTyping';
-  typingEl.innerHTML = `
-    <div class="msg-avatar" style="width:30px;height:30px;background:var(--red);border-radius:3px;
-         display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0;">AI</div>
-    <div class="typing-dots">
-      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
-    </div>`;
-  msgsEl.appendChild(typingEl);
-  msgsEl.scrollTop = msgsEl.scrollHeight;
+  // Show the AI bubble with pulsing dots instantly before the fetch.
+  const bubble = _appendStreamingBubble(msgsEl);
 
   const system = `You are an expert F1 analyst explaining ${driver.name} to a brand new F1 fan. Answer questions about their career, personality, driving style, rivalries, and achievements in plain English. Be engaging and tell stories. Never assume F1 knowledge. Keep answers to 4–5 sentences max.`;
 
   try {
-    // Fix 1: use streaming endpoint so text appears word-by-word
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -4725,11 +4712,6 @@ async function sendDriverMsg(id) {
       throw new Error(err.detail || `HTTP ${res.status}`);
     }
 
-    // Swap typing indicator for a live streaming bubble
-    const t = document.getElementById('drvTyping');
-    if (t) t.remove();
-    const bubble = _appendStreamingBubble(msgsEl);
-
     const reply = await _readTokenStream(res, txt => {
       bubble.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
       msgsEl.scrollTop = msgsEl.scrollHeight;
@@ -4740,12 +4722,11 @@ async function sendDriverMsg(id) {
     const msg = (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))
       ? '⚠ Cannot reach the backend. Make sure start.sh is running on port 8000.'
       : `⚠ ${err.message}`;
+    bubble.innerHTML = escapeHtml(msg);
     _drvHistories[id].push({ role:'assistant', content: msg });
   } finally {
     _drvBusy = false;
     if (sendBtn) sendBtn.disabled = false;
-    const t = document.getElementById('drvTyping');
-    if (t) t.remove();
     _renderDrvMsgs(id);
     if (input) input.focus();
   }
