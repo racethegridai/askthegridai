@@ -3190,6 +3190,12 @@
     .news-card-body  { font-size: 12px; color: #aaaaaa; line-height: 1.65; margin-bottom: 10px; }
     .news-card-foot  { display: flex; align-items: center; justify-content: space-between; }
     .news-card-time  { font-size: 10px; color: #666666; }
+    .news-card-source {
+      font-size: 10px; color: #555; text-decoration: none;
+    }
+    .news-card-source:hover { color: #888; }
+    .news-rss-empty { padding: 24px 0; color: #555; font-size: 12px; text-align: center; }
+    .news-rss-loading { padding: 24px 0; color: #444; font-size: 12px; text-align: center; }
     .news-card-ask   {
       font-size: 10px; font-weight: 700; color: var(--red); cursor: pointer;
       letter-spacing: .3px; background: none; border: none; font-family: 'Titillium Web', sans-serif;
@@ -4622,86 +4628,9 @@
   <div class="news-panel active" id="news-daily">
     <div class="news-layout">
 
-      <!-- LEFT COLUMN -->
-      <div class="news-left">
-
-        <!-- ★ BREAKING STRIP — update manually before each race weekend ★ -->
-        <div class="news-breaking">
-          <span class="news-breaking-badge">BREAKING</span>
-          <span class="news-breaking-text">McLaren and Mercedes both confirm major aerodynamic upgrade packages for Miami International Autodrome</span>
-          <span class="news-breaking-time">2h ago</span>
-        </div>
-
-        <div class="news-sec-label">Today in F1 — AI explained</div>
-
-        <!-- MAIN CARD 1 -->
-        <div class="news-card">
-          <div class="news-card-top">
-            <span class="news-cat news-cat-champ">CHAMPIONSHIP</span>
-          </div>
-          <div class="news-card-title">Antonelli's lead grows as Mercedes control both ends of the standings</div>
-          <div class="news-card-body">Andrea Kimi Antonelli has extended his championship lead to nine points over teammate George Russell after four rounds of the 2026 season. What makes this situation unusual is that both drivers occupy the top two positions in the standings — meaning Mercedes are effectively racing themselves for the title. Antonelli's ability to manage the pressure of leading the championship at just 19 years old has surprised even the most optimistic predictions inside the team.</div>
-          <div class="news-card-foot">
-            <span class="news-card-time">4 hours ago · Championship</span>
-            <button class="news-card-ask" onclick="newsAsk('Can Antonelli really win the 2026 F1 championship at 19?')">Ask AI to explain →</button>
-          </div>
-        </div>
-
-        <!-- MAIN CARD 2 -->
-        <div class="news-card">
-          <div class="news-card-top">
-            <span class="news-cat news-cat-ferrari">FERRARI</span>
-          </div>
-          <div class="news-card-title">Hamilton at Ferrari: the numbers behind a slow start to his new chapter</div>
-          <div class="news-card-body">Lewis Hamilton's move to Ferrari was billed as one of the most anticipated driver transfers in the sport's history, but through the opening four rounds of 2026 the seven-time champion finds himself fourth in the standings — 31 points behind Antonelli. Ferrari engineers confirm Hamilton has adapted to the car's handling characteristics, but the qualifying gap to Mercedes continues to put him on the back foot for race strategy. The question is whether this is a setup evolution problem or something more fundamental about the SF-26's architecture.</div>
-          <div class="news-card-foot">
-            <span class="news-card-time">6 hours ago · Team analysis</span>
-            <button class="news-card-ask" onclick="newsAsk('Why is Hamilton struggling at Ferrari in 2026?')">Ask AI to explain →</button>
-          </div>
-        </div>
-
-        <!-- MAIN CARD 3 -->
-        <div class="news-card">
-          <div class="news-card-top">
-            <span class="news-cat news-cat-weekend">MIAMI WEEKEND</span>
-          </div>
-          <div class="news-card-title">Pirelli selects softer compounds for Miami as teams prepare for tyre war</div>
-          <div class="news-card-body">Pirelli has confirmed C2, C3, and C4 compounds for the Miami Grand Prix following the annual track surface inspection at the International Autodrome. The selection of three relatively soft compounds signals that Pirelli expect multiple pit stop strategies and possible degradation in the afternoon heat. Teams are already flagging that Miami's combination of slow technical sections and high-speed sweepers creates a particularly demanding front-left loading situation that could split strategies as early as lap fifteen.</div>
-          <div class="news-card-foot">
-            <span class="news-card-time">Today · Race weekend</span>
-            <button class="news-card-ask" onclick="newsAsk('Why do tyre compound choices matter so much at Miami?')">Ask AI to explain →</button>
-          </div>
-        </div>
-
-        <!-- EARLIER TODAY -->
-        <div class="news-sec-label news-sec-gap">Earlier today</div>
-        <div>
-          <div class="news-mini">
-            <div class="news-mini-dot"></div>
-            <div class="news-mini-body">
-              <div class="news-mini-title">FIA confirms DRS detection zones remain unchanged for Miami layout</div>
-              <div class="news-mini-sub">Teams had lobbied for revised zones after last year's overtaking difficulties in sector two.</div>
-              <button class="news-mini-ask" onclick="newsAsk('What is DRS and why do teams care about where the detection zones are?')">Ask AI →</button>
-            </div>
-          </div>
-          <div class="news-mini">
-            <div class="news-mini-dot"></div>
-            <div class="news-mini-body">
-              <div class="news-mini-title">Verstappen admits Red Bull are still searching for consistent race pace</div>
-              <div class="news-mini-sub">The four-time champion has been out of the points conversation despite Red Bull bringing updates to recent rounds.</div>
-              <button class="news-mini-ask" onclick="newsAsk('What has gone wrong at Red Bull in 2026?')">Ask AI →</button>
-            </div>
-          </div>
-          <div class="news-mini">
-            <div class="news-mini-dot"></div>
-            <div class="news-mini-body">
-              <div class="news-mini-title">Alpine confirm unchanged Gasly and Colapinto lineup for the remainder of 2026</div>
-              <div class="news-mini-sub">Speculation about a mid-season driver change has been officially dismissed by the team.</div>
-              <button class="news-mini-ask" onclick="newsAsk('Why do F1 teams sometimes change drivers mid-season?')">Ask AI →</button>
-            </div>
-          </div>
-        </div>
-
+      <!-- LEFT COLUMN — populated by loadRssNews() -->
+      <div class="news-left" id="rssNewsLeft">
+        <div class="news-rss-loading">Loading latest F1 news…</div>
       </div><!-- /news-left -->
 
       <!-- RIGHT COLUMN -->
@@ -5991,6 +5920,45 @@ function switchTab(tab) {
   });
   if (tab === 'strategy') renderStrategyTab();
   if (tab === 'drivers')  { renderDriversGrid(); }
+  if (tab === 'news')     { loadRssNews(); }
+}
+
+/* ── RSS News loader ───────────────────────────────── */
+let _rssLoaded = false;
+
+async function loadRssNews(force) {
+  if (_rssLoaded && !force) return;
+  const container = document.getElementById('rssNewsLeft');
+  if (!container) return;
+
+  container.innerHTML = '<div class="news-rss-loading">Loading latest F1 news…</div>';
+
+  try {
+    const res = await fetch(`${BACKEND}/api/news`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const items = data.items || [];
+
+    if (!items.length) {
+      container.innerHTML = '<div class="news-rss-empty">No F1 news in the last 24 hours.<br>Check back later.</div>';
+      return;
+    }
+
+    const html = items.map(item => `
+      <div class="news-card">
+        <div class="news-card-title">${escapeHtml(item.title)}</div>
+        <div class="news-card-body">${escapeHtml(item.summary)}</div>
+        <div class="news-card-foot">
+          <span class="news-card-time">${escapeHtml(item.time_ago)}</span>
+          ${item.source ? `<a class="news-card-source" href="${escapeHtml(item.source)}" target="_blank" rel="noopener">Source →</a>` : ''}
+        </div>
+      </div>`).join('');
+
+    container.innerHTML = `<div class="news-sec-label">Today in F1 — AI explained</div>${html}`;
+    _rssLoaded = true;
+  } catch(e) {
+    container.innerHTML = '<div class="news-rss-empty">Could not load news. Try again later.</div>';
+  }
 }
 
 /* ──────────────────────────────────────────────────
@@ -8038,6 +8006,9 @@ function init() {
     if (chatInput)    { chatInput.disabled = false; chatInput.placeholder = 'Confused? Ask what just happened…'; }
     if (sendBtn)      sendBtn.disabled = false;
   }
+
+  // Pre-load RSS news so it's ready when the user clicks the News tab
+  loadRssNews();
 }
 
 /* ══════════════════════════════════════════════════

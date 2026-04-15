@@ -10,12 +10,13 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
 import anthropic
 import fastf1
+import feedparser
 import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
@@ -110,6 +111,15 @@ _subscribers: list[asyncio.Queue] = []
 
 # ── Championship standings cache ──────────────────────
 _standings_cache: dict[str, Any] = {"data": None, "timestamp": 0.0}
+
+# ── News cache ────────────────────────────────────────
+_NEWS_CACHE_TTL = 3600  # 1 hour
+_NEWS_FEEDS = [
+    "https://www.formula1.com/en/latest/all.xml",
+    "https://www.motorsport.com/rss/f1/news/",
+]
+_news_cache: dict[str, Any] = {"items": [], "refreshed_at": None}
+_news_lock  = asyncio.Lock()
 
 FALLBACK_STANDINGS = [
     {"position": 1,  "driver": "Antonelli",   "first_name": "Andrea Kimi", "team": "Mercedes",      "points": 72,  "wins": 2},
@@ -671,6 +681,131 @@ async def _poll_critical():
             log.exception("Critical poller failed")
 
 
+# ── RSS news helpers ──────────────────────────────────
+
+def _time_ago(dt: datetime) -> str:
+    """Return a human-readable relative time string."""
+    diff_s = (datetime.now(timezone.utc) - dt).total_seconds()
+    if diff_s < 120:
+        return "just now"
+    if diff_s < 3600:
+        return f"{int(diff_s / 60)}m ago"
+    if diff_s < 86400:
+        return f"{int(diff_s / 3600)}h ago"
+    return f"{int(diff_s / 86400)}d ago"
+
+
+async def _summarise_story(client: anthropic.AsyncAnthropic, title: str, description: str) -> str:
+    """Summarise one news story with Haiku. Falls back to raw description on error."""
+    snippet = (description or "").strip()[:800]
+    try:
+        resp = await client.messages.create(
+            model=HAIKU_MODEL,
+            max_tokens=120,
+            system=(
+                "You are summarising Formula 1 news for a casual fan who knows nothing about F1. "
+                "Write exactly 2 plain-English sentences. "
+                "Do not add any information not present in the original story."
+            ),
+            messages=[{"role": "user", "content": f"Title: {title}\n\n{snippet}"}],
+        )
+        return resp.content[0].text.strip()
+    except Exception as exc:
+        log.warning("[NEWS] Summarisation failed: %s", exc)
+        return snippet[:300]
+
+
+async def fetch_f1_news() -> list[dict]:
+    """
+    Fetch from _NEWS_FEEDS, keep stories from the last 24 h, summarise with Haiku.
+    Returns a list of dicts ready for /api/news.
+    """
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+    raw: list[dict] = []
+
+    async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as http:
+        for url in _NEWS_FEEDS:
+            try:
+                r = await http.get(url)
+                r.raise_for_status()
+                feed = feedparser.parse(r.text)
+                for entry in feed.entries[:5]:
+                    pub: datetime | None = None
+                    if getattr(entry, "published_parsed", None):
+                        try:
+                            pub = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+                        except Exception:
+                            pass
+                    # Skip stories older than 24 h (only when we have a valid date)
+                    if pub and pub < cutoff:
+                        continue
+                    raw.append({
+                        "title":       (entry.get("title") or "").strip(),
+                        "description": (entry.get("summary") or entry.get("description") or "").strip(),
+                        "link":        entry.get("link", ""),
+                        "pub":         pub,
+                    })
+            except Exception as exc:
+                log.warning("[NEWS] Feed fetch failed (%s): %s", url, exc)
+
+    if not raw:
+        return []
+
+    # Deduplicate by normalised title
+    seen: set[str] = set()
+    unique: list[dict] = []
+    for item in raw:
+        key = item["title"].lower()
+        if key and key not in seen:
+            seen.add(key)
+            unique.append(item)
+
+    # Newest first, cap at 10
+    unique.sort(
+        key=lambda x: x["pub"] or datetime.min.replace(tzinfo=timezone.utc),
+        reverse=True,
+    )
+    unique = unique[:10]
+
+    # Parallel AI summaries
+    api_key = os.getenv("ANTHROPIC_API_KEY", "")
+    if api_key:
+        ai_client = anthropic.AsyncAnthropic(api_key=api_key)
+        summaries = await asyncio.gather(
+            *[_summarise_story(ai_client, it["title"], it["description"]) for it in unique],
+            return_exceptions=True,
+        )
+    else:
+        summaries = [it["description"][:300] for it in unique]
+
+    result = []
+    for item, summary in zip(unique, summaries):
+        if isinstance(summary, Exception):
+            summary = item["description"][:300]
+        result.append({
+            "title":    item["title"],
+            "summary":  summary,
+            "time_ago": _time_ago(item["pub"]) if item["pub"] else "recently",
+            "source":   item["link"],
+        })
+    return result
+
+
+async def _news_poller():
+    """Background task: refresh news cache every _NEWS_CACHE_TTL seconds."""
+    while True:
+        try:
+            log.info("[NEWS] Refreshing RSS news cache…")
+            items = await fetch_f1_news()
+            async with _news_lock:
+                _news_cache["items"] = items
+                _news_cache["refreshed_at"] = datetime.now(timezone.utc).isoformat()
+            log.info("[NEWS] Cached %d items", len(items))
+        except Exception as exc:
+            log.warning("[NEWS] Poller error: %s", exc)
+        await asyncio.sleep(_NEWS_CACHE_TTL)
+
+
 # ── App lifespan ──────────────────────────────────────
 
 @asynccontextmanager
@@ -679,10 +814,12 @@ async def _lifespan(app: FastAPI):
     _state = _blank_state()
     task_regular  = asyncio.create_task(_poller())
     task_critical = asyncio.create_task(_poll_critical())
+    task_news     = asyncio.create_task(_news_poller())
     yield
     task_regular.cancel()
     task_critical.cancel()
-    for task in (task_regular, task_critical):
+    task_news.cancel()
+    for task in (task_regular, task_critical, task_news):
         try:
             await task
         except asyncio.CancelledError:
@@ -945,6 +1082,16 @@ async def chat_stream(req: ChatRequest, request: Request):
 async def ping():
     """Keep-alive endpoint — frontend pings every 4 minutes to prevent Railway cold starts."""
     return {"ok": True}
+
+
+@app.get("/api/news")
+async def get_news():
+    """Return cached RSS news items with AI plain-English summaries."""
+    async with _news_lock:
+        return {
+            "items":        _news_cache["items"],
+            "refreshed_at": _news_cache["refreshed_at"],
+        }
 
 
 @app.get("/api/championship-standings")
