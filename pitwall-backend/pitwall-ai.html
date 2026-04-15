@@ -3848,11 +3848,27 @@
     @media (min-width: 768px) {
       #mobHub, .mob-page { display: none !important; }
     }
+
+    /* ── OWNER badge ── */
+    #ownerBadge {
+      display: none;
+      position: fixed;
+      bottom: 6px;
+      right: 8px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.18);
+      background: transparent;
+      pointer-events: none;
+      z-index: 9999;
+      user-select: none;
+    }
   </style>
 </head>
 <body>
 
-<div id="ownerBadge">Owner Mode</div>
+<div id="ownerBadge">OWNER</div>
 
 <!-- ═══════════════════════════════════════════════════
      MOBILE HUB (< 768px only — completely replaces desktop layout)
@@ -5835,7 +5851,10 @@ let busy    = false;
 const FREE_LIMIT = 3;
 const FREE_LIMIT_KEY = 'pitwall_free_questions';
 
+const OWNER_KEY = 'pitwall_owner_mode';
+
 function isOwnerMode() {
+  if (localStorage.getItem(OWNER_KEY) === '1') return true;
   return new URLSearchParams(window.location.search).has('owner') &&
     new URLSearchParams(window.location.search).get('owner') === 'true';
 }
@@ -5851,6 +5870,62 @@ function setFreeCount(n) {
 function isLimitBypassed() {
   if (isOwnerMode()) return true;
   if (window._ownerBypass) return true;
+  return false;
+}
+
+function _showOwnerToast(msg) {
+  let toast = document.getElementById('ownerToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'ownerToast';
+    Object.assign(toast.style, {
+      position: 'fixed', bottom: '28px', left: '50%', transform: 'translateX(-50%)',
+      background: 'rgba(30,30,30,0.92)', color: '#fff', fontSize: '13px',
+      padding: '8px 18px', borderRadius: '20px', zIndex: '10000',
+      pointerEvents: 'none', opacity: '0', transition: 'opacity 0.3s',
+    });
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => {
+    toast.style.transition = 'opacity 0.8s';
+    toast.style.opacity = '0';
+  }, 2000);
+}
+
+function activateOwnerMode() {
+  localStorage.setItem(OWNER_KEY, '1');
+  window._ownerBypass = true;
+  // Remove all limit UI
+  const upgradePanel = document.getElementById('upgradePanel');
+  const freeLimitBar = document.getElementById('freeLimitBar');
+  const chatInput    = document.getElementById('chatInput');
+  const sendBtn      = document.getElementById('sendBtn');
+  if (upgradePanel) upgradePanel.classList.remove('visible');
+  if (freeLimitBar) freeLimitBar.classList.add('hidden');
+  if (chatInput)    { chatInput.disabled = false; chatInput.placeholder = 'Confused? Ask what just happened…'; }
+  if (sendBtn)      sendBtn.disabled = false;
+  // Show OWNER badge
+  const badge = document.getElementById('ownerBadge');
+  if (badge) badge.style.display = 'block';
+  _showOwnerToast('Owner mode activated');
+}
+
+function deactivateOwnerMode() {
+  localStorage.removeItem(OWNER_KEY);
+  window._ownerBypass = false;
+  const badge = document.getElementById('ownerBadge');
+  if (badge) badge.style.display = 'none';
+  updateFreeLimitUI();
+  _showOwnerToast('Owner mode deactivated');
+}
+
+// Check for secret codes in any input — returns true if a code was handled
+function _checkSecretCode(val) {
+  if (val === 'ATGAIIMAMW2026') { activateOwnerMode(); return true; }
+  if (val === 'ATGAI2026OFF')   { deactivateOwnerMode(); return true; }
   return false;
 }
 
@@ -6777,6 +6852,12 @@ async function sendMsg() {
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
   if (!text) return;
+
+  // Secret owner code — handle silently without hitting Claude
+  if (_checkSecretCode(text)) {
+    input.value = '';
+    return;
+  }
 
   input.value = '';
   busy = true;
@@ -7942,6 +8023,21 @@ function init() {
 
   updateFreeLimitUI();
   _initStyleSelector();
+
+  // Restore owner mode if previously activated
+  if (isOwnerMode()) {
+    window._ownerBypass = true;
+    const badge = document.getElementById('ownerBadge');
+    if (badge) badge.style.display = 'block';
+    const upgradePanel = document.getElementById('upgradePanel');
+    const freeLimitBar = document.getElementById('freeLimitBar');
+    const chatInput    = document.getElementById('chatInput');
+    const sendBtn      = document.getElementById('sendBtn');
+    if (upgradePanel) upgradePanel.classList.remove('visible');
+    if (freeLimitBar) freeLimitBar.classList.add('hidden');
+    if (chatInput)    { chatInput.disabled = false; chatInput.placeholder = 'Confused? Ask what just happened…'; }
+    if (sendBtn)      sendBtn.disabled = false;
+  }
 }
 
 /* ══════════════════════════════════════════════════
@@ -8285,6 +8381,13 @@ async function mobSendMsg() {
   }
 
   const q = input.value.trim();
+
+  // Secret owner code — handle silently without hitting Claude
+  if (_checkSecretCode(q)) {
+    input.value = '';
+    return;
+  }
+
   input.value = '';
   _mobBusy = true;
   if (btn) btn.disabled = true;
