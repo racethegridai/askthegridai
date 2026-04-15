@@ -789,6 +789,7 @@ def _build_race_context(state: dict) -> str:
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     """Non-streaming chat used by background features (radio translation, strategy)."""
+    print(f"[ENDPOINT] /api/chat called", flush=True)
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise HTTPException(
@@ -822,6 +823,7 @@ async def chat_stream(req: ChatRequest):
     OpenF1 fetch is needed per question.
     """
     t0 = time.time()
+    print(f"[ENDPOINT] /api/chat-stream called", flush=True)
     print(f"[STREAM] Request received", flush=True)
 
     api_key = os.getenv("ANTHROPIC_API_KEY")
