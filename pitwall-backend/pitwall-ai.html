@@ -5944,17 +5944,30 @@ async function loadRssNews(force) {
       return;
     }
 
-    const html = items.map(item => `
-      <div class="news-card">
-        <div class="news-card-title">${escapeHtml(item.title)}</div>
-        <div class="news-card-body">${escapeHtml(item.summary)}</div>
-        <div class="news-card-foot">
-          <span class="news-card-time">${escapeHtml(item.time_ago)}</span>
-          ${item.source ? `<a class="news-card-source" href="${escapeHtml(item.source)}" target="_blank" rel="noopener">Source →</a>` : ''}
-        </div>
-      </div>`).join('');
+    container.innerHTML = '<div class="news-sec-label">Today in F1 — AI explained</div>';
 
-    container.innerHTML = `<div class="news-sec-label">Today in F1 — AI explained</div>${html}`;
+    items.forEach(item => {
+      const card = `
+        <div class="news-block" style="border-bottom:1px solid #222;margin-bottom:25px;padding-bottom:15px;">
+          <div class="news-category" style="color:#e10600;font-weight:bold;font-size:0.75rem;text-transform:uppercase;">
+            ${escapeHtml(item.time_ago)}
+          </div>
+          <h2 style="color:white;font-size:1.1rem;margin:5px 0;font-weight:700;line-height:1.3;">
+            ${escapeHtml(item.title)}
+          </h2>
+          <p style="color:#ccc;font-size:0.9rem;margin:5px 0 10px;line-height:1.6;">
+            ${escapeHtml(item.summary)}
+          </p>
+          ${item.source ? `
+          <div style="text-align:right;">
+            <a href="${escapeHtml(item.source)}" target="_blank" rel="noopener"
+               style="color:#e10600;text-decoration:none;font-size:0.8rem;font-weight:bold;">
+              READ SOURCE ARTICLE →
+            </a>
+          </div>` : ''}
+        </div>`;
+      container.innerHTML += card;
+    });
     _rssLoaded = true;
   } catch(e) {
     container.innerHTML = '<div class="news-rss-empty">Could not load news. Try again later.</div>';

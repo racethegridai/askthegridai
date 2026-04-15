@@ -698,16 +698,19 @@ def _time_ago(dt: datetime) -> str:
 async def _summarise_story(client: anthropic.AsyncAnthropic, title: str, description: str) -> str:
     """Summarise one news story with Haiku. Falls back to raw description on error."""
     snippet = (description or "").strip()[:800]
+    prompt = (
+        f"Headline: {title}. Description: {snippet}.\n\n"
+        "You are an F1 expert explaining news to a casual fan. Using the headline as your primary source, "
+        "write a cohesive, 2-sentence summary.\n\n"
+        "Do not output an ellipsis (...). "
+        "Ensure the final sentence ends with a proper period. "
+        "The resulting text must be at least 40 words long."
+    )
     try:
         resp = await client.messages.create(
             model=HAIKU_MODEL,
-            max_tokens=120,
-            system=(
-                "You are summarising Formula 1 news for a casual fan who knows nothing about F1. "
-                "Write exactly 2 plain-English sentences. "
-                "Do not add any information not present in the original story."
-            ),
-            messages=[{"role": "user", "content": f"Title: {title}\n\n{snippet}"}],
+            max_tokens=150,
+            messages=[{"role": "user", "content": prompt}],
         )
         return resp.content[0].text.strip()
     except Exception as exc:
