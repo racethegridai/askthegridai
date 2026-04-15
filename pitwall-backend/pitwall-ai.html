@@ -6724,6 +6724,52 @@ function escapeHtml(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+/* ── Streaming helpers ───────────────────────────────
+   Used by sendMsg, sendDriverMsg, mobSendMsg.
+   Creates a bubble with pulsing dots instantly on click;
+   first token from /api/chat-stream replaces the dots.
+──────────────────────────────────────────────────── */
+function _appendStreamingBubble(container) {
+  const box = typeof container === 'string' ? document.getElementById(container) : container;
+  if (!box) return null;
+  if (typeof container === 'string') clearWelcome();
+  const row = document.createElement('div');
+  row.className = 'msg-row ai';
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.textContent = 'AI';
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  box.appendChild(row);
+  box.scrollTop = box.scrollHeight;
+  return bubble;
+}
+
+async function _readTokenStream(res, onUpdate) {
+  const reader  = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '', fullText = '';
+  outer: while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const payload = line.slice(6).trim();
+      if (payload === '[DONE]') break outer;
+      let obj; try { obj = JSON.parse(payload); } catch { continue; }
+      if (obj.error) throw new Error(obj.error);
+      if (obj.token) { fullText += obj.token; onUpdate(fullText); }
+    }
+  }
+  return fullText;
+}
+
 async function sendMsg() {
   if (busy) return;
   if (!isLimitBypassed() && getFreeCount() >= FREE_LIMIT) return;
@@ -6739,16 +6785,14 @@ async function sendMsg() {
   appendMessage('user', text);
   history.push({ role: 'user', content: text });
 
-  showTyping();
+  const chatBox = document.getElementById('chatMessages');
+  const bubble  = _appendStreamingBubble(chatBox);
 
   try {
-    const res = await fetch(`${BACKEND}/api/chat`, {
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        system: buildSystem(mode),
-        messages: history,
-      }),
+      body: JSON.stringify({ system: buildSystem(mode), messages: history }),
     });
 
     if (!res.ok) {
@@ -6756,21 +6800,19 @@ async function sendMsg() {
       throw new Error(err.detail || `HTTP ${res.status}`);
     }
 
-    const data = await res.json();
-    const reply = data.reply ?? '(No response)';
-    history.push({ role: 'assistant', content: reply });
+    const reply = await _readTokenStream(res, txt => {
+      bubble.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
 
-    hideTyping();
-    appendMessage('ai', reply);
+    history.push({ role: 'assistant', content: reply || '(No response)' });
     incrementFreeCount();
 
   } catch (err) {
-    hideTyping();
-    if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-      appendMessage('ai', '⚠ Cannot reach the backend. Make sure start.sh is running on port 8000.');
-    } else {
-      appendMessage('ai', `⚠ ${err.message}`);
-    }
+    const msg = (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))
+      ? '⚠ Cannot reach the backend. Make sure start.sh is running on port 8000.'
+      : `⚠ ${err.message}`;
+    bubble.innerHTML = escapeHtml(msg);
   } finally {
     busy = false;
     document.getElementById('sendBtn').disabled = false;
@@ -7839,7 +7881,7 @@ async function sendDriverMsg(id) {
   const system = `You are an expert F1 analyst explaining ${driver.name} to a brand new F1 fan. Answer questions about their career, personality, driving style, rivalries, and achievements in plain English. Be engaging and tell stories. Never assume F1 knowledge. Keep answers to 4–5 sentences max.`;
 
   try {
-    const res = await fetch(`${BACKEND}/api/chat`, {
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ system, messages: _drvHistories[id] }),
@@ -7849,13 +7891,18 @@ async function sendDriverMsg(id) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || `HTTP ${res.status}`);
     }
-    const data = await res.json();
-    _drvHistories[id].push({ role:'assistant', content: data.reply ?? '(No response)' });
+
+    const reply = await _readTokenStream(res, txt => {
+      if (textEl) textEl.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+    });
+
+    _drvHistories[id].push({ role:'assistant', content: reply || '(No response)' });
     _incDrvFree(id);
   } catch(err) {
     const msg = (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))
-      ? '\u26a0 Cannot reach the backend.'
-      : `\u26a0 ${err.message}`;
+      ? '⚠ Cannot reach the backend.'
+      : `⚠ ${err.message}`;
+    if (textEl) textEl.textContent = msg;
     _drvHistories[id].push({ role:'assistant', content: msg });
   } finally {
     _drvBusy = false;
@@ -8244,7 +8291,7 @@ async function mobSendMsg() {
   if (resp) { resp.style.display='block'; resp.textContent='Thinking…'; }
 
   try {
-    const res = await fetch(`${BACKEND}/api/chat`, {
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -8252,9 +8299,9 @@ async function mobSendMsg() {
         messages: [{ role: 'user', content: q }],
       })
     });
-    const data = await res.json();
-    const text = data.reply || data.response || data.message || 'No response';
-    if (resp) resp.textContent = text;
+    await _readTokenStream(res, txt => {
+      if (resp) resp.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+    });
     incrementFreeCount();
     updateFreeLimitUI();
     _mobUpdateFreeCount();
