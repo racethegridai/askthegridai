@@ -51,6 +51,18 @@ OPENF1_TIMEOUT         = 3.0  # seconds — fail fast; cached data serves immedi
 BACKOFF_BASE = 10.0           # initial backoff on 429 (seconds)
 BACKOFF_MAX  = 120.0          # cap backoff at 2 minutes
 
+# ── AI model constants ───────────────────────────────
+# User-facing chat uses Sonnet (set directly on each endpoint — do not change).
+HAIKU_MODEL = "claude-3-haiku-20240307"  # background summarization tasks only
+
+# ── IP rate limiter ──────────────────────────────────
+_RATE_WINDOW   = 3600  # seconds (1 hour sliding window)
+_RATE_MAX      = 50    # max AI requests per IP per hour
+_rate_data: dict[str, list[float]] = {}
+_rate_lock     = asyncio.Lock()
+# Comma-separated IPs that bypass the rate limiter (set OWNER_IPS env var on Railway)
+OWNER_IPS: set[str] = set(filter(None, os.getenv("OWNER_IPS", "").split(",")))
+
 # Keep legacy names so nothing else in the file breaks
 POLL_INTERVAL_REGULAR  = POLL_INTERVAL_LIVE
 POLL_INTERVAL_CRITICAL = POLL_CRITICAL_LIVE
@@ -709,6 +721,39 @@ async def get_state():
         return _state
 
 
+# ── IP rate-limit helpers ─────────────────────────────
+
+def _get_client_ip(request: Request) -> str:
+    """Return the real client IP, honouring Railway's X-Forwarded-For header."""
+    xff = request.headers.get("X-Forwarded-For")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+async def _enforce_rate_limit(request: Request) -> None:
+    """
+    Sliding-window rate limiter: max _RATE_MAX requests per IP per _RATE_WINDOW seconds.
+    Raises HTTP 429 if the limit is exceeded.
+    IPs listed in OWNER_IPS env var are exempt.
+    """
+    ip = _get_client_ip(request)
+    if ip in OWNER_IPS:
+        return
+    now = time.time()
+    async with _rate_lock:
+        timestamps = _rate_data.get(ip, [])
+        # Drop entries older than the window
+        timestamps = [t for t in timestamps if now - t < _RATE_WINDOW]
+        if len(timestamps) >= _RATE_MAX:
+            raise HTTPException(
+                status_code=429,
+                detail="Too many requests. Please wait before asking more questions.",
+            )
+        timestamps.append(now)
+        _rate_data[ip] = timestamps
+
+
 # ── Chat proxy ────────────────────────────────────────
 
 class ChatRequest(BaseModel):
@@ -787,8 +832,9 @@ def _build_race_context(state: dict) -> str:
 
 
 @app.post("/api/chat")
-async def chat(req: ChatRequest):
+async def chat(req: ChatRequest, request: Request):
     """Non-streaming chat used by background features (radio translation, strategy)."""
+    await _enforce_rate_limit(request)
     print(f"[ENDPOINT] /api/chat called", flush=True)
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
@@ -815,13 +861,14 @@ async def chat(req: ChatRequest):
 
 
 @app.post("/api/chat-stream")
-async def chat_stream(req: ChatRequest):
+async def chat_stream(req: ChatRequest, request: Request):
     """
     Streaming chat endpoint (Fix 1 + Fix 2).
     Emits SSE tokens so the UI can render text word-by-word.
     Injects the server's cached _state into the system prompt so no fresh
     OpenF1 fetch is needed per question.
     """
+    await _enforce_rate_limit(request)
     t0 = time.time()
     print(f"[ENDPOINT] /api/chat-stream called", flush=True)
     print(f"[STREAM] Request received", flush=True)
