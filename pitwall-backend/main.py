@@ -821,12 +821,8 @@ async def chat_stream(req: ChatRequest):
     Injects the server's cached _state into the system prompt so no fresh
     OpenF1 fetch is needed per question.
     """
-    t0 = time.perf_counter()
-
-    def _ms(since: float) -> int:
-        return round((time.perf_counter() - since) * 1000)
-
-    log.info("[TIMING] Request received: 0ms")
+    t0 = time.time()
+    print(f"[STREAM] Request received", flush=True)
 
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
@@ -835,17 +831,10 @@ async def chat_stream(req: ChatRequest):
             detail="ANTHROPIC_API_KEY not found. Add it to pitwall-backend/.env"
         )
 
-    # Build system as separate blocks so prompt caching can target the static
-    # instructions independently of the frequently-changing race context.
-    #
+    print(f"[STREAM] Auth done: {time.time()-t0:.2f}s", flush=True)
+
     # Block 1 — static (cached): mode instructions + FORMAT rules.
-    #   Identical across all questions in the same mode → high cache-hit rate.
-    #   cache_control="ephemeral" tells Anthropic to cache this for 5 minutes.
-    #
     # Block 2 — dynamic (not cached): server-side live race snapshot.
-    #   Appended only when _needs_live_context() returns True.
-    #   Changes every 10-15 s, so caching would always miss; omit cache_control.
-    log.info("[TIMING] Context building starts: %dms", _ms(t0))
     system_blocks: list[dict] = [
         {
             "type": "text",
@@ -860,22 +849,14 @@ async def chat_stream(req: ChatRequest):
         race_ctx = _build_race_context(state_snap)
         if race_ctx:
             system_blocks.append({"type": "text", "text": race_ctx})
-        log.info(
-            "[TIMING] Context built (live, static cached): %dms  "
-            "(static: %d chars, dynamic: %d chars, messages: %d)",
-            _ms(t0), len(req.system), len(race_ctx), len(req.messages),
-        )
-    else:
-        log.info(
-            "[TIMING] Context built (skip, static cached): %dms  "
-            "(static: %d chars, messages: %d)",
-            _ms(t0), len(req.system), len(req.messages),
-        )
+
+    print(f"[STREAM] Context built: {time.time()-t0:.2f}s  "
+          f"(system {len(req.system)} chars, live={_needs_live_context(req.messages)})", flush=True)
 
     async def generate():
         ai_client = anthropic.AsyncAnthropic(api_key=api_key)
         try:
-            log.info("[TIMING] Claude API call starts: %dms", _ms(t0))
+            print(f"[STREAM] Calling Claude: {time.time()-t0:.2f}s", flush=True)
             first_token = True
             async with ai_client.messages.stream(
                 model="claude-sonnet-4-20250514",
@@ -885,19 +866,19 @@ async def chat_stream(req: ChatRequest):
             ) as stream:
                 async for text in stream.text_stream:
                     if first_token:
-                        log.info("[TIMING] First token arrived: %dms", _ms(t0))
+                        print(f"[STREAM] First token: {time.time()-t0:.2f}s", flush=True)
                         first_token = False
                     yield f"data: {json.dumps({'token': text})}\n\n"
-            log.info("[TIMING] Complete: %dms", _ms(t0))
+            print(f"[STREAM] Complete: {time.time()-t0:.2f}s", flush=True)
             yield "data: [DONE]\n\n"
         except anthropic.AuthenticationError:
-            log.error("[TIMING] Auth error at %dms", _ms(t0))
+            print(f"[STREAM] Auth error: {time.time()-t0:.2f}s", flush=True)
             yield f"data: {json.dumps({'error': 'Invalid Anthropic API key'})}\n\n"
         except anthropic.RateLimitError:
-            log.error("[TIMING] Rate limit at %dms", _ms(t0))
+            print(f"[STREAM] Rate limit: {time.time()-t0:.2f}s", flush=True)
             yield f"data: {json.dumps({'error': 'Anthropic rate limit hit — try again shortly'})}\n\n"
         except Exception as exc:
-            log.error("[TIMING] Error at %dms: %s", _ms(t0), exc)
+            print(f"[STREAM] Error: {time.time()-t0:.2f}s — {exc}", flush=True)
             yield f"data: {json.dumps({'error': str(exc)})}\n\n"
 
     return StreamingResponse(
