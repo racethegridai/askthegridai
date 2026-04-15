@@ -2938,20 +2938,24 @@ function _applyFlag(status, message) {
 ────────────────────────────────────────────────── */
 function buildSystem(mode) {
   const drivers = liveData.drivers || [];
+
+  // Context cap: compact format per driver, hard ceiling on total context chars.
+  // Keeps input tokens small so Claude reaches first-token faster.
   const top5 = drivers.slice(0, 5)
-    .map(d => `P${d.pos} ${d.code} (tyre:${d.tyre||'?'}, ${d.stintLap||0}L on tyre, gap:${d.gap})`)
-    .join(', ');
+    .map(d => `P${d.pos} ${d.code} ${d.tyre||'?'} ${d.stintLap||0}L ${d.gap}`)
+    .join(' | ');
 
   const ctx = liveData.session_name
-    ? `Race: ${liveData.session_name}, Lap ${liveData.lap}/${liveData.total_laps || '?'}`
-    : 'Race: session data loading';
+    ? `${liveData.session_name} L${liveData.lap}/${liveData.total_laps || '?'}`
+    : 'session loading';
 
   const flagCtx = liveData.status !== 'none'
-    ? `\nActive flag: ${liveData.status.toUpperCase()} — ${liveData.status_message}`
+    ? ` FLAG:${liveData.status.toUpperCase()}`
     : '';
 
-  const recentInc = (liveData.incidents || []).slice(0, 3)
-    .map(i => `Lap ${i.lap}: ${i.msg}`).join('; ');
+  // Cap incidents: 2 max, messages truncated to 80 chars each
+  const recentInc = (liveData.incidents || []).slice(0, 2)
+    .map(i => `L${i.lap}: ${String(i.msg || '').slice(0, 80)}`).join(' | ');
 
   const styleLabels = {
     beginner:   'Beginner',
@@ -3011,12 +3015,16 @@ What happens next: [one sentence]
 Then end with ONE punchy emotional hook line chosen from the actual situation (e.g. "This could cost them the race." / "Everything just changed." / "This might decide the win." / "The pressure is on.").
 Never write more than these 4 lines total. No bullet points. No extra paragraphs. No headers. No markdown.`;
 
+  // Assemble the dynamic context block and enforce a 400-char hard cap.
+  // This keeps the cacheable static section (bases + FORMAT) clean and stable,
+  // while ensuring the dynamic tail never bloats input token counts.
+  const rawCtx = `${ctx}${flagCtx} | Top5: ${top5 || 'loading'}${recentInc ? ' | Inc: ' + recentInc : ''}`;
+  const liveCtx = rawCtx.length > 400 ? rawCtx.slice(0, 397) + '…' : rawCtx;
+
   return `${bases[mode]}
 ${FORMAT}
 
-LIVE RACE CONTEXT:
-${ctx}${flagCtx}
-Top 5: ${top5 || 'data loading…'}${recentInc ? '\nRecent incidents: ' + recentInc : ''}`;
+LIVE RACE CONTEXT: ${liveCtx}`;
 }
 
 /* ──────────────────────────────────────────────────

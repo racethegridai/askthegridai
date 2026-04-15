@@ -835,24 +835,41 @@ async def chat_stream(req: ChatRequest):
             detail="ANTHROPIC_API_KEY not found. Add it to pitwall-backend/.env"
         )
 
-    # Only inject live race data when the question actually needs it.
-    # General knowledge questions ("what is DRS", driver history, rules)
-    # skip the cache lookup entirely and go straight to Claude.
+    # Build system as separate blocks so prompt caching can target the static
+    # instructions independently of the frequently-changing race context.
+    #
+    # Block 1 — static (cached): mode instructions + FORMAT rules.
+    #   Identical across all questions in the same mode → high cache-hit rate.
+    #   cache_control="ephemeral" tells Anthropic to cache this for 5 minutes.
+    #
+    # Block 2 — dynamic (not cached): server-side live race snapshot.
+    #   Appended only when _needs_live_context() returns True.
+    #   Changes every 10-15 s, so caching would always miss; omit cache_control.
     log.info("[TIMING] Context building starts: %dms", _ms(t0))
+    system_blocks: list[dict] = [
+        {
+            "type": "text",
+            "text": req.system,
+            "cache_control": {"type": "ephemeral"},
+        }
+    ]
+
     if _needs_live_context(req.messages):
         async with _lock:
             state_snap = dict(_state)
-        enriched_system = req.system + _build_race_context(state_snap)
+        race_ctx = _build_race_context(state_snap)
+        if race_ctx:
+            system_blocks.append({"type": "text", "text": race_ctx})
         log.info(
-            "[TIMING] Context built (live): %dms  (system: %d chars, messages: %d)",
-            _ms(t0), len(enriched_system), len(req.messages),
+            "[TIMING] Context built (live, static cached): %dms  "
+            "(static: %d chars, dynamic: %d chars, messages: %d)",
+            _ms(t0), len(req.system), len(race_ctx), len(req.messages),
         )
     else:
-        enriched_system = req.system
         log.info(
-            "[TIMING] Context built (skip — no live data needed): %dms  "
-            "(system: %d chars, messages: %d)",
-            _ms(t0), len(enriched_system), len(req.messages),
+            "[TIMING] Context built (skip, static cached): %dms  "
+            "(static: %d chars, messages: %d)",
+            _ms(t0), len(req.system), len(req.messages),
         )
 
     async def generate():
@@ -863,7 +880,7 @@ async def chat_stream(req: ChatRequest):
             async with ai_client.messages.stream(
                 model="claude-sonnet-4-20250514",
                 max_tokens=600,
-                system=enriched_system,
+                system=system_blocks,
                 messages=req.messages,
             ) as stream:
                 async for text in stream.text_stream:
