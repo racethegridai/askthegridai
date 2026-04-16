@@ -54,7 +54,7 @@ BACKOFF_MAX  = 120.0          # cap backoff at 2 minutes
 
 # ── AI model constants ───────────────────────────────
 # User-facing chat uses Sonnet (set directly on each endpoint — do not change).
-HAIKU_MODEL = "claude-3-haiku-20240307"  # background summarization tasks only
+HAIKU_MODEL = "claude-haiku-4-5"  # background summarization tasks only
 
 # ── IP rate limiter ──────────────────────────────────
 _RATE_WINDOW   = 3600  # seconds (1 hour sliding window)
@@ -120,6 +120,10 @@ _NEWS_FEEDS = [
 ]
 _news_cache: dict[str, Any] = {"items": [], "refreshed_at": None}
 _news_lock  = asyncio.Lock()
+
+# ── News insights cache (keyed by article URL) ────────
+_insights_cache: dict[str, dict] = {}
+_insights_lock  = asyncio.Lock()
 
 FALLBACK_STANDINGS = [
     {"position": 1,  "driver": "Antonelli",   "first_name": "Andrea Kimi", "team": "Mercedes",      "points": 72,  "wins": 2},
@@ -732,6 +736,14 @@ async def fetch_f1_news() -> list[dict]:
                 r = await http.get(url)
                 r.raise_for_status()
                 feed = feedparser.parse(r.text)
+                # Determine source badge from feed URL
+                if "formula1.com" in url:
+                    badge = "F1 Official"
+                elif "motorsport.com" in url:
+                    badge = "Motorsport"
+                else:
+                    badge = "FIA"
+
                 for entry in feed.entries[:5]:
                     pub: datetime | None = None
                     if getattr(entry, "published_parsed", None):
@@ -742,11 +754,28 @@ async def fetch_f1_news() -> list[dict]:
                     # Skip stories older than 24 h (only when we have a valid date)
                     if pub and pub < cutoff:
                         continue
+
+                    # Extract image URL from media:content or enclosures
+                    image_url = ""
+                    media_content = getattr(entry, "media_content", None)
+                    if media_content and isinstance(media_content, list) and len(media_content) > 0:
+                        image_url = media_content[0].get("url", "")
+                    if not image_url:
+                        enclosures = getattr(entry, "enclosures", None)
+                        if enclosures and isinstance(enclosures, list) and len(enclosures) > 0:
+                            enc = enclosures[0]
+                            if isinstance(enc, dict):
+                                t = enc.get("type", "")
+                                if t.startswith("image"):
+                                    image_url = enc.get("href", enc.get("url", ""))
+
                     raw.append({
-                        "title":       (entry.get("title") or "").strip(),
-                        "description": (entry.get("summary") or entry.get("description") or "").strip(),
-                        "link":        entry.get("link", ""),
-                        "pub":         pub,
+                        "title":        (entry.get("title") or "").strip(),
+                        "description":  (entry.get("summary") or entry.get("description") or "").strip(),
+                        "link":         entry.get("link", ""),
+                        "pub":          pub,
+                        "image":        image_url,
+                        "source_badge": badge,
                     })
             except Exception as exc:
                 log.warning("[NEWS] Feed fetch failed (%s): %s", url, exc)
@@ -786,10 +815,12 @@ async def fetch_f1_news() -> list[dict]:
         if isinstance(summary, Exception):
             summary = item["description"][:300]
         result.append({
-            "title":    item["title"],
-            "summary":  summary,
-            "time_ago": _time_ago(item["pub"]) if item["pub"] else "recently",
-            "source":   item["link"],
+            "title":        item["title"],
+            "summary":      summary,
+            "time_ago":     _time_ago(item["pub"]) if item["pub"] else "recently",
+            "source":       item["link"],
+            "image":        item.get("image", ""),
+            "source_badge": item.get("source_badge", ""),
         })
     return result
 
@@ -1095,6 +1126,73 @@ async def get_news():
             "items":        _news_cache["items"],
             "refreshed_at": _news_cache["refreshed_at"],
         }
+
+
+@app.get("/api/news/insights")
+async def get_news_insights(url: str):
+    """
+    Return AI insights for a given article URL.
+    Cached per article so the same article is never re-summarised.
+    """
+    if not url:
+        return {"error": "url param required"}, 400
+
+    async with _insights_lock:
+        if url in _insights_cache:
+            return _insights_cache[url]
+
+    # Find the article in the news cache
+    async with _news_lock:
+        items = list(_news_cache["items"])
+
+    article = next((i for i in items if i.get("source") == url), None)
+    if not article:
+        return {"error": "article not found"}, 404
+
+    api_key = os.getenv("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return {"error": "no API key"}, 503
+
+    title   = article["title"]
+    summary = article.get("summary", "")
+
+    prompt = (
+        f"F1 news article:\nHeadline: {title}\nSummary: {summary}\n\n"
+        "You are an F1 analyst. Return a JSON object with exactly these keys:\n"
+        "- news_summary: 2-3 sentences, plain English summary of the article\n"
+        "- what_this_means: 2 sentences explaining what this means for the sport\n"
+        "- why_its_important: 2 sentences on its significance\n"
+        "- casual_fan_take: 1-2 simple sentences a casual fan would understand\n\n"
+        "Return valid JSON only, no markdown, no code fences."
+    )
+
+    try:
+        ai_client = anthropic.AsyncAnthropic(api_key=api_key)
+        resp = await ai_client.messages.create(
+            model=HAIKU_MODEL,
+            max_tokens=400,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw_text = resp.content[0].text.strip()
+        # Strip markdown fences if present
+        if raw_text.startswith("```"):
+            raw_text = raw_text.split("```")[1]
+            if raw_text.startswith("json"):
+                raw_text = raw_text[4:]
+        insights = json.loads(raw_text)
+    except Exception as exc:
+        log.warning("[INSIGHTS] Generation failed: %s", exc)
+        insights = {
+            "news_summary":     summary[:300],
+            "what_this_means":  "Could not generate insights at this time.",
+            "why_its_important": "Please try again later.",
+            "casual_fan_take":  "Check back soon for analysis.",
+        }
+
+    async with _insights_lock:
+        _insights_cache[url] = insights
+
+    return insights
 
 
 @app.get("/api/championship-standings")
