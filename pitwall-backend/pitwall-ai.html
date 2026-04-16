@@ -3122,11 +3122,11 @@
     .news-panel { display: none; flex: 1; min-height: 0; overflow: hidden; }
     .news-panel.active { display: flex; flex-direction: column; }
     .news-layout {
-      flex: 1; display: grid; grid-template-columns: 1fr 300px;
+      flex: 1; display: grid; grid-template-columns: 300px 1fr;
       gap: 0; min-height: 0; overflow: hidden;
     }
-    .news-left { overflow-y: auto; padding: 0; border-right: 1px solid var(--border); }
-    .news-right { overflow-y: auto; padding: 16px; background: var(--bg2); }
+    .news-left { overflow-y: auto; padding: 0; border-left: 1px solid var(--border); }
+    .news-right { overflow-y: auto; padding: 16px; background: var(--bg2); border-right: 1px solid var(--border); }
 
     /* Breaking strip */
     .news-breaking {
@@ -4707,12 +4707,7 @@
   <div class="news-panel active" id="news-daily">
     <div class="news-layout">
 
-      <!-- LEFT COLUMN — populated by loadRssNews() -->
-      <div class="news-left" id="rssNewsLeft">
-        <div class="news-rss-loading">Loading latest F1 news…</div>
-      </div><!-- /news-left -->
-
-      <!-- RIGHT COLUMN -->
+      <!-- LEFT SIDEBAR (was right column) -->
       <div class="news-right">
 
         <!-- AI EXPLAIN BOX -->
@@ -4772,7 +4767,13 @@
           </div>
         </div>
 
-      </div><!-- /news-right -->
+      </div><!-- /news-right (left sidebar) -->
+
+      <!-- RIGHT COLUMN — card grid, populated by loadRssNews() -->
+      <div class="news-left" id="rssNewsLeft">
+        <div class="news-rss-loading">Loading latest F1 news…</div>
+      </div><!-- /news-left -->
+
     </div><!-- /news-layout -->
   </div><!-- /news-daily -->
 
