@@ -2140,36 +2140,16 @@
     /* ── CHIP GROUPS ─────────────────────────────────── */
     .chips-bar {
       flex-shrink: 0;
-      padding: 10px 14px 10px;
+      padding: 8px 14px;
       border-top: 1px solid var(--border);
       background: var(--bg2);
       display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-    .chips-group {
-      padding: 7px 0;
-    }
-    .chips-group + .chips-group {
-      border-top: 1px solid #181818;
-    }
-    .chips-group-label {
-      font-size: 8px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #555;
-      margin-bottom: 6px;
-    }
-    .chips-group-row {
-      display: flex;
+      flex-direction: row;
       gap: 6px;
-      flex-wrap: nowrap;
       overflow-x: auto;
       scrollbar-width: none;
-      padding-bottom: 2px;
     }
-    .chips-group-row::-webkit-scrollbar { display: none; }
+    .chips-bar::-webkit-scrollbar { display: none; }
     .chip {
       padding: 5px 11px;
       background: transparent;
@@ -2184,7 +2164,7 @@
       flex-shrink: 0;
     }
     .chip.chip-race {
-      border: 1px solid rgba(225,6,0,0.4);
+      border: 1px solid #330000;
       color: #ddd;
     }
     .chip.chip-race:hover {
@@ -2193,7 +2173,7 @@
       background: rgba(225,6,0,0.1);
     }
     .chip.chip-beginner {
-      border: 1px solid rgba(60,110,220,0.45);
+      border: 1px solid #001220;
       color: #bbc8ee;
     }
     .chip.chip-beginner:hover {
@@ -4408,24 +4388,14 @@
       <div class="radio-full-body" id="radioFullBody"></div>
     </div>
 
-    <!-- QUICK CHIPS -->
+    <!-- QUICK CHIPS — single scrollable row -->
     <div class="chips-bar">
-      <div class="chips-group">
-        <div class="chips-group-label">This race</div>
-        <div class="chips-group-row">
-          <button class="chip chip-race" onclick="chipClick(this)">Why did he pit?</button>
-          <button class="chip chip-race" onclick="chipClick(this)">Who can still win?</button>
-          <button class="chip chip-race" onclick="chipClick(this)">Safety car impact?</button>
-        </div>
-      </div>
-      <div class="chips-group">
-        <div class="chips-group-label">Explain to me</div>
-        <div class="chips-group-row">
-          <button class="chip chip-beginner" onclick="chipClick(this)">What is DRS?</button>
-          <button class="chip chip-beginner" onclick="chipClick(this)">Explain undercut</button>
-          <button class="chip chip-beginner" onclick="chipClick(this)">Why tyre colours?</button>
-        </div>
-      </div>
+      <button class="chip chip-race"     onclick="chipClick(this)">Why did he pit?</button>
+      <button class="chip chip-race"     onclick="chipClick(this)">Who can still win?</button>
+      <button class="chip chip-race"     onclick="chipClick(this)">Safety car impact?</button>
+      <button class="chip chip-beginner" onclick="chipClick(this)">What is DRS?</button>
+      <button class="chip chip-beginner" onclick="chipClick(this)">Explain undercut</button>
+      <button class="chip chip-beginner" onclick="chipClick(this)">Why tyre colours?</button>
     </div>
 
     <!-- UPGRADE PANEL (shown after limit hit) -->

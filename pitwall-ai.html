@@ -795,28 +795,17 @@
     /* ── QUICK CHIPS ────────────────────────────────── */
     .chips-bar {
       flex-shrink: 0;
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-top: 1px solid var(--border);
       background: var(--bg2);
-    }
-
-    .chips-label {
-      font-size: 8px;
-      letter-spacing: 3px;
-      color: var(--gray);
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-
-    .chips-list {
       display: flex;
+      flex-direction: row;
       gap: 6px;
-      flex-wrap: nowrap;
       overflow-x: auto;
       scrollbar-width: none;
     }
 
-    .chips-list::-webkit-scrollbar { display: none; }
+    .chips-bar::-webkit-scrollbar { display: none; }
 
     .chip {
       padding: 8px 14px;
@@ -829,13 +818,30 @@
       cursor: pointer;
       transition: all .15s;
       white-space: nowrap;
+      border-radius: 3px;
+      flex-shrink: 0;
     }
 
-    .chip:hover {
+    .chip.chip-race {
+      border: 1px solid #330000;
+      color: #ddd;
+    }
+
+    .chip.chip-race:hover {
       border-color: var(--red);
       color: var(--white);
-      background: var(--red-dim);
-      box-shadow: 0 0 0 1px var(--red);
+      background: rgba(225,6,0,0.1);
+    }
+
+    .chip.chip-beginner {
+      border: 1px solid #001220;
+      color: #bbc8ee;
+    }
+
+    .chip.chip-beginner:hover {
+      border-color: #5588e8;
+      color: var(--white);
+      background: rgba(60,110,220,0.12);
     }
 
     /* ── STYLE SELECTOR ─────────────────────────────── */
@@ -2483,10 +2489,14 @@
       </div>
     </div>
 
-    <!-- QUICK CHIPS -->
+    <!-- QUICK CHIPS — single scrollable row -->
     <div class="chips-bar">
-      <div class="chips-label">Quick Questions</div>
-      <div class="chips-list" id="chipsList"></div>
+      <button class="chip chip-race"     onclick="chipClick(this)">Why did he pit?</button>
+      <button class="chip chip-race"     onclick="chipClick(this)">Who can still win?</button>
+      <button class="chip chip-race"     onclick="chipClick(this)">Safety car impact?</button>
+      <button class="chip chip-beginner" onclick="chipClick(this)">What is DRS?</button>
+      <button class="chip chip-beginner" onclick="chipClick(this)">Explain undercut</button>
+      <button class="chip chip-beginner" onclick="chipClick(this)">Why tyre colours?</button>
     </div>
 
     <!-- UPGRADE PANEL (shown after limit hit) -->
@@ -3556,10 +3566,7 @@ No labels, no jargon, no extra lines. Three sentences only.`,
    CHIPS
 ────────────────────────────────────────────────── */
 function renderChips() {
-  const el = document.getElementById('chipsList');
-  el.innerHTML = CHIPS[mode].map(q =>
-    `<button class="chip" onclick="chipClick(this)">${q}</button>`
-  ).join('');
+  /* chips are now static HTML — nothing to render */
 }
 
 function chipClick(btn) {
