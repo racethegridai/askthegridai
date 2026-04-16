@@ -3932,6 +3932,188 @@
       line-height: 1.7;
     }
 
+    /* ── Mobile news page ─────────────────────────── */
+    .mob-news-subtabs {
+      display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .mob-news-subtabs::-webkit-scrollbar { display: none; }
+    .mob-news-stab {
+      flex-shrink: 0; background: transparent; border: none;
+      border-bottom: 2px solid transparent; color: #555;
+      font-family: 'Titillium Web', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase; padding: 10px 16px 11px;
+      cursor: pointer; transition: color .15s, border-color .15s;
+    }
+    .mob-news-stab.active { color: var(--white); border-bottom-color: var(--red); }
+
+    .mob-news-panel { display: none; }
+    .mob-news-panel.active { display: block; }
+
+    .mob-news-breaking {
+      background: var(--red); color: #fff; padding: 9px 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mob-news-breaking-badge {
+      font-size: 8px; font-weight: 900; letter-spacing: 1.5px; flex-shrink: 0;
+      background: rgba(0,0,0,.25); padding: 2px 6px;
+    }
+    .mob-news-breaking-text { font-size: 12px; font-weight: 700; flex: 1; line-height: 1.3; }
+    .mob-news-breaking-time { font-size: 10px; color: rgba(255,255,255,.65); flex-shrink: 0; }
+
+    .mob-news-sec-label {
+      font-size: 9px; font-weight: 700; color: var(--red); letter-spacing: 2px;
+      text-transform: uppercase; padding: 14px 14px 8px;
+    }
+    .mob-news-sec-gap { padding-top: 20px; }
+
+    .mob-rss-card {
+      border-bottom: 1px solid var(--border); cursor: pointer;
+      transition: background .1s; active: background #111;
+    }
+    .mob-rss-card:active { background: #111; }
+    .mob-rss-card-img {
+      width: 100%; height: 140px; object-fit: cover; display: block; background: #111;
+    }
+    .mob-rss-card-img-ph {
+      width: 100%; height: 140px; background: #111;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mob-rss-card-body { padding: 10px 14px 12px; }
+    .mob-rss-card-title {
+      font-size: 14px; font-weight: 700; color: #fff; line-height: 1.35;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      margin: 6px 0 5px;
+    }
+    .mob-rss-card-preview {
+      font-size: 12px; color: #888; line-height: 1.55;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .mob-rss-card-foot { display: flex; align-items: center; justify-content: space-between; }
+    .mob-rss-card-time { font-size: 10px; color: #555; }
+    .mob-rss-card-explore { font-size: 10px; font-weight: 900; color: var(--red); letter-spacing: .5px; }
+
+    .mob-news-earlier-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 14px; border-bottom: 1px solid #111;
+    }
+    .mob-news-earlier-dot {
+      width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 5px;
+    }
+    .mob-news-earlier-title {
+      font-size: 12px; font-weight: 500; color: #ccc; line-height: 1.3; flex: 1;
+    }
+    .mob-news-earlier-ask {
+      font-size: 10px; color: var(--red); font-weight: 700;
+      background: none; border: none; font-family: 'Titillium Web', sans-serif;
+      padding: 0; cursor: pointer; white-space: nowrap; flex-shrink: 0; align-self: center;
+    }
+
+    .mob-news-ask-box { padding: 14px; border-top: 1px solid var(--border); margin-top: 4px; }
+    .mob-news-ask-title {
+      font-size: 9px; font-weight: 700; color: #cc2200; letter-spacing: 2px;
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+    .mob-news-ask-chips { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+    .mob-news-ask-chip {
+      background: transparent; border: 1px solid #2a2a2a; color: #888;
+      font-family: 'Titillium Web', sans-serif; font-size: 11px; font-weight: 600;
+      padding: 8px 10px; text-align: left; cursor: pointer; border-radius: 2px;
+      line-height: 1.3;
+    }
+    .mob-news-ask-chip:active { border-color: var(--red); color: var(--white); }
+    .mob-news-ai-row { display: flex; border: 1px solid #2a2a2a; border-radius: 2px; overflow: hidden; }
+    .mob-news-ai-input {
+      flex: 1; background: #111; border: none; color: var(--white);
+      font-family: 'Titillium Web', sans-serif; font-size: 12px; padding: 9px 10px; outline: none;
+    }
+    .mob-news-ai-input::placeholder { color: #444; }
+    .mob-news-ai-btn {
+      background: var(--red); color: #fff; border: none; padding: 0 14px;
+      font-family: 'Titillium Web', sans-serif; font-size: 10px; font-weight: 900;
+      letter-spacing: 1px; cursor: pointer;
+    }
+    .mob-news-ai-resp {
+      margin-top: 10px; font-size: 12px; color: #aaa; line-height: 1.6;
+      border-left: 2px solid var(--red); padding-left: 10px;
+    }
+
+    .mob-news-paq { padding: 0 14px 20px; }
+    .mob-news-paq-title {
+      font-size: 9px; font-weight: 700; color: #777; letter-spacing: 2px;
+      text-transform: uppercase; padding: 14px 0 10px;
+    }
+    .mob-news-paq-item {
+      padding: 10px 0; border-bottom: 1px solid #111; font-size: 13px; color: #aaa;
+      cursor: pointer; display: flex; align-items: center; gap: 10px;
+    }
+    .mob-news-paq-item:last-child { border-bottom: none; }
+    .mob-news-paq-num { font-size: 10px; color: #555; font-weight: 700; flex-shrink: 0; width: 14px; }
+
+    .mob-news-coming-soon {
+      padding: 40px 20px; text-align: center; font-size: 13px; color: #444; line-height: 1.6;
+    }
+
+    /* ── Mobile news bottom sheet ─────────────────── */
+    .mob-sheet-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.75);
+      z-index: 9100; opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .mob-sheet-overlay.open { opacity: 1; pointer-events: auto; }
+    .mob-news-sheet {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      max-height: 90vh; background: #0d0d0d;
+      border-top: 1px solid #2a2a2a; border-radius: 12px 12px 0 0;
+      overflow-y: auto; z-index: 9200;
+      transform: translateY(100%); transition: transform .3s cubic-bezier(.32,.72,0,1);
+    }
+    .mob-sheet-overlay.open .mob-news-sheet { transform: translateY(0); }
+    .mob-news-sheet-img {
+      width: 100%; height: 120px; object-fit: cover; display: block;
+      background: #111; border-radius: 12px 12px 0 0; flex-shrink: 0;
+    }
+    .mob-news-sheet-img-ph {
+      width: 100%; height: 120px; background: #111; border-radius: 12px 12px 0 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mob-news-sheet-close {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,0,0,.7); border: 1px solid #333; color: #fff;
+      font-family: 'Titillium Web', sans-serif; font-size: 11px; font-weight: 900;
+      letter-spacing: 1px; padding: 5px 10px; cursor: pointer; border-radius: 2px;
+    }
+    .mob-news-sheet-body { padding: 16px 16px 32px; position: relative; }
+    .mob-news-sheet-headline {
+      font-size: 16px; font-weight: 900; color: #fff; line-height: 1.3;
+      margin: 8px 0 5px; letter-spacing: .2px;
+    }
+    .mob-news-sheet-time { font-size: 10px; color: #555; margin-bottom: 14px; }
+    .mob-news-sheet-sec {
+      font-size: 9px; font-weight: 700; color: var(--red); letter-spacing: 2px;
+      text-transform: uppercase; margin: 14px 0 7px;
+    }
+    .mob-news-sheet-summary { font-size: 13px; color: #ccc; line-height: 1.65; }
+    .mob-news-sheet-insight-key {
+      font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase;
+      letter-spacing: 1px; margin: 10px 0 3px;
+    }
+    .mob-news-sheet-insight-val { font-size: 12px; color: #bbb; line-height: 1.6; }
+    .mob-news-sheet-loading {
+      display: flex; align-items: center; gap: 8px; padding: 8px 0;
+      font-size: 12px; color: #555;
+    }
+    .mob-news-sheet-loading-dot {
+      width: 5px; height: 5px; border-radius: 50%; background: var(--red);
+      animation: popupPulse 1s ease-in-out infinite;
+    }
+    .mob-news-sheet-source {
+      display: block; width: 100%; margin-top: 20px; padding: 13px;
+      background: var(--red); color: #fff; border: none; border-radius: 3px;
+      font-family: 'Titillium Web', sans-serif; font-size: 12px; font-weight: 900;
+      letter-spacing: 1px; text-align: center; text-decoration: none; cursor: pointer;
+    }
+
     /* ── On mobile: hide desktop chrome, show hub ── */
     @media (max-width: 767px) {
       header, .race-bar, .incident-banner, .tab-view { display: none !important; }
@@ -4273,13 +4455,86 @@
     <button class="mob-back-btn" onclick="mobClosePage('news')">← Back</button>
     <span class="mob-page-title">F1 News</span>
   </div>
-  <div class="mob-page-body">
-    <div style="padding:32px 20px;text-align:center">
-      <div style="font-size:32px;margin-bottom:14px">📰</div>
-      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px">F1 News — Coming Soon</div>
-      <div style="font-size:13px;color:#555;line-height:1.6">Latest F1 headlines, team updates, and race previews — all explained in plain English. Coming in the next update.</div>
+  <div class="mob-page-body" style="padding:0">
+
+    <!-- Sub-tabs -->
+    <div class="mob-news-subtabs">
+      <button class="mob-news-stab active" data-mntab="daily"   onclick="mobSwitchNewsTab('daily')">Daily</button>
+      <button class="mob-news-stab"        data-mntab="rules"   onclick="mobSwitchNewsTab('rules')">Rules</button>
+      <button class="mob-news-stab"        data-mntab="preview" onclick="mobSwitchNewsTab('preview')">Race Preview</button>
     </div>
-  </div>
+
+    <!-- ── DAILY panel ── -->
+    <div class="mob-news-panel active" id="mob-news-daily">
+
+      <!-- Breaking news strip (shown when available) -->
+      <div class="mob-news-breaking" id="mobNewsBreaking" style="display:none">
+        <span class="mob-news-breaking-badge">BREAKING</span>
+        <span class="mob-news-breaking-text" id="mobNewsBreakingText"></span>
+        <span class="mob-news-breaking-time" id="mobNewsBreakingTime"></span>
+      </div>
+
+      <!-- Section label -->
+      <div class="mob-news-sec-label">Today in F1 — AI Explained</div>
+
+      <!-- Cards stacked single column -->
+      <div id="mobNewsCards">
+        <div style="padding:32px 14px;text-align:center;color:#444;font-size:12px">Loading latest F1 news…</div>
+      </div>
+
+      <!-- Earlier today mini rows (last 3 items) -->
+      <div id="mobNewsEarlier" style="display:none">
+        <div class="mob-news-sec-label mob-news-sec-gap">Earlier Today</div>
+        <div id="mobNewsEarlierList"></div>
+      </div>
+
+      <!-- Ask about today's news -->
+      <div class="mob-news-ask-box">
+        <div class="mob-news-ask-title">Ask about today's news</div>
+        <div class="mob-news-ask-chips">
+          <button class="mob-news-ask-chip" onclick="newsAsk('How does the 2026 championship math work with 4 races gone?')">How does the 2026 championship math work?</button>
+          <button class="mob-news-ask-chip" onclick="newsAsk('Why does Miami heat affect tyre choices in F1?')">Why does Miami heat matter for tyres?</button>
+          <button class="mob-news-ask-chip" onclick="newsAsk('What are the biggest rule changes in 2026 F1?')">What changed in the 2026 regulations?</button>
+        </div>
+        <div class="mob-news-ai-row">
+          <input class="mob-news-ai-input" id="mobNewsAiInput"
+            placeholder="Ask anything about today's F1 news…"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();mobSendNewsAI();}">
+          <button class="mob-news-ai-btn" onclick="mobSendNewsAI()">ASK</button>
+        </div>
+        <div class="mob-news-ai-resp" id="mobNewsAiResp" style="display:none"></div>
+      </div>
+
+      <!-- People are asking -->
+      <div class="mob-news-paq">
+        <div class="mob-news-paq-title">People are asking</div>
+        <div class="mob-news-paq-item" onclick="newsAsk('Can anyone stop Mercedes dominating the 2026 championship?')">
+          <span class="mob-news-paq-num">1</span>Can anyone stop Mercedes in 2026?
+        </div>
+        <div class="mob-news-paq-item" onclick="newsAsk('Why is Lewis Hamilton struggling at Ferrari in 2026?')">
+          <span class="mob-news-paq-num">2</span>Why is Hamilton struggling at Ferrari?
+        </div>
+        <div class="mob-news-paq-item" onclick="newsAsk('What makes the Miami International Autodrome different from other F1 circuits?')">
+          <span class="mob-news-paq-num">3</span>What makes Miami different from other tracks?
+        </div>
+        <div class="mob-news-paq-item" onclick="newsAsk('Does Lando Norris still have a realistic chance of winning the 2026 championship?')">
+          <span class="mob-news-paq-num">4</span>Can Norris still win the championship?
+        </div>
+      </div>
+
+    </div><!-- /mob-news-daily -->
+
+    <!-- Rules panel -->
+    <div class="mob-news-panel" id="mob-news-rules">
+      <div class="mob-news-coming-soon">Rules &amp; Regulations explained in plain English — coming before Miami weekend.</div>
+    </div>
+
+    <!-- Race Preview panel -->
+    <div class="mob-news-panel" id="mob-news-preview">
+      <div class="mob-news-coming-soon">Miami Grand Prix race preview — coming before race weekend.</div>
+    </div>
+
+  </div><!-- /mob-page-body -->
 </div>
 
 <!-- ═══════════════════════════════════════════════════
@@ -6061,6 +6316,7 @@ async function loadRssNews(force) {
     }
 
     _renderRssGrid(_rssItems);
+    _renderMobNewsCards(_rssItems);
     _rssLoaded = true;
   } catch(e) {
     container.innerHTML = '<div class="news-rss-empty" style="padding:40px 20px;text-align:center">Could not load news. Try again later.</div>';
@@ -6160,6 +6416,189 @@ function _renderInsights(el, d) {
       <div class="news-popup-insight-key">Casual fan take</div>
       <div class="news-popup-insight-val">${escapeHtml(d.casual_fan_take || '')}</div>
     </div>`;
+}
+
+/* ── Mobile news rendering ─────────────────────────── */
+
+function _renderMobNewsCards(items) {
+  const cardsEl   = document.getElementById('mobNewsCards');
+  const earlierEl = document.getElementById('mobNewsEarlier');
+  const listEl    = document.getElementById('mobNewsEarlierList');
+  if (!cardsEl) return;
+
+  if (!items.length) {
+    cardsEl.innerHTML = '<div style="padding:32px 14px;text-align:center;color:#444;font-size:12px">No F1 news in the last 24 hours.</div>';
+    return;
+  }
+
+  // Top items as full cards, last 3 as mini "earlier today" rows
+  const mainItems    = items.slice(0, Math.max(items.length - 3, 1));
+  const earlierItems = items.length > 3 ? items.slice(-3) : [];
+
+  // Dot colours cycle through team palette
+  const dotColors = ['#e10600','#7aaaf8','#33e87a','#f5d040','#ff9933','#c078f0'];
+
+  cardsEl.innerHTML = mainItems.map((item, i) => {
+    const badgeCls = _badgeClass(item.source_badge || '');
+    const imgHtml  = item.image
+      ? `<img class="mob-rss-card-img" src="${escapeHtml(item.image)}" alt="" loading="lazy">`
+      : `<div class="mob-rss-card-img-ph"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
+    return `
+      <div class="mob-rss-card" onclick="openMobNewsSheet(${i})">
+        ${imgHtml}
+        <div class="mob-rss-card-body">
+          ${item.source_badge ? `<span class="rss-card-badge ${badgeCls}">${escapeHtml(item.source_badge)}</span>` : ''}
+          <div class="mob-rss-card-title">${escapeHtml(item.title)}</div>
+          <div class="mob-rss-card-preview">${escapeHtml(item.summary)}</div>
+          <div class="mob-rss-card-foot">
+            <span class="mob-rss-card-time">${escapeHtml(item.time_ago || '')}</span>
+            <span class="mob-rss-card-explore">EXPLORE ARTICLE →</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  if (earlierItems.length && listEl && earlierEl) {
+    listEl.innerHTML = earlierItems.map((item, i) => {
+      const col = dotColors[i % dotColors.length];
+      return `
+        <div class="mob-news-earlier-row">
+          <div class="mob-news-earlier-dot" style="background:${col}"></div>
+          <div class="mob-news-earlier-title">${escapeHtml(item.title)}</div>
+          <button class="mob-news-earlier-ask" onclick="newsAsk('Tell me about: ${escapeHtml(item.title).replace(/'/g,"\\'")}')">Ask AI →</button>
+        </div>`;
+    }).join('');
+    earlierEl.style.display = '';
+  }
+
+  // Breaking strip: show latest item
+  const brk = items[0];
+  const brkEl  = document.getElementById('mobNewsBreaking');
+  const brkTxt = document.getElementById('mobNewsBreakingText');
+  const brkTime= document.getElementById('mobNewsBreakingTime');
+  if (brkEl && brkTxt && brk) {
+    brkTxt.textContent  = brk.title;
+    if (brkTime) brkTime.textContent = brk.time_ago || '';
+    brkEl.style.display = 'flex';
+  }
+}
+
+function mobSwitchNewsTab(tab) {
+  document.querySelectorAll('.mob-news-stab').forEach(b => {
+    b.classList.toggle('active', b.dataset.mntab === tab);
+  });
+  document.querySelectorAll('.mob-news-panel').forEach(p => {
+    p.classList.toggle('active', p.id === `mob-news-${tab}`);
+  });
+}
+
+function openMobNewsSheet(idx) {
+  const item = _rssItems[idx];
+  if (!item) return;
+
+  const overlay = document.getElementById('mobNewsSheetOverlay');
+  const inner   = document.getElementById('mobNewsSheetInner');
+  if (!overlay || !inner) return;
+
+  const badgeCls = _badgeClass(item.source_badge || '');
+  const imgHtml  = item.image
+    ? `<img class="mob-news-sheet-img" src="${escapeHtml(item.image)}" alt="">`
+    : `<div class="mob-news-sheet-img-ph"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
+  const badgeHtml = item.source_badge
+    ? `<span class="rss-card-badge ${badgeCls}">${escapeHtml(item.source_badge)}</span>`
+    : '';
+  const sourceBtn = item.source
+    ? `<a class="mob-news-sheet-source" href="${escapeHtml(item.source)}" target="_blank" rel="noopener">READ SOURCE ARTICLE →</a>`
+    : '';
+
+  inner.innerHTML = `
+    <div style="position:relative">
+      ${imgHtml}
+      <button class="mob-news-sheet-close" onclick="closeMobNewsSheet()">✕ CLOSE</button>
+    </div>
+    <div class="mob-news-sheet-body">
+      ${badgeHtml}
+      <div class="mob-news-sheet-headline">${escapeHtml(item.title)}</div>
+      <div class="mob-news-sheet-time">${escapeHtml(item.time_ago || '')}</div>
+      <div class="mob-news-sheet-sec">News Summary</div>
+      <div class="mob-news-sheet-summary">${escapeHtml(item.summary)}</div>
+      <div class="mob-news-sheet-sec">AI Insights</div>
+      <div id="mobSheetInsights">
+        <div class="mob-news-sheet-loading">
+          <div class="mob-news-sheet-loading-dot"></div>
+          Generating insights…
+        </div>
+      </div>
+      ${sourceBtn}
+    </div>`;
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  _loadMobSheetInsights(item);
+}
+
+function closeMobNewsSheet() {
+  const overlay = document.getElementById('mobNewsSheetOverlay');
+  if (overlay) overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function _loadMobSheetInsights(item) {
+  const el  = document.getElementById('mobSheetInsights');
+  const url = item.source;
+  if (!el) return;
+
+  if (_insightsCache[url]) {
+    _renderMobInsights(el, _insightsCache[url]);
+    return;
+  }
+
+  try {
+    const res = await fetch(`${BACKEND}/api/news/insights?url=${encodeURIComponent(url)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    _insightsCache[url] = data;
+    _renderMobInsights(el, data);
+  } catch(e) {
+    el.innerHTML = `<div style="font-size:12px;color:#555;padding:6px 0">Could not load AI insights.</div>`;
+  }
+}
+
+function _renderMobInsights(el, d) {
+  if (d.error) {
+    el.innerHTML = `<div style="font-size:12px;color:#555;padding:6px 0">${escapeHtml(d.error)}</div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div class="mob-news-sheet-insight-key">What this means</div>
+    <div class="mob-news-sheet-insight-val">${escapeHtml(d.what_this_means || '')}</div>
+    <div class="mob-news-sheet-insight-key">Why it's important</div>
+    <div class="mob-news-sheet-insight-val">${escapeHtml(d.why_its_important || '')}</div>
+    <div class="mob-news-sheet-insight-key">Casual fan take</div>
+    <div class="mob-news-sheet-insight-val">${escapeHtml(d.casual_fan_take || '')}</div>`;
+}
+
+async function mobSendNewsAI() {
+  const input = document.getElementById('mobNewsAiInput');
+  const resp  = document.getElementById('mobNewsAiResp');
+  if (!input || !resp) return;
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  resp.style.display = 'block';
+  resp.textContent = 'Thinking…';
+  try {
+    const res = await fetch(`${BACKEND}/api/ask`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({question: q, context: 'news'}),
+    });
+    const data = await res.json();
+    resp.textContent = data.answer || data.response || 'No response.';
+  } catch(e) {
+    resp.textContent = 'Could not get a response. Try again.';
+  }
 }
 
 /* ──────────────────────────────────────────────────
@@ -8229,6 +8668,7 @@ function mobOpenPage(name) {
     if (name === 'incidents')    _mobSyncIncidents();
     if (name === 'drivers')      _mobSyncDrivers();
     if (name === 'championship') _mobSyncChampionship();
+    if (name === 'news')         loadRssNews();
   }
 }
 
@@ -8645,8 +9085,15 @@ if (isMobile()) {
 }
 </script>
 
-<!-- ── NEWS ARTICLE POPUP OVERLAY ────────────────── -->
+<!-- ── NEWS ARTICLE POPUP OVERLAY (desktop) ──────── -->
 <div class="news-popup-overlay" id="newsPopupOverlay" onclick="if(event.target===this)closeNewsPopup()">
+</div>
+
+<!-- ── MOBILE NEWS BOTTOM SHEET ───────────────────── -->
+<div class="mob-sheet-overlay" id="mobNewsSheetOverlay" onclick="if(event.target===this)closeMobNewsSheet()">
+  <div class="mob-news-sheet" id="mobNewsSheet">
+    <div id="mobNewsSheetInner"></div>
+  </div>
 </div>
 
 </body>
