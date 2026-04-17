@@ -4243,6 +4243,14 @@
       .rp-weather-block:last-child { border-bottom:none; }
       .rp-predict-blocks { flex-direction:column; }
     }
+    .rp-tooltip { position:fixed; z-index:600; background:#0e0e0e; border:1px solid #2a2a2a; border-radius:3px; padding:12px 14px; width:218px; box-shadow:0 8px 28px rgba(0,0,0,.9); display:none; }
+    .rp-tooltip.show { display:block; }
+    .rp-tooltip-close { position:absolute; top:8px; right:10px; cursor:pointer; color:#555; font-size:14px; background:none; border:none; padding:0; line-height:1; font-family:inherit; }
+    .rp-tooltip-close:hover { color:#fff; }
+    .rp-tooltip-title { font-size:11px; font-weight:700; color:var(--white); margin-bottom:7px; padding-right:18px; }
+    .rp-tooltip-text { font-size:10px; color:var(--gray); line-height:1.6; margin-bottom:10px; }
+    .rp-tooltip-ask { font-size:9px; color:var(--red); cursor:pointer; font-weight:700; background:none; border:none; padding:0; font-family:inherit; letter-spacing:.5px; }
+    .rp-tooltip-ask:hover { color:#ff4444; }
   </style>
 </head>
 <body>
@@ -5170,6 +5178,13 @@
     </div>
   </div>
   <div class="news-panel" id="news-preview">
+  <!-- Zone tooltip (fixed-positioned via JS) -->
+  <div id="rpTooltip" class="rp-tooltip" onclick="event.stopPropagation()">
+    <button class="rp-tooltip-close" onclick="rpHideTooltip()">✕</button>
+    <div class="rp-tooltip-title" id="rpTooltipTitle"></div>
+    <div class="rp-tooltip-text" id="rpTooltipText"></div>
+    <button class="rp-tooltip-ask" id="rpTooltipAsk">Ask AI about this zone →</button>
+  </div>
   <div class="rp-wrap">
 
     <!-- ── HERO CARD ─────────────────────────── -->
@@ -5201,87 +5216,122 @@
 
           <!-- Color legend -->
           <div class="rp-track-legend">
-            <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegYellow" style="background:#f5c842"></div><span>T4-8 Flow</span></div>
-            <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegGreen"  style="background:#00d84b"></div><span>T11 Overtake</span></div>
-            <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegRed"    style="background:#e10600"></div><span>T14-15 Bridge</span></div>
             <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegPurple" style="background:#a855f7"></div><span>Back Straight DRS</span></div>
-            <div class="rp-legend-item"><div class="rp-legend-dot" style="background:#e10600;border-radius:50%"></div><span>Start</span></div>
+            <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegGreen"  style="background:#00d84b"></div><span>T11 Overtake</span></div>
+            <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegYellow" style="background:#f5c842"></div><span>T4-8 Flow</span></div>
+            <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegRed"    style="background:#e10600"></div><span>T14-15 Bridge</span></div>
+            <div class="rp-legend-item"><div class="rp-legend-dot" style="background:#e10600;border-radius:50%"></div><span>S/F</span></div>
           </div>
 
-          <!-- SVG circuit map -->
-          <div class="rp-track-wrap">
-            <div class="rp-rain-overlay" id="rpRainOverlay">
-              <div class="rp-rain-overlay-text">⚡ FLASH RAIN CONDITIONS</div>
-            </div>
-            <svg viewBox="0 0 480 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
-              <!-- Stadium outline -->
-              <ellipse cx="242" cy="190" rx="82" ry="58" fill="none" stroke="#0d1830" stroke-width="1.5" stroke-dasharray="5,4"/>
-              <text x="242" y="194" text-anchor="middle" fill="#0d1830" font-size="9" font-family="Titillium Web,Arial,sans-serif" font-weight="700">STADIUM</text>
+          <!-- SVG circuit map — Miami International Autodrome (clockwise) -->
+          <!-- Layout: long top straight (left→right) | T11 chicane (top-right) | sweeping right oval T12-T16 | bottom bridge T14-15 | bottom section back left | tight left infield T1-T10 with T4-8 flow -->
+          <div class="rp-track-wrap" style="padding:8px;">
+            <!-- Flash Rain badge (replaces full overlay) -->
+            <div id="rpRainBadge" style="display:none;position:absolute;top:8px;left:8px;background:#1e3a8a;color:#60a5fa;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:2px;z-index:10;pointer-events:none;">FLASH RAIN</div>
 
-              <!-- Full circuit base (gray) -->
-              <path d="M 118,42 L 288,42 C 318,42 336,56 342,82 L 344,116 Q 338,146 320,160 Q 302,176 276,193 Q 250,210 222,222 Q 194,232 166,239 Q 140,246 120,262 Q 100,278 99,300 Q 98,318 120,324 Q 146,330 172,320 Q 196,312 210,300 Q 244,282 286,274 Q 318,266 346,250 Q 370,234 386,210 Q 400,186 398,160 Q 396,132 384,108 Q 372,84 362,64 Q 350,46 322,42 Z"
-                    fill="none" stroke="#222" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg viewBox="0 0 460 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
 
-              <!-- YELLOW zone: T4-8 Flow -->
-              <path id="rpZoneYellow" d="M 320,160 Q 302,176 276,193 Q 250,210 222,222 Q 194,232 166,239"
-                    fill="none" stroke="#f5c842" stroke-width="9" stroke-linecap="round"/>
+              <!-- Rain streaks — opacity 0 dry, 1 rain, transition via JS -->
+              <g id="rpRainStreak" opacity="0" style="pointer-events:none">
+                <line x1="28" y1="8" x2="25" y2="16" stroke="#60a5fa" stroke-width="1"/><line x1="70" y1="4" x2="67" y2="12" stroke="#93c5fd" stroke-width=".8"/>
+                <line x1="120" y1="10" x2="117" y2="18" stroke="#60a5fa" stroke-width="1"/><line x1="175" y1="5" x2="172" y2="13" stroke="#93c5fd" stroke-width=".8"/>
+                <line x1="235" y1="8" x2="232" y2="16" stroke="#60a5fa" stroke-width="1"/><line x1="295" y1="4" x2="292" y2="12" stroke="#93c5fd" stroke-width=".8"/>
+                <line x1="350" y1="10" x2="347" y2="18" stroke="#60a5fa" stroke-width="1"/><line x1="405" y1="6" x2="402" y2="14" stroke="#93c5fd" stroke-width=".8"/>
+                <line x1="448" y1="12" x2="445" y2="20" stroke="#60a5fa" stroke-width="1"/>
+                <line x1="45" y1="48" x2="42" y2="56" stroke="#60a5fa" stroke-width="1"/><line x1="155" y1="42" x2="152" y2="50" stroke="#93c5fd" stroke-width=".8"/>
+                <line x1="205" y1="55" x2="202" y2="63" stroke="#60a5fa" stroke-width="1"/><line x1="258" y1="44" x2="255" y2="52" stroke="#93c5fd" stroke-width=".8"/>
+                <line x1="390" y1="48" x2="387" y2="56" stroke="#60a5fa" stroke-width="1"/><line x1="440" y1="42" x2="437" y2="50" stroke="#93c5fd" stroke-width=".8"/>
+                <line x1="18" y1="95" x2="15" y2="103" stroke="#60a5fa" stroke-width="1"/><line x1="58" y1="88" x2="55" y2="96" stroke="#93c5fd" stroke-width=".8"/>
+                <line x1="215" y1="92" x2="212" y2="100" stroke="#60a5fa" stroke-width="1"/><line x1="435" y1="88" x2="432" y2="96" stroke="#93c5fd" stroke-width=".8"/>
+                <line x1="455" y1="112" x2="452" y2="120" stroke="#60a5fa" stroke-width="1"/>
+                <line x1="22" y1="142" x2="19" y2="150" stroke="#60a5fa" stroke-width="1"/><line x1="62" y1="135" x2="59" y2="143" stroke="#93c5fd" stroke-width=".8"/>
+                <line x1="212" y1="148" x2="209" y2="156" stroke="#60a5fa" stroke-width="1"/><line x1="432" y1="138" x2="429" y2="146" stroke="#93c5fd" stroke-width=".8"/>
+                <line x1="15" y1="180" x2="12" y2="188" stroke="#60a5fa" stroke-width="1"/><line x1="55" y1="175" x2="52" y2="183" stroke="#93c5fd" stroke-width=".8"/>
+                <line x1="210" y1="178" x2="207" y2="186" stroke="#60a5fa" stroke-width="1"/><line x1="445" y1="172" x2="442" y2="180" stroke="#93c5fd" stroke-width=".8"/>
+              </g>
 
-              <!-- GREEN zone: T11 Overtake chicane -->
-              <path id="rpZoneGreen" d="M 120,324 Q 146,330 172,320 Q 196,312 210,300"
-                    fill="none" stroke="#00d84b" stroke-width="9" stroke-linecap="round"/>
+              <!-- ─── FULL CIRCUIT BASE (dark gray, always visible) ─── -->
+              <!-- Clockwise from S/F on top straight:
+                   top straight → T11 chicane (top-right) → right oval T12-16 →
+                   T14-15 bridge (bottom-right going left) → bottom section →
+                   left infield T1-10 (going up) → back to S/F -->
+              <path d="M 88,30 L 282,30 Q 306,30 318,46 Q 324,60 314,73 Q 304,83 314,91 Q 330,101 356,114 Q 378,130 382,154 Q 384,172 368,182 Q 350,187 324,187 Q 298,187 272,184 Q 242,185 210,183 Q 178,179 152,171 Q 130,162 118,149 Q 106,134 100,118 Q 94,102 92,86 Q 90,70 92,56 Q 96,43 106,34 Q 114,28 120,27 Z"
+                    fill="none" stroke="#2a2a2a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
 
-              <!-- RED zone: T14-15 Bridge danger -->
-              <path id="rpZoneRed" d="M 346,250 Q 370,234 386,210 Q 400,186 398,160"
-                    fill="none" stroke="#e10600" stroke-width="9" stroke-linecap="round"/>
+              <!-- ─── ZONE: PURPLE — Back straight DRS (top horizontal straight) ─── -->
+              <path id="rpZonePurple"
+                    d="M 88,30 L 282,30"
+                    fill="none" stroke="#a855f7" stroke-width="8" stroke-linecap="round"
+                    style="cursor:pointer" onclick="rpShowZoneTooltip('purple',event)"/>
 
-              <!-- PURPLE zone: Back straight DRS -->
-              <path id="rpZonePurple" d="M 362,64 Q 350,46 322,42 L 288,42"
-                    fill="none" stroke="#a855f7" stroke-width="9" stroke-linecap="round"/>
+              <!-- ─── ZONE: GREEN — T11 overtake chicane (top-right, end of DRS straight) ─── -->
+              <path id="rpZoneGreen"
+                    d="M 282,30 Q 306,30 318,46 Q 324,60 314,73 Q 304,83 314,91"
+                    fill="none" stroke="#00d84b" stroke-width="8" stroke-linecap="round"
+                    style="cursor:pointer" onclick="rpShowZoneTooltip('green',event)"/>
 
-              <!-- Start circle -->
-              <circle cx="136" cy="42" r="9" fill="#e10600" stroke="#fff" stroke-width="1.5"/>
-              <text x="136" y="46" text-anchor="middle" fill="#fff" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">S</text>
+              <!-- ─── ZONE: YELLOW — T4-8 flowing section (left infield, going up) ─── -->
+              <path id="rpZoneYellow"
+                    d="M 118,149 Q 106,134 100,118 Q 94,102 92,86 Q 90,70 92,56"
+                    fill="none" stroke="#f5c842" stroke-width="8" stroke-linecap="round"
+                    style="cursor:pointer" onclick="rpShowZoneTooltip('yellow',event)"/>
 
-              <!-- Zone label: T4-8 -->
-              <line x1="246" y1="208" x2="230" y2="175" stroke="#f5c842" stroke-width="1" opacity=".7"/>
-              <rect x="168" y="157" width="68" height="17" rx="2" fill="#1a1400"/>
-              <text x="202" y="169" text-anchor="middle" fill="#f5c842" font-size="8" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T4-8 Flow · FL tyre heat</text>
+              <!-- ─── ZONE: RED — T14-15 bridge (bottom-right, horizontal chicane going left) ─── -->
+              <path id="rpZoneRed"
+                    d="M 368,182 Q 350,187 324,187 Q 298,187 272,184"
+                    fill="none" stroke="#e10600" stroke-width="8" stroke-linecap="round"
+                    style="cursor:pointer" onclick="rpShowZoneTooltip('red',event)"/>
 
-              <!-- Zone label: T11 -->
-              <line x1="162" y1="321" x2="155" y2="337" stroke="#00d84b" stroke-width="1" opacity=".7"/>
-              <rect x="88" y="335" width="110" height="17" rx="2" fill="#001208"/>
-              <text x="143" y="347" text-anchor="middle" fill="#00d84b" font-size="8" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T11 Lunge · Overtake zone</text>
+              <!-- ─── S/F MARKER ─── -->
+              <circle cx="112" cy="30" r="7" fill="#e10600" stroke="#fff" stroke-width="1.5"/>
+              <text x="112" y="34" text-anchor="middle" fill="#fff" font-size="6.5" font-weight="700" font-family="Titillium Web,Arial,sans-serif">S/F</text>
 
-              <!-- Zone label: T14-15 -->
-              <line x1="392" y1="190" x2="412" y2="183" stroke="#e10600" stroke-width="1" opacity=".7"/>
-              <rect x="412" y="174" width="64" height="17" rx="2" fill="#1a0000"/>
-              <text x="444" y="186" text-anchor="middle" fill="#e10600" font-size="8" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T14-15 · Max danger</text>
+              <!-- ─── ZONE LABELS ─── -->
+              <!-- PURPLE: above the top straight -->
+              <rect x="148" y="13" width="102" height="13" rx="2" fill="#0d0820"/>
+              <text x="199" y="23" text-anchor="middle" fill="#a855f7" font-size="7.5" font-weight="700" font-family="Titillium Web,Arial,sans-serif">Back straight · 1.2km DRS</text>
 
-              <!-- Zone label: Back straight -->
-              <line x1="305" y1="42" x2="305" y2="26" stroke="#a855f7" stroke-width="1" opacity=".7"/>
-              <rect x="244" y="16" width="112" height="17" rx="2" fill="#0d0820"/>
-              <text x="300" y="28" text-anchor="middle" fill="#a855f7" font-size="8" font-weight="700" font-family="Titillium Web,Arial,sans-serif">Back straight · 1.2km DRS blast</text>
+              <!-- GREEN: right of T11 chicane -->
+              <line x1="318" y1="62" x2="330" y2="62" stroke="#00d84b" stroke-width="1" opacity=".8"/>
+              <rect x="330" y="55" width="94" height="13" rx="2" fill="#001208"/>
+              <text x="377" y="65" text-anchor="middle" fill="#00d84b" font-size="7.5" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T11 · Overtake zone</text>
+
+              <!-- YELLOW: left of infield section -->
+              <line x1="90" y1="103" x2="72" y2="103" stroke="#f5c842" stroke-width="1" opacity=".8"/>
+              <rect x="4" y="96" width="68" height="13" rx="2" fill="#1a1400"/>
+              <text x="38" y="106" text-anchor="middle" fill="#f5c842" font-size="7.5" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T4-8 · Flow</text>
+
+              <!-- RED: inside oval, above bridge section -->
+              <line x1="320" y1="182" x2="320" y2="170" stroke="#e10600" stroke-width="1" opacity=".8"/>
+              <rect x="268" y="158" width="104" height="13" rx="2" fill="#1a0000"/>
+              <text x="320" y="168" text-anchor="middle" fill="#e10600" font-size="7.5" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T14-15 · Bridge danger</text>
+
+              <!-- ─── TURN NUMBER GUIDES (subtle) ─── -->
+              <text x="270" y="26" text-anchor="middle" fill="#444" font-size="6.5" font-family="Titillium Web,Arial,sans-serif">T10 exit</text>
+              <text x="350" y="108" text-anchor="middle" fill="#444" font-size="6.5" font-family="Titillium Web,Arial,sans-serif">T12-13</text>
+              <text x="382" y="155" fill="#444" font-size="6.5" font-family="Titillium Web,Arial,sans-serif">T16</text>
+              <text x="130" y="172" fill="#444" font-size="6.5" font-family="Titillium Web,Arial,sans-serif">T17</text>
             </svg>
           </div>
 
-          <!-- Zone danger cards -->
+          <!-- Zone danger cards — also clickable for tooltip -->
           <div class="rp-zone-cards">
-            <div class="rp-zone-card">
+            <div class="rp-zone-card" style="cursor:pointer" onclick="rpShowZoneTooltip('yellow',event)">
               <div class="rp-zone-card-name" style="color:#f5c842">T4-8 Flow</div>
               <div class="rp-zone-card-rating" id="rpZc1Rating" style="color:#f5c842">HIGH</div>
               <div class="rp-zone-card-sub" id="rpZc1Sub">Tyre surface heat</div>
             </div>
-            <div class="rp-zone-card">
+            <div class="rp-zone-card" style="cursor:pointer" onclick="rpShowZoneTooltip('green',event)">
               <div class="rp-zone-card-name" style="color:#00d84b">T11 Overtake</div>
               <div class="rp-zone-card-rating" id="rpZc2Rating" style="color:#00d84b">MEDIUM</div>
               <div class="rp-zone-card-sub" id="rpZc2Sub">Late braking zone</div>
             </div>
-            <div class="rp-zone-card">
+            <div class="rp-zone-card" style="cursor:pointer" onclick="rpShowZoneTooltip('red',event)">
               <div class="rp-zone-card-name" style="color:#e10600">T14-15 Bridge</div>
               <div class="rp-zone-card-rating" id="rpZc3Rating" style="color:#e10600">EXTREME</div>
               <div class="rp-zone-card-sub" id="rpZc3Sub">Kerb damage risk</div>
             </div>
-            <div class="rp-zone-card">
+            <div class="rp-zone-card" style="cursor:pointer" onclick="rpShowZoneTooltip('purple',event)">
               <div class="rp-zone-card-name" style="color:#a855f7" id="rpZc4Name">Back Straight</div>
               <div class="rp-zone-card-rating" id="rpZc4Rating" style="color:#a855f7">DRS ZONE</div>
               <div class="rp-zone-card-sub" id="rpZc4Sub">Overtake on entry</div>
@@ -9331,11 +9381,15 @@ function rpSendHistory() {
 }
 
 function rpToggleWeather(rain) {
+  _rpRain = rain;
+
+  /* Toggle buttons */
   const btnDry  = document.getElementById('rpBtnDry');
   const btnRain = document.getElementById('rpBtnRain');
   if (btnDry)  btnDry.className  = 'rp-toggle-btn' + (rain ? '' : ' active-dry');
   if (btnRain) btnRain.className = 'rp-toggle-btn' + (rain ? ' active-rain' : '');
 
+  /* Zone stroke colors — track stays dark gray, only highlights change */
   const zoneColors = {
     yellow: rain ? '#3b82f6' : '#f5c842',
     green:  rain ? '#67e8f9' : '#00d84b',
@@ -9348,16 +9402,23 @@ function rpToggleWeather(rain) {
   setStroke('rpZoneRed',    zoneColors.red);
   setStroke('rpZonePurple', zoneColors.purple);
 
+  /* Legend dots */
   const setBg = (id, c) => { const el = document.getElementById(id); if (el) el.style.background = c; };
   setBg('rpLegYellow', zoneColors.yellow);
   setBg('rpLegGreen',  zoneColors.green);
   setBg('rpLegRed',    zoneColors.red);
   setBg('rpLegPurple', zoneColors.purple);
 
-  const overlay = document.getElementById('rpRainOverlay');
-  if (overlay) overlay.classList.toggle('show', rain);
+  /* Rain badge (small, not full overlay) */
+  const badge = document.getElementById('rpRainBadge');
+  if (badge) badge.style.display = rain ? 'block' : 'none';
 
-  const setText = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+  /* Rain streaks — fade in/out with opacity */
+  const streaks = document.getElementById('rpRainStreak');
+  if (streaks) streaks.setAttribute('opacity', rain ? '0.7' : '0');
+
+  /* Zone danger cards */
+  const setText  = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
   const setColor = (id, c) => { const el = document.getElementById(id); if (el) el.style.color = c; };
 
   if (rain) {
@@ -9366,18 +9427,19 @@ function rpToggleWeather(rain) {
     setText('rpZc3Rating','CRITICAL'); setColor('rpZc3Rating','#1e40af'); setText('rpZc3Sub','Red flag zone');
     setText('rpZc4Name','T17 New Tarmac'); setText('rpZc4Rating','ICE RINK'); setColor('rpZc4Rating','#93c5fd'); setText('rpZc4Sub','Zero grip');
   } else {
-    setText('rpZc1Rating','HIGH');   setColor('rpZc1Rating','#f5c842'); setText('rpZc1Sub','Tyre surface heat');
-    setText('rpZc2Rating','MEDIUM'); setColor('rpZc2Rating','#00d84b'); setText('rpZc2Sub','Late braking zone');
-    setText('rpZc3Rating','EXTREME');setColor('rpZc3Rating','#e10600'); setText('rpZc3Sub','Kerb damage risk');
+    setText('rpZc1Rating','HIGH');    setColor('rpZc1Rating','#f5c842'); setText('rpZc1Sub','Tyre surface heat');
+    setText('rpZc2Rating','MEDIUM');  setColor('rpZc2Rating','#00d84b'); setText('rpZc2Sub','Late braking zone');
+    setText('rpZc3Rating','EXTREME'); setColor('rpZc3Rating','#e10600'); setText('rpZc3Sub','Kerb damage risk');
     setText('rpZc4Name','Back Straight'); setText('rpZc4Rating','DRS ZONE'); setColor('rpZc4Rating','#a855f7'); setText('rpZc4Sub','Overtake on entry');
   }
 
+  /* Strategy matrix */
   const scBadge = document.getElementById('rpScBadge');
   if (scBadge) {
     scBadge.textContent = rain ? '70–75%' : '45–50%';
     scBadge.className = rain ? 'rp-badge rp-badge-red' : 'rp-badge rp-badge-yellow';
+    scBadge.style.cssText = 'font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px';
   }
-
   const tyreEl = document.getElementById('rpTyreCall');
   if (tyreEl) tyreEl.textContent = rain ? 'Inter → Wet' : 'Med → Hard';
 
@@ -9389,6 +9451,7 @@ function rpToggleWeather(rain) {
       : 'Safety car before lap 12 flips the entire strategy. Teams will gamble on early cheap stops.';
   }
 
+  /* Weather card */
   const wtEl = document.getElementById('rpWeatherText');
   if (wtEl) wtEl.textContent = rain
     ? 'Flash rain transforms Miami into a lottery. The 2026 cars generate massive aquaplaning risk at T4-8. Turn 17 on new asphalt becomes almost undriveable in wet conditions — grip levels drop to near zero. Any team on dry tyres when rain hits loses 15 to 25 seconds per lap instantly. Watch the pit wall cameras from lap 20.'
@@ -9402,9 +9465,69 @@ function rpToggleWeather(rain) {
       : () => rpSend('How does Miami heat and potential rain affect race strategy and tyre choices for the 2026 Miami GP?');
   }
 
+  /* Prediction card */
   setText('rpRedFlag', rain ? '41%' : '24%');
   setText('rpScPct',   rain ? '72%' : '47%');
+
+  /* Update open tooltip text if one is showing */
+  const tt = document.getElementById('rpTooltip');
+  if (tt && tt.classList.contains('show')) rpHideTooltip();
 }
+
+/* ── Zone tooltip ── */
+const RP_ZONE_INFO = {
+  yellow: {
+    title: 'T4-8 · Flow section',
+    dry:  'High speed flowing corners. Front-left tyre starts overheating here around lap 8. Low crash risk but tyre management is critical.',
+    rain: 'Aquaplaning danger through the high speed curves. Any mistake at 200mph in the wet here ends your race immediately.',
+    ask:  'Explain the T4-8 flow section at Miami and how it affects tyre strategy in the 2026 Miami GP'
+  },
+  green: {
+    title: 'T11 · Main overtake spot',
+    dry:  'End of the DRS straight. Heaviest braking point on the circuit. Drivers brake from 340kmh to 80kmh. Prime overtaking opportunity but also where most lunges go wrong.',
+    rain: 'Braking distances triple in the wet. Cars lock up here constantly. Highest probability of first lap incidents in rain conditions.',
+    ask:  'Why is T11 at Miami the main overtaking spot and how dangerous is it in the wet?'
+  },
+  red: {
+    title: 'T14-15 · The Bridge',
+    dry:  'Narrow chicane under the turnpike bridge. Walls on both sides. No run off. One wheel on the kerb and your front wing is gone. Highest incident risk on the circuit.',
+    rain: 'In the wet this becomes almost undriveable. The enclosed section traps water and creates standing pools. This is where red flags happen.',
+    ask:  'Why is the T14-15 bridge section at Miami so dangerous for F1 cars?'
+  },
+  purple: {
+    title: 'Back straight · DRS zone',
+    dry:  '1.2km flat out. Active aero opens fully. Cars reach 340kmh plus. This is where Red Bull and Mercedes separate from the midfield on raw pace.',
+    rain: 'In wet conditions speeds drop to 220kmh here. DRS is disabled in heavy rain. The power advantage disappears completely.',
+    ask:  'How important is the back straight DRS zone at Miami for 2026 race strategy?'
+  }
+};
+
+function rpShowZoneTooltip(zone, event) {
+  event.stopPropagation();
+  const info = RP_ZONE_INFO[zone];
+  if (!info) return;
+  const tt    = document.getElementById('rpTooltip');
+  const title = document.getElementById('rpTooltipTitle');
+  const text  = document.getElementById('rpTooltipText');
+  const ask   = document.getElementById('rpTooltipAsk');
+  if (!tt || !title || !text || !ask) return;
+  title.textContent = info.title;
+  text.textContent  = _rpRain ? info.rain : info.dry;
+  ask.onclick = function() { rpHideTooltip(); rpSend(info.ask); };
+  const x = Math.min(event.clientX + 14, window.innerWidth  - 238);
+  const y = Math.min(event.clientY - 12, window.innerHeight - 170);
+  tt.style.left = x + 'px';
+  tt.style.top  = y + 'px';
+  tt.classList.add('show');
+}
+
+function rpHideTooltip() {
+  const tt = document.getElementById('rpTooltip');
+  if (tt) tt.classList.remove('show');
+}
+
+/* Dismiss tooltip on click outside */
+document.addEventListener('click', function() { rpHideTooltip(); });
 </script>
 
 <!-- ── NEWS ARTICLE POPUP OVERLAY (desktop) ──────── -->
