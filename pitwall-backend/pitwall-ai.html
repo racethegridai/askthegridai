@@ -4141,6 +4141,108 @@
       z-index: 9999;
       user-select: none;
     }
+
+    /* ─── RACE PREVIEW ─── */
+    .rp-wrap { padding:14px; display:flex; flex-direction:column; gap:14px; overflow-y:auto; }
+    .rp-hero { border-left:3px solid var(--red); background:var(--bg2); border:1px solid var(--border); border-left:3px solid var(--red); padding:16px 18px; border-radius:2px; }
+    .rp-hero-label { font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--red); margin-bottom:8px; }
+    .rp-hero-headline { font-size:16px; font-weight:700; color:var(--white); line-height:1.3; margin-bottom:10px; }
+    .rp-hero-text { font-size:12px; color:var(--gray); line-height:1.65; margin-bottom:14px; }
+    .rp-hero-btns { display:flex; gap:10px; flex-wrap:wrap; }
+    .rp-btn-red { background:var(--red); color:#fff; border:none; padding:9px 16px; font-size:11px; font-weight:700; letter-spacing:.5px; cursor:pointer; border-radius:2px; font-family:inherit; }
+    .rp-btn-red:hover { background:#c50500; }
+    .rp-btn-dark { background:#141414; color:var(--gray-lt); border:1px solid var(--border); padding:9px 16px; font-size:11px; font-weight:700; cursor:pointer; border-radius:2px; font-family:inherit; }
+    .rp-btn-dark:hover { border-color:#444; color:#fff; }
+    .rp-cols { display:flex; gap:14px; align-items:flex-start; }
+    .rp-col-left { flex:1; min-width:0; display:flex; flex-direction:column; gap:14px; }
+    .rp-col-right { width:280px; flex-shrink:0; display:flex; flex-direction:column; gap:14px; }
+    .rp-card { background:var(--bg2); border:1px solid var(--border); border-radius:2px; padding:14px 16px; }
+    .rp-card-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .rp-card-title { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); }
+    .rp-toggle-group { display:flex; gap:4px; }
+    .rp-toggle-btn { padding:4px 11px; font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; border:1px solid var(--border); background:transparent; color:var(--gray); cursor:pointer; border-radius:2px; font-family:inherit; transition:all .15s; }
+    .rp-toggle-btn.active-dry { background:var(--red); color:#fff; border-color:var(--red); }
+    .rp-toggle-btn.active-rain { background:#2563eb; color:#fff; border-color:#2563eb; }
+    .rp-track-wrap { position:relative; background:#060b18; border:1px solid #111d35; border-radius:3px; padding:10px; margin-bottom:12px; }
+    .rp-rain-overlay { position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(5,15,50,.6); border-radius:3px; z-index:5; pointer-events:none; }
+    .rp-rain-overlay.show { display:flex; }
+    .rp-rain-overlay-text { font-size:11px; font-weight:700; letter-spacing:3px; color:#60a5fa; text-transform:uppercase; text-shadow:0 0 18px #3b82f6; }
+    .rp-track-legend { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
+    .rp-legend-item { display:flex; align-items:center; gap:5px; font-size:9px; color:var(--gray); font-weight:600; }
+    .rp-legend-dot { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+    .rp-zone-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px; }
+    .rp-zone-card { background:#0d0d0d; border:1px solid var(--border); padding:8px 10px; border-radius:2px; }
+    .rp-zone-card-name { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
+    .rp-zone-card-rating { font-size:10px; font-weight:700; margin-bottom:2px; }
+    .rp-zone-card-sub { font-size:9px; color:var(--gray); }
+    .rp-weather-card { border-color:#1a3060; background:#04091a; }
+    .rp-weather-title { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#60a5fa; margin-bottom:12px; }
+    .rp-weather-blocks { display:flex; margin-bottom:14px; border:1px solid #1a3060; border-radius:2px; overflow:hidden; }
+    .rp-weather-block { flex:1; padding:10px 12px; border-right:1px solid #1a3060; }
+    .rp-weather-block:last-child { border-right:none; }
+    .rp-weather-block-label { font-size:9px; color:#4a7ab5; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:5px; }
+    .rp-weather-block-val { font-size:13px; font-weight:700; color:#93c5fd; }
+    .rp-weather-block-sub { font-size:9px; color:#4a7ab5; margin-top:2px; }
+    .rp-weather-text { font-size:11px; color:#9ab8d8; line-height:1.68; margin-bottom:12px; }
+    .rp-btn-blue { background:#1d4ed8; color:#fff; border:none; padding:8px 14px; font-size:10px; font-weight:700; cursor:pointer; border-radius:2px; width:100%; font-family:inherit; }
+    .rp-btn-blue:hover { background:#1e40af; }
+    .rp-storyline-row { padding:11px 0; border-bottom:1px solid var(--border); }
+    .rp-storyline-row:last-child { border-bottom:none; padding-bottom:0; }
+    .rp-storyline-row:first-child { padding-top:0; }
+    .rp-storyline-title { font-size:11px; font-weight:700; color:var(--white); margin-bottom:4px; }
+    .rp-storyline-text { font-size:10px; color:var(--gray); line-height:1.55; margin-bottom:6px; }
+    .rp-ask-link { font-size:9px; color:var(--red); cursor:pointer; font-weight:700; letter-spacing:.5px; background:none; border:none; padding:0; font-family:inherit; }
+    .rp-ask-link:hover { color:#ff4444; }
+    .rp-strat-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #111; }
+    .rp-strat-row:last-child { border-bottom:none; }
+    .rp-strat-label { font-size:10px; color:var(--gray); }
+    .rp-strat-val { font-size:11px; font-weight:700; color:var(--white); }
+    .rp-badge { font-size:9px; font-weight:700; padding:3px 9px; border-radius:10px; }
+    .rp-badge-yellow { background:rgba(245,200,66,.15); color:var(--yellow); }
+    .rp-badge-red { background:rgba(225,6,0,.15); color:var(--red); }
+    .rp-badge-green { background:rgba(0,216,75,.15); color:var(--green); }
+    .rp-strat-warn { border-left:3px solid var(--red); background:rgba(225,6,0,.06); padding:10px 12px; margin-top:12px; font-size:10px; color:var(--gray-lt); line-height:1.6; border-radius:0 2px 2px 0; }
+    .rp-strat-warn-rain { border-left-color:#2563eb !important; background:rgba(37,99,235,.08) !important; }
+    .rp-history-card { border-left:3px solid var(--yellow) !important; }
+    .rp-history-title { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--yellow); margin-bottom:10px; }
+    .rp-history-row { padding:9px 0; border-bottom:1px solid #111; cursor:pointer; }
+    .rp-history-row:first-child { padding-top:0; }
+    .rp-history-row:last-child { border-bottom:none; }
+    .rp-history-row:hover .rp-history-row-title { color:var(--yellow); }
+    .rp-history-row-title { font-size:10px; font-weight:700; color:var(--white); margin-bottom:3px; transition:color .15s; }
+    .rp-history-row-sub { font-size:9px; color:var(--gray); line-height:1.5; }
+    .rp-chips-label { font-size:9px; color:var(--gray); margin-top:12px; margin-bottom:7px; font-weight:600; }
+    .rp-chips { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
+    .rp-chip { background:#0d0d0d; border:1px solid var(--border); color:var(--gray-lt); font-size:9px; padding:5px 9px; cursor:pointer; border-radius:2px; font-family:inherit; }
+    .rp-chip:hover { border-color:var(--yellow); color:var(--yellow); }
+    .rp-history-input-row { display:flex; gap:6px; }
+    .rp-history-input { flex:1; background:#0d0d0d; border:1px solid var(--border); color:var(--white); font-size:11px; padding:7px 10px; border-radius:2px; font-family:inherit; min-width:0; }
+    .rp-history-input:focus { outline:none; border-color:var(--yellow); }
+    .rp-btn-gold { background:#8b6914; color:#fff; border:none; padding:7px 12px; font-size:10px; font-weight:700; cursor:pointer; border-radius:2px; font-family:inherit; flex-shrink:0; }
+    .rp-btn-gold:hover { background:#a07820; }
+    .rp-predict-card { background:#140000 !important; border-color:#2d0000 !important; }
+    .rp-predict-hdr { display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+    .rp-predict-dot { width:8px; height:8px; border-radius:50%; background:var(--red); animation:rpPulse 1.5s ease-in-out infinite; flex-shrink:0; }
+    @keyframes rpPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.5)} }
+    .rp-predict-badge { font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--red); }
+    .rp-predict-blocks { display:flex; gap:10px; margin-bottom:12px; }
+    .rp-predict-block { flex:1; background:#1f0000; border:1px solid #2d0000; padding:10px; border-radius:2px; }
+    .rp-predict-block-label { font-size:9px; color:#804040; font-weight:600; margin-bottom:4px; }
+    .rp-predict-block-val { font-size:17px; font-weight:700; color:var(--red); }
+    .rp-predict-block-sub { font-size:9px; color:#804040; margin-top:2px; }
+    .rp-predict-winner { background:#1a0000; border:1px solid #2d0000; padding:12px; border-radius:2px; margin-bottom:12px; text-align:center; }
+    .rp-predict-winner-label { font-size:9px; color:#804040; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; }
+    .rp-predict-winner-name { font-size:19px; font-weight:700; color:#fff; }
+    .rp-predict-winner-pct { font-size:11px; color:var(--red); margin-top:2px; }
+    @media (max-width:768px) {
+      .rp-cols { flex-direction:column; }
+      .rp-col-right { width:100%; }
+      .rp-zone-cards { grid-template-columns:repeat(2,1fr); }
+      .rp-weather-blocks { flex-direction:column; }
+      .rp-weather-block { border-right:none; border-bottom:1px solid #1a3060; }
+      .rp-weather-block:last-child { border-bottom:none; }
+      .rp-predict-blocks { flex-direction:column; }
+    }
   </style>
 </head>
 <body>
@@ -4531,7 +4633,16 @@
 
     <!-- Race Preview panel -->
     <div class="mob-news-panel" id="mob-news-preview">
-      <div class="mob-news-coming-soon">Miami Grand Prix race preview — coming before race weekend.</div>
+      <div class="rp-wrap" style="padding:10px;">
+        <div class="rp-hero">
+          <div class="rp-hero-label">AI Race Preview · Miami GP 2026</div>
+          <div class="rp-hero-headline">This is Antonelli's race to lose — but Miami has never played nice with championship leaders</div>
+          <div class="rp-hero-text">Antonelli leads by 34 points. Every Miami GP has had a safety car. Hamilton wants his first Ferrari win. Verstappen has a fresh engine and nothing to lose.</div>
+          <div class="rp-hero-btns">
+            <button class="rp-btn-red" onclick="rpSend('Give me a full breakdown of who can win the Miami GP 2026')">Ask AI for full preview →</button>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div><!-- /mob-page-body -->
@@ -5059,12 +5170,134 @@
     </div>
   </div>
   <div class="news-panel" id="news-preview">
-    <div class="news-coming-soon">
-      <div class="news-coming-soon-icon">🏁</div>
-      <div class="news-coming-soon-title">Miami GP Preview</div>
-      <div class="news-coming-soon-sub">Full race preview — circuit guide, key battles, weather outlook, and predictions. Coming Thursday.</div>
+  <div class="rp-wrap">
+
+    <!-- ── HERO CARD ─────────────────────────── -->
+    <div class="rp-hero">
+      <div class="rp-hero-label">AI Race Preview · Miami GP 2026</div>
+      <div class="rp-hero-headline">This is Antonelli's race to lose — but Miami has never played nice with championship leaders</div>
+      <div class="rp-hero-text">The 2026 Miami GP arrives with Antonelli sitting 34 points clear at the top of the standings, but this circuit has produced a safety car in every single edition since 2022. Hamilton is desperate for his first win in Ferrari red, and Verstappen arrives with a fresh engine upgrade and nothing to lose.</div>
+      <div class="rp-hero-btns">
+        <button class="rp-btn-red" onclick="rpSend('Give me a full breakdown of who can win the Miami GP 2026')">Ask AI for full preview →</button>
+        <button class="rp-btn-dark" onclick="rpSend('What happened at last years Miami GP and how does it affect strategy this year?')">Last year comparison →</button>
+      </div>
     </div>
-  </div>
+
+    <!-- ── TWO COLUMN LAYOUT ──────────────────── -->
+    <div class="rp-cols">
+
+      <!-- LEFT COLUMN -->
+      <div class="rp-col-left">
+
+        <!-- TRACK MAP CARD -->
+        <div class="rp-card">
+          <div class="rp-card-hdr">
+            <div class="rp-card-title">Miami Circuit · Track Conditions</div>
+            <div class="rp-toggle-group">
+              <button class="rp-toggle-btn active-dry" id="rpBtnDry" onclick="rpToggleWeather(false)">Dry</button>
+              <button class="rp-toggle-btn" id="rpBtnRain" onclick="rpToggleWeather(true)">⚡ Flash Rain</button>
+            </div>
+          </div>
+
+          <!-- Color legend -->
+          <div class="rp-track-legend">
+            <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegYellow" style="background:#f5c842"></div><span>T4-8 Flow</span></div>
+            <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegGreen"  style="background:#00d84b"></div><span>T11 Overtake</span></div>
+            <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegRed"    style="background:#e10600"></div><span>T14-15 Bridge</span></div>
+            <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegPurple" style="background:#a855f7"></div><span>Back Straight DRS</span></div>
+            <div class="rp-legend-item"><div class="rp-legend-dot" style="background:#e10600;border-radius:50%"></div><span>Start</span></div>
+          </div>
+
+          <!-- SVG circuit map -->
+          <div class="rp-track-wrap">
+            <div class="rp-rain-overlay" id="rpRainOverlay">
+              <div class="rp-rain-overlay-text">⚡ FLASH RAIN CONDITIONS</div>
+            </div>
+            <svg viewBox="0 0 480 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+              <!-- Stadium outline -->
+              <ellipse cx="242" cy="190" rx="82" ry="58" fill="none" stroke="#0d1830" stroke-width="1.5" stroke-dasharray="5,4"/>
+              <text x="242" y="194" text-anchor="middle" fill="#0d1830" font-size="9" font-family="Titillium Web,Arial,sans-serif" font-weight="700">STADIUM</text>
+
+              <!-- Full circuit base (gray) -->
+              <path d="M 118,42 L 288,42 C 318,42 336,56 342,82 L 344,116 Q 338,146 320,160 Q 302,176 276,193 Q 250,210 222,222 Q 194,232 166,239 Q 140,246 120,262 Q 100,278 99,300 Q 98,318 120,324 Q 146,330 172,320 Q 196,312 210,300 Q 244,282 286,274 Q 318,266 346,250 Q 370,234 386,210 Q 400,186 398,160 Q 396,132 384,108 Q 372,84 362,64 Q 350,46 322,42 Z"
+                    fill="none" stroke="#222" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+
+              <!-- YELLOW zone: T4-8 Flow -->
+              <path id="rpZoneYellow" d="M 320,160 Q 302,176 276,193 Q 250,210 222,222 Q 194,232 166,239"
+                    fill="none" stroke="#f5c842" stroke-width="9" stroke-linecap="round"/>
+
+              <!-- GREEN zone: T11 Overtake chicane -->
+              <path id="rpZoneGreen" d="M 120,324 Q 146,330 172,320 Q 196,312 210,300"
+                    fill="none" stroke="#00d84b" stroke-width="9" stroke-linecap="round"/>
+
+              <!-- RED zone: T14-15 Bridge danger -->
+              <path id="rpZoneRed" d="M 346,250 Q 370,234 386,210 Q 400,186 398,160"
+                    fill="none" stroke="#e10600" stroke-width="9" stroke-linecap="round"/>
+
+              <!-- PURPLE zone: Back straight DRS -->
+              <path id="rpZonePurple" d="M 362,64 Q 350,46 322,42 L 288,42"
+                    fill="none" stroke="#a855f7" stroke-width="9" stroke-linecap="round"/>
+
+              <!-- Start circle -->
+              <circle cx="136" cy="42" r="9" fill="#e10600" stroke="#fff" stroke-width="1.5"/>
+              <text x="136" y="46" text-anchor="middle" fill="#fff" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">S</text>
+
+              <!-- Zone label: T4-8 -->
+              <line x1="246" y1="208" x2="230" y2="175" stroke="#f5c842" stroke-width="1" opacity=".7"/>
+              <rect x="168" y="157" width="68" height="17" rx="2" fill="#1a1400"/>
+              <text x="202" y="169" text-anchor="middle" fill="#f5c842" font-size="8" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T4-8 Flow · FL tyre heat</text>
+
+              <!-- Zone label: T11 -->
+              <line x1="162" y1="321" x2="155" y2="337" stroke="#00d84b" stroke-width="1" opacity=".7"/>
+              <rect x="88" y="335" width="110" height="17" rx="2" fill="#001208"/>
+              <text x="143" y="347" text-anchor="middle" fill="#00d84b" font-size="8" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T11 Lunge · Overtake zone</text>
+
+              <!-- Zone label: T14-15 -->
+              <line x1="392" y1="190" x2="412" y2="183" stroke="#e10600" stroke-width="1" opacity=".7"/>
+              <rect x="412" y="174" width="64" height="17" rx="2" fill="#1a0000"/>
+              <text x="444" y="186" text-anchor="middle" fill="#e10600" font-size="8" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T14-15 · Max danger</text>
+
+              <!-- Zone label: Back straight -->
+              <line x1="305" y1="42" x2="305" y2="26" stroke="#a855f7" stroke-width="1" opacity=".7"/>
+              <rect x="244" y="16" width="112" height="17" rx="2" fill="#0d0820"/>
+              <text x="300" y="28" text-anchor="middle" fill="#a855f7" font-size="8" font-weight="700" font-family="Titillium Web,Arial,sans-serif">Back straight · 1.2km DRS blast</text>
+            </svg>
+          </div>
+
+          <!-- Zone danger cards -->
+          <div class="rp-zone-cards">
+            <div class="rp-zone-card">
+              <div class="rp-zone-card-name" style="color:#f5c842">T4-8 Flow</div>
+              <div class="rp-zone-card-rating" id="rpZc1Rating" style="color:#f5c842">HIGH</div>
+              <div class="rp-zone-card-sub" id="rpZc1Sub">Tyre surface heat</div>
+            </div>
+            <div class="rp-zone-card">
+              <div class="rp-zone-card-name" style="color:#00d84b">T11 Overtake</div>
+              <div class="rp-zone-card-rating" id="rpZc2Rating" style="color:#00d84b">MEDIUM</div>
+              <div class="rp-zone-card-sub" id="rpZc2Sub">Late braking zone</div>
+            </div>
+            <div class="rp-zone-card">
+              <div class="rp-zone-card-name" style="color:#e10600">T14-15 Bridge</div>
+              <div class="rp-zone-card-rating" id="rpZc3Rating" style="color:#e10600">EXTREME</div>
+              <div class="rp-zone-card-sub" id="rpZc3Sub">Kerb damage risk</div>
+            </div>
+            <div class="rp-zone-card">
+              <div class="rp-zone-card-name" style="color:#a855f7" id="rpZc4Name">Back Straight</div>
+              <div class="rp-zone-card-rating" id="rpZc4Rating" style="color:#a855f7">DRS ZONE</div>
+              <div class="rp-zone-card-sub" id="rpZc4Sub">Overtake on entry</div>
+            </div>
+          </div>
+        </div><!-- /track card -->
+
+      </div><!-- /col-left -->
+
+      <!-- RIGHT COLUMN (placeholder — remaining sections coming next) -->
+      <div class="rp-col-right">
+      </div>
+
+    </div><!-- /rp-cols -->
+  </div><!-- /rp-wrap -->
+  </div><!-- /news-preview -->
 
 </div><!-- /tab-news -->
 
@@ -9079,6 +9312,98 @@ if (isMobile()) {
   _mobUpdateStrip();
   _mobUpdateFreeCount();
   setInterval(_mobUpdateStrip, 5000);
+}
+
+/* ─────────────────────────────────────────────
+   RACE PREVIEW TAB
+───────────────────────────────────────────── */
+function rpSend(q) {
+  const inp = document.getElementById('chatInput');
+  if (inp) { inp.value = q; sendMsg(); }
+}
+
+function rpSendHistory() {
+  const inp = document.getElementById('rpHistoryInput');
+  const q = (inp ? inp.value : '').trim();
+  if (!q) return;
+  inp.value = '';
+  rpSend(q);
+}
+
+function rpToggleWeather(rain) {
+  const btnDry  = document.getElementById('rpBtnDry');
+  const btnRain = document.getElementById('rpBtnRain');
+  if (btnDry)  btnDry.className  = 'rp-toggle-btn' + (rain ? '' : ' active-dry');
+  if (btnRain) btnRain.className = 'rp-toggle-btn' + (rain ? ' active-rain' : '');
+
+  const zoneColors = {
+    yellow: rain ? '#3b82f6' : '#f5c842',
+    green:  rain ? '#67e8f9' : '#00d84b',
+    red:    rain ? '#1e40af' : '#e10600',
+    purple: rain ? '#93c5fd' : '#a855f7',
+  };
+  const setStroke = (id, c) => { const el = document.getElementById(id); if (el) el.setAttribute('stroke', c); };
+  setStroke('rpZoneYellow', zoneColors.yellow);
+  setStroke('rpZoneGreen',  zoneColors.green);
+  setStroke('rpZoneRed',    zoneColors.red);
+  setStroke('rpZonePurple', zoneColors.purple);
+
+  const setBg = (id, c) => { const el = document.getElementById(id); if (el) el.style.background = c; };
+  setBg('rpLegYellow', zoneColors.yellow);
+  setBg('rpLegGreen',  zoneColors.green);
+  setBg('rpLegRed',    zoneColors.red);
+  setBg('rpLegPurple', zoneColors.purple);
+
+  const overlay = document.getElementById('rpRainOverlay');
+  if (overlay) overlay.classList.toggle('show', rain);
+
+  const setText = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+  const setColor = (id, c) => { const el = document.getElementById(id); if (el) el.style.color = c; };
+
+  if (rain) {
+    setText('rpZc1Rating','EXTREME');  setColor('rpZc1Rating','#3b82f6'); setText('rpZc1Sub','Aquaplaning');
+    setText('rpZc2Rating','EXTREME');  setColor('rpZc2Rating','#67e8f9'); setText('rpZc2Sub','Brake fail risk');
+    setText('rpZc3Rating','CRITICAL'); setColor('rpZc3Rating','#1e40af'); setText('rpZc3Sub','Red flag zone');
+    setText('rpZc4Name','T17 New Tarmac'); setText('rpZc4Rating','ICE RINK'); setColor('rpZc4Rating','#93c5fd'); setText('rpZc4Sub','Zero grip');
+  } else {
+    setText('rpZc1Rating','HIGH');   setColor('rpZc1Rating','#f5c842'); setText('rpZc1Sub','Tyre surface heat');
+    setText('rpZc2Rating','MEDIUM'); setColor('rpZc2Rating','#00d84b'); setText('rpZc2Sub','Late braking zone');
+    setText('rpZc3Rating','EXTREME');setColor('rpZc3Rating','#e10600'); setText('rpZc3Sub','Kerb damage risk');
+    setText('rpZc4Name','Back Straight'); setText('rpZc4Rating','DRS ZONE'); setColor('rpZc4Rating','#a855f7'); setText('rpZc4Sub','Overtake on entry');
+  }
+
+  const scBadge = document.getElementById('rpScBadge');
+  if (scBadge) {
+    scBadge.textContent = rain ? '70–75%' : '45–50%';
+    scBadge.className = rain ? 'rp-badge rp-badge-red' : 'rp-badge rp-badge-yellow';
+  }
+
+  const tyreEl = document.getElementById('rpTyreCall');
+  if (tyreEl) tyreEl.textContent = rain ? 'Inter → Wet' : 'Med → Hard';
+
+  const warn = document.getElementById('rpStratWarn');
+  if (warn) {
+    warn.className = rain ? 'rp-strat-warn rp-strat-warn-rain' : 'rp-strat-warn';
+    warn.textContent = rain
+      ? 'Flash rain completely rewrites strategy. T17 new asphalt has near zero wet grip. Safety car probability jumps to 72 percent.'
+      : 'Safety car before lap 12 flips the entire strategy. Teams will gamble on early cheap stops.';
+  }
+
+  const wtEl = document.getElementById('rpWeatherText');
+  if (wtEl) wtEl.textContent = rain
+    ? 'Flash rain transforms Miami into a lottery. The 2026 cars generate massive aquaplaning risk at T4-8. Turn 17 on new asphalt becomes almost undriveable in wet conditions — grip levels drop to near zero. Any team on dry tyres when rain hits loses 15 to 25 seconds per lap instantly. Watch the pit wall cameras from lap 20.'
+    : 'Miami averages 34°C on race day with high humidity causing tyre surface temperatures to spike 12 to 15 degrees above ambient. The front-left tyre at Turn 4 is the first to go. Expect most teams to pit earlier than their models suggest. A 38 percent rain chance means teams will keep an eye on the sky from lap 20 onwards.';
+
+  const wBtn = document.getElementById('rpWeatherBtn');
+  if (wBtn) {
+    wBtn.textContent = rain ? 'Ask AI: how does flash rain change everything →' : 'Ask AI full weather impact →';
+    wBtn.onclick = rain
+      ? () => rpSend('How does flash rain affect strategy and which drivers benefit most in a wet Miami GP 2026?')
+      : () => rpSend('How does Miami heat and potential rain affect race strategy and tyre choices for the 2026 Miami GP?');
+  }
+
+  setText('rpRedFlag', rain ? '41%' : '24%');
+  setText('rpScPct',   rain ? '72%' : '47%');
 }
 </script>
 
