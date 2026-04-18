@@ -4251,6 +4251,7 @@
     .rp-tooltip-text { font-size:10px; color:var(--gray); line-height:1.6; margin-bottom:10px; }
     .rp-tooltip-ask { font-size:9px; color:var(--red); cursor:pointer; font-weight:700; background:none; border:none; padding:0; font-family:inherit; letter-spacing:.5px; }
     .rp-tooltip-ask:hover { color:#ff4444; }
+    .rp-map-label { position:absolute; font-size:6px; font-weight:700; letter-spacing:.5px; white-space:nowrap; pointer-events:none; font-family:'Titillium Web',Arial,sans-serif; background:rgba(0,0,0,.65); padding:1px 5px; border-radius:1px; }
   </style>
 </head>
 <body>
@@ -5227,6 +5228,7 @@
           <div class="rp-track-wrap" style="padding:8px;">
             <div id="rpRainBadge" style="display:none;position:absolute;top:8px;left:8px;background:#1e3a8a;color:#60a5fa;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:2px;z-index:10;pointer-events:none;">FLASH RAIN</div>
 
+            <div style="position:relative;line-height:0;">
             <svg viewBox="0 0 343.96 132.29" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
               <rect width="343.96" height="132.29" fill="#0d1117"/>
 
@@ -5248,7 +5250,9 @@
                 <line x1="203" y1="114" x2="201" y2="118" stroke="#60a5fa" stroke-width=".5"/><line x1="249" y1="121" x2="247" y2="125" stroke="#93c5fd" stroke-width=".4"/>
               </g>
 
-              <!-- Flip: SVG y-axis inverted vs geographic north -->
+              <!-- Horizontal flip (left↔right mirror) -->
+              <g transform="scale(-1,1) translate(-343.96,0)">
+              <!-- Vertical flip: restores geographic north-up orientation -->
               <g transform="translate(0,132.29) scale(1,-1)">
               <g transform="rotate(.56989 204.39 303.83)">
                 <!-- Base track outline from Wikimedia Commons (CC BY-SA 3.0) -->
@@ -5279,18 +5283,14 @@
                 <circle cx="200" cy="109" r="3" fill="#e10600" stroke="#fff" stroke-width=".4"/>
               </g>
               </g>
-              <!-- Labels in screen coords (outside flip group) -->
-              <text x="168" y="8" text-anchor="middle" fill="#a855f7" font-size="4" font-weight="700" font-family="Titillium Web,Arial,sans-serif">Back straight · T16-T17 DRS</text>
-              <line x1="262" y1="100" x2="270" y2="92" stroke="#f5c842" stroke-width=".3" opacity=".7"/>
-              <rect x="224" y="100" width="68" height="8" rx="1" fill="#1a1400"/>
-              <text x="258" y="106" text-anchor="middle" fill="#f5c842" font-size="3.8" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T4-8 · Fake marina</text>
-              <line x1="22" y1="74" x2="36" y2="76" stroke="#00d84b" stroke-width=".3" opacity=".7"/>
-              <rect x="35" y="72" width="72" height="8" rx="1" fill="#001208"/>
-              <text x="71" y="78" text-anchor="middle" fill="#00d84b" font-size="3.8" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T11 · Main overtake</text>
-              <line x1="24" y1="35" x2="37" y2="38" stroke="#e10600" stroke-width=".3" opacity=".7"/>
-              <rect x="36" y="34" width="60" height="8" rx="1" fill="#1a0000"/>
-              <text x="66" y="40" text-anchor="middle" fill="#e10600" font-size="3.8" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T14-15 · Bridge</text>
+              </g>
             </svg>
+            <!-- Zone labels as HTML: immune to SVG transforms, always readable -->
+            <span class="rp-map-label" style="position:absolute;top:3%;left:50%;transform:translateX(-50%);color:#a855f7;">Back straight · T16-T17 DRS</span>
+            <span class="rp-map-label" style="position:absolute;top:78%;left:1%;color:#f5c842;">T4-8 · Fake marina</span>
+            <span class="rp-map-label" style="position:absolute;top:50%;right:1%;color:#00d84b;">T11 · Main overtake</span>
+            <span class="rp-map-label" style="position:absolute;top:22%;right:1%;color:#e10600;">T14-15 · Bridge</span>
+            </div>
           </div>
           <p style="font-size:9px;color:#444;text-align:right;margin:2px 0 8px;font-family:Arial,sans-serif;">Circuit map: <a href="https://commons.wikimedia.org/wiki/File:Hard_Rock_Stadium_Circuit_2022.svg" target="_blank" style="color:#555;text-decoration:none;">Wikimedia Commons</a> · CC BY-SA 3.0</p>
 
