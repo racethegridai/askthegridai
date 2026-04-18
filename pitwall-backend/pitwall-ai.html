@@ -4252,6 +4252,28 @@
     .rp-tooltip-ask { font-size:9px; color:var(--red); cursor:pointer; font-weight:700; background:none; border:none; padding:0; font-family:inherit; letter-spacing:.5px; }
     .rp-tooltip-ask:hover { color:#ff4444; }
     .rp-map-label { position:absolute; font-size:6px; font-weight:700; letter-spacing:.5px; white-space:nowrap; pointer-events:none; font-family:'Titillium Web',Arial,sans-serif; background:rgba(0,0,0,.65); padding:1px 5px; border-radius:1px; }
+    .rp-ai-card { background:#0a0f1a; border:1px solid #1a2030; border-radius:4px; padding:14px 16px; margin-bottom:12px; transition:border-color .3s; }
+    .rp-ai-card.active { border-color:#252f48; }
+    .rp-ai-idle { display:flex; align-items:center; gap:10px; }
+    .rp-ai-pulse-dot { width:7px; height:7px; border-radius:50%; background:#e10600; flex-shrink:0; animation:rpPulse 1.8s ease-in-out infinite; }
+    @keyframes rpPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(.65)} }
+    .rp-ai-idle-text { font-size:10px; color:#555; font-style:italic; font-family:'Titillium Web',Arial,sans-serif; }
+    .rp-ai-active { display:none; }
+    .rp-ai-card.active .rp-ai-idle { display:none; }
+    .rp-ai-card.active .rp-ai-active { display:block; }
+    .rp-ai-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+    .rp-ai-zone-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .rp-ai-nickname { font-size:11px; font-weight:700; color:#fff; flex:1; font-family:'Titillium Web',Arial,sans-serif; }
+    .rp-ai-risk { font-size:7px; font-weight:700; letter-spacing:1px; padding:2px 7px; border-radius:1px; font-family:'Titillium Web',Arial,sans-serif; text-transform:uppercase; }
+    .rp-ai-risk-low     { color:#00d84b; background:#001208; border:1px solid #004820; }
+    .rp-ai-risk-medium  { color:#f5c842; background:#1a1400; border:1px solid #4a3a00; }
+    .rp-ai-risk-high    { color:#ff6b35; background:#1a0800; border:1px solid #4a2000; }
+    .rp-ai-risk-extreme { color:#ff2020; background:#1a0000; border:1px solid #5a0000; }
+    .rp-ai-text { font-size:10px; color:#aaa; line-height:1.85; min-height:60px; font-family:'Titillium Web',Arial,sans-serif; }
+    .rp-ai-cursor { display:inline-block; width:5px; height:10px; background:#e10600; margin-left:1px; animation:rpBlink .65s step-start infinite; vertical-align:text-bottom; }
+    @keyframes rpBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .rp-ai-ask-btn { margin-top:12px; font-size:9px; color:#e10600; cursor:pointer; font-weight:700; background:none; border:1px solid #2a0000; padding:5px 12px; border-radius:2px; font-family:'Titillium Web',Arial,sans-serif; letter-spacing:.5px; display:block; width:100%; text-align:left; box-sizing:border-box; }
+    .rp-ai-ask-btn:hover { color:#ff4444; border-color:#600000; background:#0d0000; }
   </style>
 </head>
 <body>
@@ -5179,13 +5201,6 @@
     </div>
   </div>
   <div class="news-panel" id="news-preview">
-  <!-- Zone tooltip (fixed-positioned via JS) -->
-  <div id="rpTooltip" class="rp-tooltip" onclick="event.stopPropagation()">
-    <button class="rp-tooltip-close" onclick="rpHideTooltip()">✕</button>
-    <div class="rp-tooltip-title" id="rpTooltipTitle"></div>
-    <div class="rp-tooltip-text" id="rpTooltipText"></div>
-    <button class="rp-tooltip-ask" id="rpTooltipAsk">Ask AI about this zone →</button>
-  </div>
   <div class="rp-wrap">
 
     <!-- ── HERO CARD ─────────────────────────── -->
@@ -5262,22 +5277,22 @@
                 <!-- PURPLE: T16→T17 back straight DRS -->
                 <path id="rpZonePurple" d="M 22,117 L 312,119"
                       fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round"
-                      style="cursor:pointer" onclick="rpShowZoneTooltip('purple',event)"/>
+                      style="cursor:pointer" onclick="showBriefing('purple')"/>
 
                 <!-- YELLOW: T4-8 sweeping infield (fake marina) -->
                 <path id="rpZoneYellow" d="M 255,54 C 268,38 280,27 286,27 C 300,42 310,52 316,55 C 325,40 332,35 332,30 C 331,20 330,13 329,9"
                       fill="none" stroke="#f5c842" stroke-width="2.5" stroke-linecap="round"
-                      style="cursor:pointer" onclick="rpShowZoneTooltip('yellow',event)"/>
+                      style="cursor:pointer" onclick="showBriefing('yellow')"/>
 
                 <!-- GREEN: T11 braking zone (approach from T10) -->
                 <path id="rpZoneGreen" d="M 80,17 C 55,32 35,45 20,57"
                       fill="none" stroke="#00d84b" stroke-width="2.5" stroke-linecap="round"
-                      style="cursor:pointer" onclick="rpShowZoneTooltip('green',event)"/>
+                      style="cursor:pointer" onclick="showBriefing('green')"/>
 
                 <!-- RED: T14-15 Bridge chicane -->
                 <path id="rpZoneRed" d="M 8,94 C 12,97 18,100 23,101"
                       fill="none" stroke="#e10600" stroke-width="2.5" stroke-linecap="round"
-                      style="cursor:pointer" onclick="rpShowZoneTooltip('red',event)"/>
+                      style="cursor:pointer" onclick="showBriefing('red')"/>
 
                 <!-- S/F indicator -->
                 <circle cx="200" cy="109" r="3" fill="#e10600" stroke="#fff" stroke-width=".4"/>
@@ -5294,24 +5309,41 @@
           </div>
           <p style="font-size:9px;color:#444;text-align:right;margin:2px 0 8px;font-family:Arial,sans-serif;">Circuit map: <a href="https://commons.wikimedia.org/wiki/File:Hard_Rock_Stadium_Circuit_2022.svg" target="_blank" style="color:#555;text-decoration:none;">Wikimedia Commons</a> · CC BY-SA 3.0</p>
 
-          <!-- Zone danger cards — also clickable for tooltip -->
+          <!-- AI Briefing Card -->
+          <div class="rp-ai-card" id="rpAiCard">
+            <div class="rp-ai-idle">
+              <span class="rp-ai-pulse-dot"></span>
+              <span class="rp-ai-idle-text">Tap any section of the track to get an AI briefing on that zone</span>
+            </div>
+            <div class="rp-ai-active">
+              <div class="rp-ai-header">
+                <span class="rp-ai-zone-dot" id="rpAiDot"></span>
+                <span class="rp-ai-nickname" id="rpAiNickname"></span>
+                <span class="rp-ai-risk" id="rpAiRisk"></span>
+              </div>
+              <div class="rp-ai-text" id="rpAiText"></div>
+              <button class="rp-ai-ask-btn" id="rpAiAskBtn">Ask AI more about this section &#x2192;</button>
+            </div>
+          </div>
+
+          <!-- Zone danger cards -->
           <div class="rp-zone-cards">
-            <div class="rp-zone-card" style="cursor:pointer" onclick="rpShowZoneTooltip('yellow',event)">
+            <div class="rp-zone-card" style="cursor:pointer" onclick="showBriefing('yellow')">
               <div class="rp-zone-card-name" style="color:#f5c842">T4-8 Flow</div>
               <div class="rp-zone-card-rating" id="rpZc1Rating" style="color:#f5c842">HIGH</div>
               <div class="rp-zone-card-sub" id="rpZc1Sub">Tyre surface heat</div>
             </div>
-            <div class="rp-zone-card" style="cursor:pointer" onclick="rpShowZoneTooltip('green',event)">
+            <div class="rp-zone-card" style="cursor:pointer" onclick="showBriefing('green')">
               <div class="rp-zone-card-name" style="color:#00d84b">T11 Overtake</div>
               <div class="rp-zone-card-rating" id="rpZc2Rating" style="color:#00d84b">MEDIUM</div>
               <div class="rp-zone-card-sub" id="rpZc2Sub">Late braking zone</div>
             </div>
-            <div class="rp-zone-card" style="cursor:pointer" onclick="rpShowZoneTooltip('red',event)">
+            <div class="rp-zone-card" style="cursor:pointer" onclick="showBriefing('red')">
               <div class="rp-zone-card-name" style="color:#e10600">T14-15 Bridge</div>
               <div class="rp-zone-card-rating" id="rpZc3Rating" style="color:#e10600">EXTREME</div>
               <div class="rp-zone-card-sub" id="rpZc3Sub">Kerb damage risk</div>
             </div>
-            <div class="rp-zone-card" style="cursor:pointer" onclick="rpShowZoneTooltip('purple',event)">
+            <div class="rp-zone-card" style="cursor:pointer" onclick="showBriefing('purple')">
               <div class="rp-zone-card-name" style="color:#a855f7" id="rpZc4Name">Back Straight</div>
               <div class="rp-zone-card-rating" id="rpZc4Rating" style="color:#a855f7">DRS ZONE</div>
               <div class="rp-zone-card-sub" id="rpZc4Sub">Overtake on entry</div>
@@ -9449,65 +9481,82 @@ function rpToggleWeather(rain) {
   setText('rpRedFlag', rain ? '41%' : '24%');
   setText('rpScPct',   rain ? '72%' : '47%');
 
-  /* Update open tooltip text if one is showing */
-  const tt = document.getElementById('rpTooltip');
-  if (tt && tt.classList.contains('show')) rpHideTooltip();
+  /* Refresh AI briefing card if a zone is active */
+  if (_rpActiveBriefing) showBriefing(_rpActiveBriefing);
 }
 
-/* ── Zone tooltip ── */
-const RP_ZONE_INFO = {
-  purple: {
-    title: 'Back straight · T16 to T17',
-    dry:   'The longest straight on the circuit at 1.2km. Cars reach 320km/h plus with DRS open. Low crash risk on the straight itself but Turn 17 at the end is a heavy braking zone where drivers attack. Rear wing failures and brake issues show up here first. Crash probability: LOW on straight, HIGH entering T17.',
-    rain:  'DRS is disabled in heavy rain. Speeds drop below 220km/h. The straight itself is manageable but Turn 17 on new asphalt becomes treacherous — grip near zero in wet conditions.',
-    ask:   'How important is the T16-T17 back straight DRS zone at Miami and what happens at the Turn 17 braking zone in the 2026 race?'
-  },
+/* ── AI Briefing Card ── */
+const _rpBriefings = {
   yellow: {
-    title: 'T4-8 · The fake marina section',
-    dry:   'The most technically demanding section of the circuit. Six corners in quick succession with blue painted asphalt on the inside representing the fake marina. Front-left tyre overheating begins here around lap 8 to 10. Track limits violations are most common here. Crash probability: MEDIUM — mostly tyre failures and track limit cuts not big impacts.',
-    rain:  'Aquaplaning danger through the S-curves. The blue painted marina asphalt has near-zero wet grip. Any mistake at speed in the wet here ends your race immediately.',
-    ask:   'Why is the T4-8 fake marina section at Miami so demanding on tyres and what are the track limit rules there in the 2026 Miami GP?'
+    nickname: 'The Tire Killer',
+    color:    '#f5c842',
+    risk: 'MEDIUM', riskClass: 'rp-ai-risk-medium',
+    dry:  "The Miami Twister. The lateral G-force here is relentless. If a driver pushes too hard early in the stint they will overheat the front-left tyre and their lap times will fall off a cliff by the back straight. Teams monitor front-left temperatures obsessively through this section. The fake marina on the inside looks beautiful but it is hiding the most punishing part of this circuit.",
+    rain: "The rain has washed away all the rubber laid down over the race weekend. The track is now green. Traction out of every corner in this section will be non-existent for the first 5 laps after the rain starts. Any driver who pushes here before the tyres are up to temperature is going straight into the wall.",
+    ask:  "Tell me more about tyre management through the T4-8 section at Miami and which drivers handle it best"
   },
   green: {
-    title: 'T11 · Main overtake spot',
-    dry:   'The premier passing opportunity at Miami. Drivers brake from 320km/h to under 80km/h in around 90 metres. Every race has seen at least one overtake or incident here. The inside line is aggressive but the outside gets squeezed against the wall. In 2022 Leclerc and Sainz made contact here. Crash probability: HIGH — most likely incident zone each race.',
-    rain:  'Braking distances triple in the wet. Lock-ups are constant here. Highest probability of first-lap incidents in wet conditions at Miami.',
-    ask:   'Why is Turn 11 at Miami the main overtaking spot and what happened there in previous Miami GPs?'
+    nickname: 'The Battery Poker',
+    color:    '#00d84b',
+    risk: 'HIGH', riskClass: 'rp-ai-risk-high',
+    dry:  "80 percent of overtakes happen here or at T17. Watch the battery levels on the timing screen. If the car behind has 10 percent more energy entering this straight the pass is almost guaranteed. This is not about raw speed. It is about energy management. The driver who conserves battery through T4-8 arrives here with the weapon already loaded.",
+    rain: "Braking distances triple in the wet at this corner. Cars that were comfortable taking this flat in qualifying need 50 metres more stopping distance in the rain. The overtaking opportunity here actually increases because more drivers will lock up and run wide opening the door for aggressive moves.",
+    ask:  "Explain the battery and energy strategy at T11 Miami and how teams exploit it for overtaking"
   },
   red: {
-    title: 'T14-15 · The Bridge chicane',
-    dry:   'The single most dangerous section of the Miami circuit. A tight chicane runs directly under the turnpike overpass bridge with concrete walls on both sides and virtually zero runoff. Drivers must slow from 200km/h to under 60km/h. Any car out of position here hits the wall immediately. In 2023 multiple incidents happened here including the Magnussen retirement. Crash probability: EXTREME — highest wall strike risk on the entire circuit.',
-    rain:  'In the wet this becomes almost undriveable. The enclosed section under the bridge traps water and creates standing pools. This is where red flags happen at Miami.',
-    ask:   'Why is the T14-15 bridge chicane at Miami so dangerous and what incidents have happened there in previous races?'
+    nickname: 'The Incident Magnet',
+    color:    '#e10600',
+    risk: 'EXTREME', riskClass: 'rp-ai-risk-extreme',
+    dry:  "The highest risk zone on the entire circuit. This is a narrow Florida version of the Monaco chicane. One clip of the orange kerbs here usually results in broken suspension and a safety car. Every single Miami GP has seen an incident in this section. The concrete walls on both sides give drivers zero margin. There is nowhere to go if you get it wrong.",
+    rain: "In the wet this section becomes a skating rink. The drainage under the turnpike bridge is historically poor and standing water builds up rapidly. Expect a red flag if the downpour continues. This is the most likely red flag trigger on the entire circuit in wet conditions. Do not look away.",
+    ask:  "Tell me about every incident that has happened at T14-15 Miami and why this section is so dangerous"
+  },
+  purple: {
+    nickname: 'The Top Speed Trap',
+    color:    '#a855f7',
+    risk: 'LOW', riskClass: 'rp-ai-risk-low',
+    dry:  "This is where active aero dominates. If a car has a high drag setup like Mercedes often runs they will be a sitting duck here regardless of how well they drove sector 1. Watch which cars are getting towed down this straight. The team with the best straight line speed here controls the overtaking threat at T17.",
+    rain: "The undercut strength just doubled. Pitting one lap earlier for intermediates is the difference between P1 and P10. Any car still on dry tyres when the rain intensifies on this straight will lose 15 to 20 seconds per lap instantly. Watch the pit lane camera.",
+    ask:  "Which teams have the best straight line speed at Miami and how does it affect race strategy"
   }
 };
 
-function rpShowZoneTooltip(zone, event) {
-  event.stopPropagation();
-  const info = RP_ZONE_INFO[zone];
-  if (!info) return;
-  const tt    = document.getElementById('rpTooltip');
-  const title = document.getElementById('rpTooltipTitle');
-  const text  = document.getElementById('rpTooltipText');
-  const ask   = document.getElementById('rpTooltipAsk');
-  if (!tt || !title || !text || !ask) return;
-  title.textContent = info.title;
-  text.textContent  = _rpRain ? info.rain : info.dry;
-  ask.onclick = function() { rpHideTooltip(); rpSend(info.ask); };
-  const x = Math.min(event.clientX + 14, window.innerWidth  - 238);
-  const y = Math.min(event.clientY - 12, window.innerHeight - 170);
-  tt.style.left = x + 'px';
-  tt.style.top  = y + 'px';
-  tt.classList.add('show');
+let _rpActiveBriefing = null;
+let _rpTypeTimer      = null;
+
+function showBriefing(zone) {
+  _rpActiveBriefing = zone;
+  const d = _rpBriefings[zone];
+  if (!d) return;
+  const card = document.getElementById('rpAiCard');
+  card.classList.add('active');
+  document.getElementById('rpAiDot').style.background = d.color;
+  document.getElementById('rpAiNickname').textContent = d.nickname;
+  const risk = document.getElementById('rpAiRisk');
+  risk.textContent = d.risk;
+  risk.className = 'rp-ai-risk ' + d.riskClass;
+  document.getElementById('rpAiAskBtn').onclick = function() { rpSend(d.ask); };
+  _rpTypeText(document.getElementById('rpAiText'), _rpRain ? d.rain : d.dry);
 }
 
-function rpHideTooltip() {
-  const tt = document.getElementById('rpTooltip');
-  if (tt) tt.classList.remove('show');
+function _rpTypeText(el, text) {
+  if (_rpTypeTimer) { clearInterval(_rpTypeTimer); _rpTypeTimer = null; }
+  el.innerHTML = '';
+  const cursor = document.createElement('span');
+  cursor.className = 'rp-ai-cursor';
+  el.appendChild(cursor);
+  let i = 0;
+  _rpTypeTimer = setInterval(function() {
+    if (i < text.length) {
+      el.insertBefore(document.createTextNode(text[i]), cursor);
+      i++;
+    } else {
+      clearInterval(_rpTypeTimer);
+      _rpTypeTimer = null;
+      cursor.remove();
+    }
+  }, 18);
 }
-
-/* Dismiss tooltip on click outside */
-document.addEventListener('click', function() { rpHideTooltip(); });
 </script>
 
 <!-- ── NEWS ARTICLE POPUP OVERLAY (desktop) ──────── -->
