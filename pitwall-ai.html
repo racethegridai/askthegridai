@@ -2476,6 +2476,201 @@
       .rp-weather-block:last-child { border-bottom:none; }
       .rp-predict-blocks { flex-direction:column; }
     }
+
+    /* ── SECTION PAGES ─────────────────────────────── */
+    .section-page {
+      position: fixed; inset: 0; z-index: 500;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .25s cubic-bezier(.4,0,.2,1);
+      overflow: hidden;
+    }
+    .section-page.open { transform: translateX(0); }
+
+    .sp-header {
+      flex-shrink: 0; height: 54px; background: #000;
+      border-bottom: 2px solid var(--sp-color, var(--red));
+      display: flex; align-items: center; gap: 10px; padding: 0 14px;
+    }
+    .sp-back {
+      background: none; border: 1px solid #222; color: #aaa;
+      font-size: 10px; font-weight: 700; cursor: pointer;
+      padding: 5px 10px; border-radius: 2px; font-family: inherit;
+      letter-spacing: .5px; flex-shrink: 0; white-space: nowrap;
+    }
+    .sp-back:hover { border-color: #444; color: #fff; }
+    .sp-title-row { display: flex; align-items: center; gap: 7px; flex: 1; min-width: 0; }
+    .sp-icon { font-size: 15px; flex-shrink: 0; }
+    .sp-title {
+      font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--white);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .sp-tabs {
+      flex-shrink: 0; display: flex; overflow-x: auto;
+      background: #000; border-bottom: 1px solid var(--border);
+      scrollbar-width: none;
+    }
+    .sp-tabs::-webkit-scrollbar { display: none; }
+    .sp-tab-btn {
+      flex-shrink: 0; padding: 10px 14px;
+      font-size: 9px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--gray);
+      background: none; border: none; border-bottom: 2px solid transparent;
+      cursor: pointer; font-family: inherit; transition: all .15s;
+      white-space: nowrap;
+    }
+    .sp-tab-btn.active { color: var(--white); border-bottom-color: var(--sp-color, var(--red)); }
+
+    .sp-body {
+      flex: 1; overflow-y: auto; padding: 14px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .sp-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 2px; padding: 13px 15px;
+    }
+    .sp-card-title {
+      font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; margin-bottom: 12px;
+      color: var(--sp-color, var(--red));
+    }
+    .sp-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 0; border-bottom: 1px solid #111; gap: 8px;
+    }
+    .sp-row:last-child { border-bottom: none; }
+    .sp-row-label { font-size: 10px; color: var(--gray); }
+    .sp-row-val { font-size: 10px; font-weight: 700; color: var(--white); text-align: right; }
+    .sp-badge {
+      font-size: 8px; font-weight: 700; letter-spacing: .5px;
+      padding: 2px 7px; border-radius: 1px; text-transform: uppercase;
+    }
+    .sp-badge-yellow { color:#f5c842; background:#1a1400; border:1px solid #4a3a00; }
+    .sp-badge-green  { color:#00d84b; background:#001208; border:1px solid #004820; }
+    .sp-badge-red    { color:#e10600; background:#1a0000; border:1px solid #5a0000; }
+    .sp-warn {
+      background:#150800; border:1px solid #3a1800; border-left:3px solid #ff6b35;
+      padding:8px 10px; font-size:9px; color:#ff9a6c;
+      line-height:1.6; border-radius:2px; margin-top:8px;
+    }
+
+    .sp-weather-blocks { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
+    .sp-weather-block {
+      text-align:center; background:#0d0d0d;
+      border:1px solid var(--border); border-radius:2px; padding:10px 4px;
+    }
+    .sp-weather-val { font-size:18px; font-weight:700; color:var(--white); line-height:1.2; }
+    .sp-weather-sub { font-size:8px; color:var(--gray); margin-top:3px; }
+    .sp-weather-label { font-size:7px; color:var(--gray); letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
+    .sp-toggle-group { display:flex; gap:4px; margin-bottom:12px; }
+    .sp-toggle-btn {
+      padding:5px 12px; font-size:9px; font-weight:700; letter-spacing:1px;
+      text-transform:uppercase; border:1px solid var(--border);
+      background:transparent; color:var(--gray); cursor:pointer;
+      border-radius:2px; font-family:inherit; transition:all .15s;
+    }
+    .sp-toggle-dry-active  { background:var(--red); color:#fff; border-color:var(--red); }
+    .sp-toggle-rain-active { background:#2563eb; color:#fff; border-color:#2563eb; }
+
+    .sp-story-row {
+      display:flex; align-items:center; gap:12px;
+      padding:12px 0; border-bottom:1px solid #111; cursor:pointer;
+      transition: background .1s;
+    }
+    .sp-story-row:last-child { border-bottom:none; }
+    .sp-story-row:active { background:#111; margin:0 -15px; padding:12px 15px; }
+    .sp-story-avatar {
+      width:36px; height:36px; border-radius:50%; display:flex;
+      align-items:center; justify-content:center;
+      font-size:11px; font-weight:700; flex-shrink:0;
+    }
+    .sp-story-name { font-size:11px; font-weight:700; color:var(--white); margin-bottom:3px; }
+    .sp-story-text { font-size:9px; color:var(--gray); line-height:1.45; }
+    .sp-story-chevron { margin-left:auto; color:#444; font-size:16px; flex-shrink:0; }
+
+    .sp-pred-blocks { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
+    .sp-pred-block {
+      text-align:center; background:#0d0d0d;
+      border:1px solid var(--border); border-radius:2px; padding:12px 4px;
+    }
+    .sp-pred-pct { font-size:20px; font-weight:700; line-height:1.2; }
+    .sp-pred-label { font-size:8px; color:var(--gray); margin-top:3px; line-height:1.4; }
+
+    .sp-hist-row {
+      display:flex; flex-direction:column; padding:11px 0;
+      border-bottom:1px solid #111; cursor:pointer; transition:background .1s;
+    }
+    .sp-hist-row:last-child { border-bottom:none; }
+    .sp-hist-row:active { background:#111; margin:0 -15px; padding:11px 15px; }
+    .sp-hist-year { font-size:10px; font-weight:700; color:var(--white); margin-bottom:3px; }
+    .sp-hist-sub { font-size:9px; color:var(--gray); line-height:1.5; }
+
+    /* Companion Chat */
+    .sp-companion {
+      flex-shrink:0; background:#000; border-top:1px solid #1a1a1a;
+      padding:12px 14px 14px; max-height:55vh;
+      display:flex; flex-direction:column; gap:0;
+    }
+    .sp-companion-hdr { display:flex; align-items:center; gap:8px; margin-bottom:9px; }
+    .sp-companion-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+    .sp-companion-label {
+      font-size:8px; font-weight:700; letter-spacing:1.5px;
+      text-transform:uppercase; color:var(--gray-lt);
+    }
+    .sp-companion-chips {
+      display:flex; gap:5px; overflow-x:auto; margin-bottom:9px;
+      scrollbar-width:none; padding-bottom:1px;
+    }
+    .sp-companion-chips::-webkit-scrollbar { display:none; }
+    .sp-companion-chip {
+      flex-shrink:0; background:#0d0d0d; border:1px solid var(--border);
+      color:var(--gray-lt); font-size:9px; padding:5px 9px;
+      cursor:pointer; border-radius:2px; font-family:inherit; white-space:nowrap;
+    }
+    .sp-companion-chip:hover { border-color:var(--sp-color, var(--red)); color:var(--sp-color, var(--red)); }
+    .sp-companion-msgs {
+      flex:1; min-height:60px; max-height:160px; overflow-y:auto;
+      display:flex; flex-direction:column; gap:8px; margin-bottom:9px;
+    }
+    .sp-companion-empty { font-size:9px; color:#444; font-style:italic; padding:10px 0; }
+    .sp-companion-bubble-user {
+      align-self:flex-end; background:#1a1a1a; color:var(--white);
+      font-size:10px; padding:6px 10px;
+      border-radius:12px 12px 2px 12px; max-width:85%; line-height:1.5;
+    }
+    .sp-companion-bubble-ai {
+      align-self:flex-start; background:transparent;
+      border-left:2px solid var(--sp-color, var(--red));
+      color:var(--gray-lt); font-size:10px; padding:5px 9px;
+      max-width:92%; line-height:1.6;
+    }
+    .sp-companion-input-row { display:flex; gap:6px; flex-shrink:0; }
+    .sp-companion-input {
+      flex:1; background:#0d0d0d; border:1px solid var(--border);
+      color:var(--white); font-size:11px; padding:7px 10px;
+      border-radius:2px; font-family:inherit; min-width:0;
+    }
+    .sp-companion-input:focus { outline:none; border-color:var(--sp-color, var(--red)); }
+    .sp-companion-send {
+      background:var(--sp-color, var(--red)); color:#fff; border:none;
+      padding:7px 14px; font-size:10px; font-weight:700;
+      cursor:pointer; border-radius:2px; font-family:inherit; flex-shrink:0;
+    }
+    .sp-companion-send:disabled { background:#2a2a2a; cursor:not-allowed; }
+
+    /* Hub open buttons */
+    .sp-open-btn {
+      display:block; width:100%; margin-top:10px;
+      background:transparent; border:1px solid #222; color:#555;
+      font-size:9px; font-weight:700; letter-spacing:.5px;
+      padding:6px 10px; cursor:pointer; border-radius:2px;
+      font-family:inherit; text-align:left;
+      transition: all .15s;
+    }
+    .sp-open-btn:hover { border-color:#444; color:#aaa; }
   </style>
 </head>
 <body>
@@ -2965,6 +3160,7 @@
           <div class="rp-storyline-text">Ninth in standings. Engine upgrade confirmed. Needs points badly or the season is over.</div>
           <button class="rp-ask-link" onclick="rpSend('What does Verstappen need at Miami to get back into the championship?')">Ask AI →</button>
         </div>
+        <button class="sp-open-btn" onclick="openSection('storylines')">Full Storylines Page →</button>
       </div><!-- /storylines -->
 
       <!-- AI PREDICTION CARD -->
@@ -2991,6 +3187,7 @@
           <div class="rp-predict-winner-pct">38% chance</div>
         </div>
         <button class="rp-btn-red" style="width:100%" onclick="rpSend('Give me a full AI race prediction for the Miami GP 2026 including all safety car and strategy scenarios')">Get full AI race prediction →</button>
+        <button class="sp-open-btn" onclick="openSection('prediction')">Full Prediction Page →</button>
       </div><!-- /prediction -->
 
     </div><!-- /right col -->
@@ -3020,6 +3217,7 @@
         <span class="rp-strat-val" id="rpTyreCall">Med → Hard</span>
       </div>
       <div class="rp-strat-warn" id="rpStratWarn">If safety car before lap 12 the strategy book gets thrown away. Teams will gamble on very early stops that could win or lose the race.</div>
+      <button class="sp-open-btn" onclick="openSection('strategy')">Full Strategy Page →</button>
     </div><!-- /strategy -->
 
     <!-- WEATHER CARD -->
@@ -3051,6 +3249,7 @@
         <div class="rp-weather-text" id="rpWeatherText">Miami averages 34C on race day with high humidity causing tyre surface temperatures to spike 12 to 15 degrees above ambient. The front-left tyre at Turn 4 is the first to go. Expect most teams to pit earlier than their models suggest. A 38 percent rain chance means teams will watch the sky from lap 20.</div>
       </div>
       <button class="rp-btn-blue" id="rpWeatherBtn" onclick="rpSend('How does Miami heat and potential rain affect race strategy and tyre choices for the 2026 Miami GP?')">Ask AI about weather impact on strategy →</button>
+      <button class="sp-open-btn" onclick="openSection('weather')">Full Weather Page →</button>
     </div><!-- /weather -->
 
     <!-- SPEED TRAP CARD -->
@@ -3101,6 +3300,7 @@
       <input class="rp-history-input" id="rpHistoryInput" placeholder="Ask about Miami GP history…" onkeydown="if(event.key==='Enter'){rpSendHistory()}"/>
       <button class="rp-btn-gold" onclick="rpSendHistory()">Ask</button>
     </div>
+    <button class="sp-open-btn" onclick="openSection('history')">Full History Page →</button>
   </div><!-- /history -->
 
   <!-- ── AI CHAT ────────────────────────────────── -->
@@ -3172,6 +3372,38 @@
 </div>
 
 </div><!-- /tab-view -->
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION PAGES OVERLAY
+═══════════════════════════════════════════════════ -->
+<div id="sectionPage" class="section-page">
+  <!-- Header -->
+  <div class="sp-header">
+    <button class="sp-back" onclick="closeSection()">← Back</button>
+    <div class="sp-title-row">
+      <span class="sp-icon" id="spIcon"></span>
+      <span class="sp-title" id="spTitle"></span>
+    </div>
+  </div>
+  <!-- Section tabs -->
+  <div class="sp-tabs" id="spTabs"></div>
+  <!-- Scrollable content -->
+  <div class="sp-body" id="spBody"></div>
+  <!-- Companion chat (pinned bottom) -->
+  <div class="sp-companion">
+    <div class="sp-companion-hdr">
+      <div class="sp-companion-dot" id="spCompDot"></div>
+      <div class="sp-companion-label" id="spCompLabel"></div>
+    </div>
+    <div class="sp-companion-chips" id="spCompChips"></div>
+    <div class="sp-companion-msgs" id="spCompMsgs"></div>
+    <div class="sp-companion-input-row">
+      <input class="sp-companion-input" id="spCompInput" placeholder=""
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spCompSend();}"/>
+      <button class="sp-companion-send" id="spCompSendBtn" onclick="spCompSend()">Ask</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════
      SCRIPT
@@ -5488,6 +5720,395 @@ function _rpTypeText(el, text) {
       cursor.remove();
     }
   }, 18);
+}
+
+/* ──────────────────────────────────────────────────
+   SECTION PAGES
+────────────────────────────────────────────────── */
+
+const _SP_SECTIONS = {
+  strategy: {
+    icon: '🏁', title: 'Strategy', color: '#e10600',
+    placeholder: 'Ask about Miami strategy…',
+    emptyMsg: 'Ask about pit windows, undercut timing, and safety car scenarios',
+    chips: ['Best undercut window?', 'Safety car impact?', 'Soft vs Medium start?', 'Two-stop viable?'],
+    system: 'You are a Formula 1 race strategy expert for the 2026 Miami Grand Prix. Focus on pit window timing, tyre degradation, undercut and overcut scenarios, safety car strategies, and team decision-making specific to Miami 2026. Keep answers 3 to 5 sentences. Be specific and data-driven.',
+    renderContent: function() {
+      return `
+        <div class="sp-card">
+          <div class="sp-card-title">Strategy Matrix</div>
+          <div class="sp-row"><span class="sp-row-label">Pit window</span><span class="sp-row-val">Laps 14–24</span></div>
+          <div class="sp-row"><span class="sp-row-label">Safety car prob</span><span class="sp-badge sp-badge-yellow">45–50%</span></div>
+          <div class="sp-row"><span class="sp-row-label">Undercut</span><span class="sp-badge sp-badge-green">HIGH · 0.8s/lap</span></div>
+          <div class="sp-row"><span class="sp-row-label">Tyre call</span><span class="sp-row-val">Med → Hard</span></div>
+          <div class="sp-warn">⚠ Safety car before lap 12 throws the strategy book away. Teams gamble on very early stops that can win or lose the race outright.</div>
+        </div>
+        <div class="sp-card">
+          <div class="sp-card-title">Undercut Analysis</div>
+          <div class="sp-row"><span class="sp-row-label">Ideal undercut lap</span><span class="sp-row-val">Lap 16–18</span></div>
+          <div class="sp-row"><span class="sp-row-label">Time gain per lap</span><span class="sp-badge sp-badge-green">0.8s delta</span></div>
+          <div class="sp-row"><span class="sp-row-label">Gap needed to cover</span><span class="sp-row-val">~22s</span></div>
+          <div class="sp-row"><span class="sp-row-label">Overcut risk</span><span class="sp-badge sp-badge-yellow">MEDIUM</span></div>
+        </div>
+        <div class="sp-card">
+          <div class="sp-card-title">Tyre Compounds</div>
+          <div class="sp-row"><span class="sp-row-label">Recommended start</span><span class="sp-row-val">Medium (C3)</span></div>
+          <div class="sp-row"><span class="sp-row-label">Expected stint</span><span class="sp-row-val">18–22 laps</span></div>
+          <div class="sp-row"><span class="sp-row-label">Critical degradation</span><span class="sp-row-val">Front-left T4</span></div>
+          <div class="sp-row"><span class="sp-row-label">Rain alternative</span><span class="sp-badge sp-badge-yellow">Inters ready</span></div>
+        </div>`;
+    }
+  },
+  weather: {
+    icon: '⛅', title: 'Weather', color: '#2563eb',
+    placeholder: 'Ask about Miami weather…',
+    emptyMsg: 'Ask about tyre overheating, flash rain impact, and race conditions',
+    chips: ['Tyre overheating impact?', 'Flash rain probability?', 'Red flag scenarios?', 'Heat vs degradation?'],
+    system: 'You are a meteorology and racing conditions expert for the 2026 Miami Grand Prix. Focus on Miami heat, humidity, thunderstorm probability, tyre thermal management in hot conditions, wet weather race implications, and safety car probability in rain. Keep answers 3 to 5 sentences. Be specific and practical.',
+    renderContent: function(rain) {
+      const rainActive = rain || false;
+      return `
+        <div class="sp-card">
+          <div class="sp-card-title">Race Day Forecast</div>
+          <div class="sp-weather-blocks">
+            <div class="sp-weather-block">
+              <div class="sp-weather-label">Race Day</div>
+              <div class="sp-weather-val">34°C</div>
+              <div class="sp-weather-sub">Humid · Sunny</div>
+            </div>
+            <div class="sp-weather-block">
+              <div class="sp-weather-label">Rain Chance</div>
+              <div class="sp-weather-val" style="color:#f5c842">38%</div>
+              <div class="sp-weather-sub">Afternoon storm</div>
+            </div>
+            <div class="sp-weather-block">
+              <div class="sp-weather-label">Wind</div>
+              <div class="sp-weather-val">12kph</div>
+              <div class="sp-weather-sub">SE direction</div>
+            </div>
+          </div>
+          <div class="sp-toggle-group">
+            <button class="sp-toggle-btn ${rainActive ? '' : 'sp-toggle-dry-active'}" id="spWxDry" onclick="spWeatherToggle(false)">Dry</button>
+            <button class="sp-toggle-btn ${rainActive ? 'sp-toggle-rain-active' : ''}" id="spWxRain" onclick="spWeatherToggle(true)">⚡ Rain</button>
+          </div>
+          <div id="spWeatherInfo">${rainActive ?
+            `<div class="sp-warn" style="border-left-color:#2563eb;background:#00091a;border-color:#1a3a6a;color:#60a5fa">⚡ FLASH RAIN — Turn 17 becomes an ice rink. SC probability jumps to 78%. Intermediates out in under 2 laps. Extreme aquaplaning risk on back straight.</div>` :
+            `<div style="font-size:10px;color:var(--gray);line-height:1.7">Miami averages 34°C race day. High humidity causes tyre surface temps to spike 12–15°C above ambient. The front-left at Turn 4 degrades first. Expect most teams to pit earlier than their models predict.</div>`
+          }</div>
+        </div>
+        <div class="sp-card">
+          <div class="sp-card-title">Track Temperature Impact</div>
+          <div class="sp-row"><span class="sp-row-label">Track surface temp</span><span class="sp-row-val">~52°C</span></div>
+          <div class="sp-row"><span class="sp-row-label">Tyre surface peak</span><span class="sp-row-val">105–112°C</span></div>
+          <div class="sp-row"><span class="sp-row-label">Deg rate vs Barcelona</span><span class="sp-badge sp-badge-yellow">+40% higher</span></div>
+          <div class="sp-row"><span class="sp-row-label">Overheating risk</span><span class="sp-badge sp-badge-red">HIGH — front-left</span></div>
+        </div>`;
+    }
+  },
+  storylines: {
+    icon: '🎭', title: 'Storylines', color: '#00d84b',
+    placeholder: 'Ask about driver storylines…',
+    emptyMsg: 'Tap any driver row to ask about their 2026 Miami storyline',
+    chips: ["Antonelli's championship pressure?", "Hamilton's Ferrari moment?", "Verstappen's comeback?", 'Who benefits from chaos?'],
+    system: 'You are an F1 narratives expert for the 2026 season and Miami Grand Prix. Cover driver storylines, team dynamics, championship battles, and rivalries. Focus on 2026 narratives: Antonelli as championship leader, Hamilton at Ferrari, Verstappen fighting back from ninth. Keep answers 3 to 5 sentences.',
+    renderContent: function() {
+      return `
+        <div class="sp-card">
+          <div class="sp-card-title">Three Big Storylines</div>
+          <div class="sp-story-row" onclick="spCompSend('Can Antonelli win the Miami GP and what does he need to protect his championship lead?')">
+            <div class="sp-story-avatar" style="background:#0a1a06;border:2px solid #00d84b;color:#00d84b">KA</div>
+            <div style="flex:1;min-width:0">
+              <div class="sp-story-name">Antonelli's nerve test</div>
+              <div class="sp-story-text">Championship leader at 19. Miami is volatile. One safety car changes everything.</div>
+            </div>
+            <div class="sp-story-chevron">›</div>
+          </div>
+          <div class="sp-story-row" onclick="spCompSend('Can Hamilton win Miami in the Ferrari and what does he need to make it happen?')">
+            <div class="sp-story-avatar" style="background:#1a0000;border:2px solid #e10600;color:#e10600">LH</div>
+            <div style="flex:1;min-width:0">
+              <div class="sp-story-name">Hamilton's Ferrari moment</div>
+              <div class="sp-story-text">Seven titles. Never won in red. Miami suits his aggressive braking style.</div>
+            </div>
+            <div class="sp-story-chevron">›</div>
+          </div>
+          <div class="sp-story-row" onclick="spCompSend('What does Verstappen need at Miami to get back into the 2026 championship fight?')">
+            <div class="sp-story-avatar" style="background:#06060f;border:2px solid #3b82f6;color:#3b82f6">MV</div>
+            <div style="flex:1;min-width:0">
+              <div class="sp-story-name">Verstappen's desperation</div>
+              <div class="sp-story-text">Ninth in standings. Engine upgrade confirmed. Needs points badly or the season is done.</div>
+            </div>
+            <div class="sp-story-chevron">›</div>
+          </div>
+        </div>
+        <div class="sp-card">
+          <div class="sp-card-title">Constructor Battle</div>
+          <div class="sp-row"><span class="sp-row-label">Mercedes pace</span><span class="sp-badge sp-badge-green">Best in class</span></div>
+          <div class="sp-row"><span class="sp-row-label">Ferrari race pace</span><span class="sp-badge sp-badge-yellow">Strong in heat</span></div>
+          <div class="sp-row"><span class="sp-row-label">McLaren threat</span><span class="sp-badge sp-badge-yellow">Top 3 capable</span></div>
+          <div class="sp-row"><span class="sp-row-label">Red Bull recovery</span><span class="sp-badge sp-badge-red">Upgrade needed</span></div>
+        </div>`;
+    }
+  },
+  prediction: {
+    icon: '🔮', title: 'Prediction', color: '#f5c842',
+    placeholder: 'Ask about race predictions…',
+    emptyMsg: 'Ask about winner odds, safety car timing, and dark horse picks',
+    chips: ['Who wins Miami?', 'Dark horse pick?', 'Safety car timing?', 'Biggest risk factor?'],
+    system: 'You are an F1 race prediction expert for the 2026 Miami Grand Prix. Use statistical models, historical data, and 2026 season form to predict outcomes. Cover win probability, safety car scenarios, dark horse opportunities, and risk factors. Be specific with percentages and clear reasoning. Keep answers 3 to 5 sentences.',
+    renderContent: function() {
+      return `
+        <div class="sp-card">
+          <div class="sp-card-title">Race Probabilities</div>
+          <div class="sp-pred-blocks">
+            <div class="sp-pred-block">
+              <div class="sp-pred-pct" style="color:#e10600">24%</div>
+              <div class="sp-pred-label" style="color:#ff6b35">Red Flag<br>Risk</div>
+            </div>
+            <div class="sp-pred-block">
+              <div class="sp-pred-pct" style="color:#f5c842">47%</div>
+              <div class="sp-pred-label" style="color:#f5c842">Safety Car<br>Before Lap 20</div>
+            </div>
+            <div class="sp-pred-block">
+              <div class="sp-pred-pct" style="color:#00d84b">KA</div>
+              <div class="sp-pred-label" style="color:#00d84b">Favourite<br>38% win</div>
+            </div>
+          </div>
+          <div class="sp-warn">⚠ Safety car probability rises to 82% if rain arrives after lap 15. All predictions shift significantly in a wet race.</div>
+        </div>
+        <div class="sp-card">
+          <div class="sp-card-title">Prediction Breakdown</div>
+          <div class="sp-row"><span class="sp-row-label">Predicted winner</span><span class="sp-row-val">Antonelli · 38%</span></div>
+          <div class="sp-row"><span class="sp-row-label">Dark horse</span><span class="sp-row-val">Norris · 18%</span></div>
+          <div class="sp-row"><span class="sp-row-label">Lottery winner</span><span class="sp-row-val">SC gamble team</span></div>
+          <div class="sp-row"><span class="sp-row-label">Biggest risk</span><span class="sp-badge sp-badge-red">Early SC lap 1–5</span></div>
+        </div>
+        <div class="sp-card">
+          <div class="sp-card-title">Podium Probabilities</div>
+          <div class="sp-row"><span class="sp-row-label">Antonelli (Mercedes)</span><span class="sp-row-val">38% win · 61% podium</span></div>
+          <div class="sp-row"><span class="sp-row-label">Russell (Mercedes)</span><span class="sp-row-val">22% win · 48% podium</span></div>
+          <div class="sp-row"><span class="sp-row-label">Hamilton (Ferrari)</span><span class="sp-row-val">19% win · 41% podium</span></div>
+          <div class="sp-row"><span class="sp-row-label">Norris (McLaren)</span><span class="sp-row-val">12% win · 32% podium</span></div>
+        </div>`;
+    }
+  },
+  history: {
+    icon: '📖', title: 'History', color: '#a855f7',
+    placeholder: 'Ask about Miami GP history…',
+    emptyMsg: 'Tap any race year to ask about that Miami GP',
+    chips: ['Why is Miami always chaotic?', 'Best Miami race ever?', 'Circuit changes over years?', 'US F1 fan growth?'],
+    system: 'You are an F1 historian specialising in the Miami Grand Prix from 2022 to 2025. Cover race winners, key moments, circuit development, safety car incidents, US F1 fan growth, and how Miami established itself on the calendar. Keep answers 3 to 5 sentences. Be specific and engaging.',
+    renderContent: function() {
+      return `
+        <div class="sp-card">
+          <div class="sp-card-title">Miami GP Race History</div>
+          <div class="sp-hist-row" onclick="spCompSend('Tell me about the 2022 Miami Grand Prix, the very first one, and how Verstappen won it')">
+            <div class="sp-hist-year">2022 · First ever Miami GP</div>
+            <div class="sp-hist-sub">Verstappen won from pole. Built around Hard Rock Stadium. Became an instant F1 classic in its debut season and announced Miami as a true calendar highlight.</div>
+          </div>
+          <div class="sp-hist-row" onclick="spCompSend('Tell me about the 2023 Miami GP where Verstappen charged from ninth on the grid to win')">
+            <div class="sp-hist-year">2023 · Verstappen from ninth</div>
+            <div class="sp-hist-sub">Red Bull's pace advantage was so overwhelming that Max carved from P9 on the grid all the way to the victory. A dominant display that showcased the car's raw speed at this circuit.</div>
+          </div>
+          <div class="sp-hist-row" onclick="spCompSend('Why did Miami 2024 break US F1 viewership records and what made Lando Norris winning so special?')">
+            <div class="sp-hist-year">2024 · Record audience · Norris wins</div>
+            <div class="sp-hist-sub">3.6 million viewers — the largest US F1 TV audience ever. Norris took his maiden victory in dramatic circumstances, validating McLaren's rise to the top.</div>
+          </div>
+          <div class="sp-hist-row" onclick="spCompSend('Why does every Miami GP have a safety car and what does it mean for 2026 race strategy?')">
+            <div class="sp-hist-year">Every race · Safety car guaranteed</div>
+            <div class="sp-hist-sub">Every single Miami GP has had at least one safety car. T14-15 with concrete walls on both sides is the usual trigger. Every team builds their strategy around expecting it.</div>
+          </div>
+        </div>
+        <div class="sp-card">
+          <div class="sp-card-title">Circuit Stats</div>
+          <div class="sp-row"><span class="sp-row-label">Inaugural race</span><span class="sp-row-val">2022</span></div>
+          <div class="sp-row"><span class="sp-row-label">Safety cars across all years</span><span class="sp-badge sp-badge-yellow">4 from 4 races</span></div>
+          <div class="sp-row"><span class="sp-row-label">Most wins</span><span class="sp-row-val">Verstappen · 2</span></div>
+          <div class="sp-row"><span class="sp-row-label">Peak US audience</span><span class="sp-row-val">3.6M (2024)</span></div>
+        </div>`;
+    }
+  }
+};
+
+let _spCurrent = null;
+let _spWeatherRain = false;
+const _spHistory  = { strategy:[], weather:[], storylines:[], prediction:[], history:[] };
+const _spBusy     = { strategy:false, weather:false, storylines:false, prediction:false, history:false };
+
+function openSection(key) {
+  _spCurrent = key;
+  const sec = _SP_SECTIONS[key];
+  const page = document.getElementById('sectionPage');
+  page.style.setProperty('--sp-color', sec.color);
+
+  document.getElementById('spIcon').textContent  = sec.icon;
+  document.getElementById('spTitle').textContent = sec.title;
+
+  const keys = Object.keys(_SP_SECTIONS);
+  document.getElementById('spTabs').innerHTML = keys.map(k =>
+    `<button class="sp-tab-btn${k === key ? ' active' : ''}" onclick="switchSection('${k}')">${_SP_SECTIONS[k].icon} ${_SP_SECTIONS[k].title}</button>`
+  ).join('');
+
+  _spRenderContent(key);
+  _spRenderCompanion(key);
+
+  page.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSection() {
+  document.getElementById('sectionPage').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function switchSection(key) {
+  _spCurrent = key;
+  const sec = _SP_SECTIONS[key];
+  document.getElementById('sectionPage').style.setProperty('--sp-color', sec.color);
+  document.getElementById('spIcon').textContent  = sec.icon;
+  document.getElementById('spTitle').textContent = sec.title;
+  document.querySelectorAll('.sp-tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', Object.keys(_SP_SECTIONS)[i] === key);
+  });
+  document.getElementById('spBody').scrollTop = 0;
+  _spRenderContent(key);
+  _spRenderCompanion(key);
+}
+
+function _spRenderContent(key) {
+  const sec = _SP_SECTIONS[key];
+  const body = document.getElementById('spBody');
+  body.innerHTML = key === 'weather'
+    ? sec.renderContent(_spWeatherRain)
+    : sec.renderContent();
+  body.scrollTop = 0;
+}
+
+function _spRenderCompanion(key) {
+  const sec = _SP_SECTIONS[key];
+  document.getElementById('spCompDot').style.background    = sec.color;
+  document.getElementById('spCompLabel').textContent       = sec.title + ' Companion';
+  document.getElementById('spCompInput').placeholder       = sec.placeholder;
+  document.getElementById('spCompSendBtn').style.background = sec.color;
+
+  document.getElementById('spCompChips').innerHTML = sec.chips.map(c =>
+    `<button class="sp-companion-chip" onclick="spCompSend(${JSON.stringify(c)})">${c}</button>`
+  ).join('');
+
+  const msgsEl = document.getElementById('spCompMsgs');
+  msgsEl.innerHTML = '';
+  const hist = _spHistory[key];
+  if (hist.length === 0) {
+    const e = document.createElement('div');
+    e.className = 'sp-companion-empty';
+    e.textContent = sec.emptyMsg;
+    msgsEl.appendChild(e);
+  } else {
+    hist.forEach(msg => {
+      const b = document.createElement('div');
+      b.className = msg.role === 'user' ? 'sp-companion-bubble-user' : 'sp-companion-bubble-ai';
+      b.innerHTML = escapeHtml(msg.content).replace(/\n/g, '<br>');
+      msgsEl.appendChild(b);
+    });
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+}
+
+function spWeatherToggle(rain) {
+  _spWeatherRain = rain;
+  const dryBtn  = document.getElementById('spWxDry');
+  const rainBtn = document.getElementById('spWxRain');
+  if (dryBtn)  dryBtn.className  = 'sp-toggle-btn' + (rain ? '' : ' sp-toggle-dry-active');
+  if (rainBtn) rainBtn.className = 'sp-toggle-btn' + (rain ? ' sp-toggle-rain-active' : '');
+  const info = document.getElementById('spWeatherInfo');
+  if (!info) return;
+  info.innerHTML = rain
+    ? `<div class="sp-warn" style="border-left-color:#2563eb;background:#00091a;border-color:#1a3a6a;color:#60a5fa">⚡ FLASH RAIN — Turn 17 becomes an ice rink. SC probability jumps to 78%. Intermediates out in under 2 laps. Extreme aquaplaning risk on the back straight.</div>`
+    : `<div style="font-size:10px;color:var(--gray);line-height:1.7">Miami averages 34°C race day. High humidity causes tyre surface temps to spike 12–15°C above ambient. The front-left at Turn 4 degrades first. Expect most teams to pit earlier than their models predict.</div>`;
+}
+
+function _spTypewriter(el, text, scrollEl, msPerChar) {
+  msPerChar = msPerChar || 15;
+  return new Promise(function(resolve) {
+    var i = 0;
+    var len = text.length;
+    function tick() {
+      if (i >= len) {
+        el.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+        resolve();
+        return;
+      }
+      i++;
+      el.textContent = text.slice(0, i);
+      if (scrollEl) scrollEl.scrollTop = scrollEl.scrollHeight;
+      setTimeout(tick, msPerChar);
+    }
+    tick();
+  });
+}
+
+async function spCompSend(q) {
+  const key = _spCurrent;
+  if (!key || _spBusy[key]) return;
+
+  const inputEl  = document.getElementById('spCompInput');
+  const sendEl   = document.getElementById('spCompSendBtn');
+  const msgsEl   = document.getElementById('spCompMsgs');
+
+  const text = (typeof q === 'string' && q) ? q : (inputEl ? inputEl.value.trim() : '');
+  if (!text) return;
+
+  if (inputEl) inputEl.value = '';
+  _spBusy[key] = true;
+  if (sendEl) sendEl.disabled = true;
+
+  const emptyEl = msgsEl.querySelector('.sp-companion-empty');
+  if (emptyEl) emptyEl.remove();
+
+  const userBubble = document.createElement('div');
+  userBubble.className = 'sp-companion-bubble-user';
+  userBubble.textContent = text;
+  msgsEl.appendChild(userBubble);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+
+  _spHistory[key].push({ role: 'user', content: text });
+
+  const aiBubble = document.createElement('div');
+  aiBubble.className = 'sp-companion-bubble-ai';
+  aiBubble.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  msgsEl.appendChild(aiBubble);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+
+  const sec = _SP_SECTIONS[key];
+
+  try {
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ system: sec.system, messages: _spHistory[key] }),
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+    let fullText = '';
+    await _readTokenStream(res, txt => { fullText = txt; });
+
+    aiBubble.innerHTML = '';
+    await _spTypewriter(aiBubble, fullText || '(No response)', msgsEl, 15);
+
+    _spHistory[key].push({ role: 'assistant', content: fullText || '(No response)' });
+  } catch (err) {
+    const msg = (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))
+      ? '⚠ Cannot reach the backend.'
+      : `⚠ ${err.message}`;
+    aiBubble.innerHTML = escapeHtml(msg);
+    _spHistory[key].push({ role: 'assistant', content: msg });
+  } finally {
+    _spBusy[key] = false;
+    if (sendEl) sendEl.disabled = false;
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
 }
 </script>
 
