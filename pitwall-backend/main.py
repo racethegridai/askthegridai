@@ -930,6 +930,84 @@ async def _enforce_rate_limit(request: Request) -> None:
 class ChatRequest(BaseModel):
     system: str
     messages: list[dict]
+    driver: str | None = None  # set when user is on a driver profile page
+
+
+def _build_dynamic_context() -> str:
+    """
+    Build a live data block from all backend caches — injected fresh into
+    every chat request so the AI always has current standings, news, and
+    session state without the frontend needing to include it.
+    """
+    sections: list[str] = []
+
+    # Championship standings
+    standings_data = _standings_cache.get("data")
+    if standings_data and standings_data.get("standings"):
+        lines = []
+        for d in standings_data["standings"][:10]:
+            name = f"{d.get('first_name', '')} {d.get('driver', '')}".strip()
+            lines.append(
+                f"P{d['position']} {name} — {d['team']} — {d['points']}pts"
+                + (f" ({d['wins']}W)" if d.get("wins") else "")
+            )
+        sections.append("LIVE CHAMPIONSHIP STANDINGS:\n" + "\n".join(lines))
+
+    # Latest news headlines
+    news_items = _news_cache.get("items", [])
+    if news_items:
+        headlines = [f"- {item['title']}" for item in news_items[:5]]
+        sections.append("LATEST F1 NEWS:\n" + "\n".join(headlines))
+
+    # Current session + team radio from live race state
+    state = _state
+    if state.get("session_key"):
+        lap   = state.get("lap", 0)
+        total = state.get("total_laps", "?")
+        name  = state.get("session_name", "unknown")
+        status = state.get("status", "none")
+        sections.append(
+            f"CURRENT SESSION:\n{name} | Lap {lap}/{total} | Status: {status}"
+        )
+        radio = state.get("radio", [])
+        if radio:
+            lines = [
+                f"{r.get('driver','?')} ({r.get('team','')}): recent radio clip"
+                for r in radio[:3]
+            ]
+            sections.append("RECENT TEAM RADIO CLIPS:\n" + "\n".join(lines))
+
+    if not sections:
+        return ""
+    updated = (state.get("last_updated") or "")[:19] or "now"
+    return (
+        f"[LIVE APP DATA — refreshed {updated} UTC]\n\n"
+        + "\n\n".join(sections)
+    )
+
+
+def _build_driver_context(driver_name: str) -> str:
+    """
+    Return a focused stats block for a specific driver, read from the
+    live standings cache.  Empty string if the driver is not found.
+    """
+    standings_data = _standings_cache.get("data")
+    if not standings_data:
+        return ""
+    for d in standings_data.get("standings", []):
+        full_name = f"{d.get('first_name', '')} {d.get('driver', '')}".strip()
+        if (
+            driver_name.lower() in full_name.lower()
+            or driver_name.lower() in d.get("driver", "").lower()
+        ):
+            return (
+                f"DRIVER PROFILE — {full_name}:\n"
+                f"Championship position: P{d['position']}\n"
+                f"Points: {d['points']}\n"
+                f"Team: {d['team']}\n"
+                f"Wins this season: {d.get('wins', 0)}\n"
+            )
+    return ""
 
 
 # Keywords whose presence in a user message signals that live race data is needed.
@@ -1053,8 +1131,10 @@ async def chat_stream(req: ChatRequest, request: Request):
 
     print(f"[STREAM] Auth done: {time.time()-t0:.2f}s", flush=True)
 
-    # Block 1 — static (cached): mode instructions + FORMAT rules.
-    # Block 2 — dynamic (not cached): server-side live race snapshot.
+    # Block 1 — static (prompt-cached): mode/style instructions from frontend.
+    # Block 2 — dynamic (never cached): live standings + news + session + radio.
+    # Block 3 — optional: driver profile stats when user is on a driver page.
+    # Block 4 — optional: race-specific snapshot when message asks for live data.
     system_blocks: list[dict] = [
         {
             "type": "text",
@@ -1063,6 +1143,18 @@ async def chat_stream(req: ChatRequest, request: Request):
         }
     ]
 
+    # Always inject live app data — standings, news, session, radio
+    dynamic_ctx = _build_dynamic_context()
+    if dynamic_ctx:
+        system_blocks.append({"type": "text", "text": dynamic_ctx})
+
+    # Inject driver-specific stats when on a driver profile page
+    if req.driver:
+        driver_ctx = _build_driver_context(req.driver)
+        if driver_ctx:
+            system_blocks.append({"type": "text", "text": driver_ctx})
+
+    # Inject compact race telemetry snapshot when the question is about live data
     if _needs_live_context(req.messages):
         async with _lock:
             state_snap = dict(_state)

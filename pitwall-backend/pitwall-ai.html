@@ -9069,7 +9069,7 @@ async function sendDriverMsg(id) {
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ system, messages: _drvHistories[id] }),
+      body: JSON.stringify({ system, messages: _drvHistories[id], driver: driver.name }),
       signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) {
