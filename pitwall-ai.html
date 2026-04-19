@@ -2442,6 +2442,22 @@
     .rp-predict-winner-label { font-size:9px; color:var(--green); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; }
     .rp-predict-winner-name { font-size:19px; font-weight:700; color:#fff; }
     .rp-predict-winner-pct { font-size:11px; color:var(--red); margin-top:2px; }
+    /* Race Preview inline chat */
+    .rpc-card { background:var(--bg2); border:1px solid var(--border); border-radius:2px; padding:14px 16px; }
+    .rpc-label { font-size:8px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--red); margin-bottom:10px; }
+    .rpc-msgs { min-height:120px; max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; margin-bottom:12px; }
+    .rpc-msgs-empty { font-size:10px; color:#444; font-style:italic; text-align:center; padding:20px 0; }
+    .rpc-bubble-user { align-self:flex-end; background:#1a1a1a; color:var(--white); font-size:10px; padding:7px 11px; border-radius:12px 12px 2px 12px; max-width:85%; line-height:1.5; }
+    .rpc-bubble-ai { align-self:flex-start; background:transparent; border-left:2px solid var(--red); color:var(--gray-lt); font-size:10px; padding:6px 10px; max-width:92%; line-height:1.6; }
+    .rpc-chips { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
+    .rpc-chip { background:#0d0d0d; border:1px solid var(--border); color:var(--gray-lt); font-size:9px; padding:5px 9px; cursor:pointer; border-radius:2px; font-family:inherit; }
+    .rpc-chip:hover { border-color:var(--red); color:var(--red); }
+    .rpc-input-row { display:flex; gap:6px; }
+    .rpc-input { flex:1; background:#0d0d0d; border:1px solid var(--border); color:var(--white); font-size:11px; padding:7px 10px; border-radius:2px; font-family:inherit; min-width:0; }
+    .rpc-input:focus { outline:none; border-color:var(--red); }
+    .rpc-send-btn { background:var(--red); color:#fff; border:none; padding:7px 14px; font-size:10px; font-weight:700; cursor:pointer; border-radius:2px; font-family:inherit; flex-shrink:0; white-space:nowrap; }
+    .rpc-send-btn:hover { background:#c50500; }
+    .rpc-send-btn:disabled { background:#2a2a2a; cursor:not-allowed; }
     @media (max-width:768px) {
       .rp-cols { flex-direction:column; }
       .rp-col-right { width:100%; }
@@ -3042,6 +3058,23 @@
         </div>
         <button class="rp-btn-red" style="width:100%" onclick="rpSend('Give me a full AI race prediction for the Miami GP 2026 including all safety car and strategy scenarios')">Get full AI race prediction →</button>
       </div><!-- /prediction -->
+
+      <!-- RACE PREVIEW AI CHAT -->
+      <div class="rpc-card" id="rpChatCard">
+        <div class="rpc-label">Ask AI about Miami</div>
+        <div class="rpc-msgs" id="rpChatMsgs">
+          <div class="rpc-msgs-empty" id="rpChatEmpty">Ask anything about the Miami GP — strategy, history, weather, drivers</div>
+        </div>
+        <div class="rpc-chips">
+          <button class="rpc-chip" onclick="rpChatSend('Who will win Miami?')">Who will win Miami?</button>
+          <button class="rpc-chip" onclick="rpChatSend('How does weather affect strategy?')">How does weather affect strategy?</button>
+          <button class="rpc-chip" onclick="rpChatSend('What makes Miami so unpredictable?')">What makes Miami so unpredictable?</button>
+        </div>
+        <div class="rpc-input-row">
+          <input class="rpc-input" id="rpChatInput" placeholder="Ask about the Miami GP…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();rpChatSend();}"/>
+          <button class="rpc-send-btn" id="rpChatSendBtn" onclick="rpChatSend()">Ask</button>
+        </div>
+      </div><!-- /rp-chat -->
 
     </div><!-- /col-right -->
   </div><!-- /rp-cols -->
@@ -5182,19 +5215,83 @@ init();
 ────────────────────────────────────────────────── */
 let _rpRain = false;
 
-function rpSend(q) {
-  switchTab('live');
-  document.getElementById('chatInput').value = q;
-  document.getElementById('chatMessages').scrollTop = 0;
-  sendMsg();
-}
+function rpSend(q) { rpChatSend(q); }
 
 function rpSendHistory() {
   const inp = document.getElementById('rpHistoryInput');
-  const q = (inp.value || '').trim();
+  const q = (inp ? inp.value : '').trim();
   if (!q) return;
   inp.value = '';
-  rpSend(q);
+  rpChatSend(q);
+}
+
+let _rpcBusy = false;
+let _rpcHistory = [];
+const _RP_SYSTEM = "You are an F1 race preview expert for the 2026 Miami Grand Prix. Answer questions about the Miami circuit layout, race history, weather impact, tyre strategy, safety car probability, and driver storylines. Use plain English. Keep answers concise — 3 to 5 sentences. Be specific and insightful. Never pad with generic disclaimers.";
+
+async function rpChatSend(q) {
+  if (_rpcBusy) return;
+
+  const inputEl  = document.getElementById('rpChatInput');
+  const sendBtn  = document.getElementById('rpChatSendBtn');
+  const msgsEl   = document.getElementById('rpChatMsgs');
+  const emptyEl  = document.getElementById('rpChatEmpty');
+
+  const text = q || (inputEl ? inputEl.value.trim() : '');
+  if (!text) return;
+
+  if (inputEl) inputEl.value = '';
+  _rpcBusy = true;
+  if (sendBtn) sendBtn.disabled = true;
+
+  if (emptyEl) emptyEl.remove();
+
+  // User bubble
+  const userBubble = document.createElement('div');
+  userBubble.className = 'rpc-bubble-user';
+  userBubble.textContent = text;
+  msgsEl.appendChild(userBubble);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+
+  // Scroll card into view
+  document.getElementById('rpChatCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  _rpcHistory.push({ role: 'user', content: text });
+
+  // AI bubble (typing dots then replaced with streamed text)
+  const aiBubble = document.createElement('div');
+  aiBubble.className = 'rpc-bubble-ai';
+  aiBubble.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  msgsEl.appendChild(aiBubble);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+
+  try {
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ system: _RP_SYSTEM, messages: _rpcHistory }),
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+    const reply = await _readTokenStream(res, txt => {
+      aiBubble.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+    });
+    _rpcHistory.push({ role: 'assistant', content: reply || '(No response)' });
+  } catch (err) {
+    const msg = (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))
+      ? '⚠ Cannot reach the backend.'
+      : `⚠ ${err.message}`;
+    aiBubble.innerHTML = escapeHtml(msg);
+    _rpcHistory.push({ role: 'assistant', content: msg });
+  } finally {
+    _rpcBusy = false;
+    if (sendBtn) sendBtn.disabled = false;
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
 }
 
 function rpToggleWeather(rain) {
