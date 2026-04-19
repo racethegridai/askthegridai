@@ -5224,28 +5224,28 @@
       <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">~22s</div><div class="mob-rp-sec-stat-lbl">Pit loss</div></div>
     </div>
     <div class="mob-rp-sec-h">Pirelli Compounds</div>
-    <div class="mob-rp-sec-row">
+    <div class="mob-rp-sec-row" style="cursor:pointer" onclick="spOpenDetail('hard-c2')">
       <div class="mob-rp-sec-row-lbl">Hard (C2)</div>
       <div class="mob-rp-sec-row-val">Long-run tyre — low deg</div>
       <div class="mob-rp-sec-row-sub">Expected for the long first or second stint. Slower but durable. Teams who qualify on mediums may run hard to the end.</div>
     </div>
-    <div class="mob-rp-sec-row">
+    <div class="mob-rp-sec-row" style="cursor:pointer" onclick="spOpenDetail('medium-c3')">
       <div class="mob-rp-sec-row-lbl">Medium (C3)</div>
       <div class="mob-rp-sec-row-val">All-rounder — main race tyre</div>
       <div class="mob-rp-sec-row-sub">Expected to be the most-used compound. Balances pace and longevity. Most teams likely start on medium if starting from the midfield.</div>
     </div>
-    <div class="mob-rp-sec-row">
+    <div class="mob-rp-sec-row" style="cursor:pointer" onclick="spOpenDetail('soft-c4')">
       <div class="mob-rp-sec-row-lbl">Soft (C4)</div>
       <div class="mob-rp-sec-row-val">Qualifying tyre — degrades fast</div>
       <div class="mob-rp-sec-row-sub">Everyone qualifies on soft. Soft stints in the race are short — high deg in Miami heat. If safety car comes, expect soft-shod gambles from drivers outside the points.</div>
     </div>
     <div class="mob-rp-sec-h">Race Strategy</div>
-    <div class="mob-rp-sec-row">
+    <div class="mob-rp-sec-row" style="cursor:pointer" onclick="spOpenDetail('one-stop')">
       <div class="mob-rp-sec-row-lbl">Likely: 1-Stop</div>
       <div class="mob-rp-sec-row-val">Soft → Medium/Hard</div>
       <div class="mob-rp-sec-row-sub">Optimal without a safety car. Pit around lap 18–22. Mercedes and McLaren with upgrades may manage tyres well enough to go 1-stop.</div>
     </div>
-    <div class="mob-rp-sec-row">
+    <div class="mob-rp-sec-row" style="cursor:pointer" onclick="spOpenDetail('safety-car')">
       <div class="mob-rp-sec-row-lbl" style="color:#ffc800">Safety Car Scenario ⚠</div>
       <div class="mob-rp-sec-row-val">Free pit stop window</div>
       <div class="mob-rp-sec-row-sub">Safety car probability is 47%. If it comes before lap 30, expect everyone to pit for free. This is when the race order resets — Hamilton and Norris are the drivers best placed to benefit.</div>
@@ -11032,6 +11032,120 @@ async function _rlSend(text, msgsId, inputId, sendId, histRef, busyRef, setBusy)
 
 function rlAsk(text)    { _rlSend(text, 'rl-msgs',     'rl-input',     'rl-send',     _rlHistory,    () => _rlBusy,    v => { _rlBusy    = v; }); }
 function rlAskMob(text) { _rlSend(text, 'rl-msgs-mob', 'rl-input-mob', 'rl-send-mob', _rlHistoryMob, () => _rlBusyMob, v => { _rlBusyMob = v; }); }
+
+/* ──────────────────────────────────────────────────
+   STRATEGY SECTION — TYRE/STRATEGY DETAIL VIEWS
+────────────────────────────────────────────────── */
+var _SP_DETAILS = {
+  'hard-c2': {
+    title: 'Hard Tyre · C2', badge: 'LOW DEGRADATION', color: '#ffd700',
+    briefing: 'The Hard tyre is the tortoise of Miami. Slow but it goes the distance. Teams running a 1-stop strategy need this compound for the long second stint. If you qualify on Mediums you can run Hard all the way to the end without panic. The risk is you are slow early and get undercut by someone on fresher rubber.',
+    chips: ['Who should run the Hard tyre?','When does Hard tyre make sense?','What if Hard tyre fails?']
+  },
+  'medium-c3': {
+    title: 'Medium Tyre · C3', badge: 'MAIN RACE TYRE', color: '#ffd700',
+    briefing: 'The Medium is the tyre everyone wants but nobody fully trusts at Miami. It balances pace and durability but the heat pushes it to its limits faster than the data predicts. If the front-left goes off early you are looking at an emergency stop that hands your position to whoever pitted on lap 14.',
+    chips: ['Why do midfield teams start on Medium?','When does Medium tyre degrade?','Medium vs Soft at start?']
+  },
+  'soft-c4': {
+    title: 'Soft Tyre · C4', badge: 'QUALIFYING TYRE', color: '#e10600',
+    briefing: 'Everyone qualifies on Soft. In the race it is a weapon for the first 10 to 12 laps then it falls off a cliff. If a safety car comes before lap 12 the drivers on Soft get a free pit stop on fresh rubber — that is the moment midfield teams dream about all weekend.',
+    chips: ['How long does Soft last at Miami?','Safety car and Soft gamble?','Who benefits from starting Soft?']
+  },
+  'one-stop': {
+    title: '1-Stop Strategy', badge: 'MOST LIKELY', color: '#22c55e',
+    briefing: 'Pit once around lap 18 to 22. Start on Soft run to lap 18 then switch to Hard or Medium for the rest. Mercedes and McLaren can manage tyres well enough to make this work. The danger is if the safety car comes late — you have old tyres and everyone around you just pitted for free.',
+    chips: ['Which teams prefer 1-stop?','When does 1-stop fail?','Lap 18 vs lap 22 pit stop?']
+  },
+  'safety-car': {
+    title: 'Safety Car Scenario', badge: '47% PROBABILITY', color: '#ffd700',
+    briefing: 'Nearly half of all Miami races have had a safety car that changed the result completely. If it comes before lap 12 everyone who has not pitted gets a free stop. Hamilton and Norris are historically the best at exploiting this window. A driver starting tenth can finish on the podium.',
+    chips: ['Who benefits most from safety car?','What is a free pit stop?','How does safety car change positions?']
+  }
+};
+
+function spOpenDetail(key) {
+  var detail = _SP_DETAILS[key];
+  if (!detail) return;
+  var bodyEl = document.querySelector('#mob-rp-strategy .mob-rp-section-body');
+  if (!bodyEl) return;
+  window._spPrevContent = bodyEl.innerHTML;
+  bodyEl.innerHTML = `
+    <div style="padding:4px 0 14px;">
+      <button onclick="document.querySelector('#mob-rp-strategy .mob-rp-section-body').innerHTML=window._spPrevContent"
+        style="background:transparent;border:none;color:#555;font-size:11px;cursor:pointer;margin-bottom:14px;padding:0;font-family:inherit;">
+        ← Back
+      </button>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-size:16px;font-weight:700;color:#fff;">${detail.title}</div>
+        <div style="font-size:9px;font-weight:700;padding:3px 10px;border-radius:4px;background:${detail.color}22;color:${detail.color};">${detail.badge}</div>
+      </div>
+      <div style="font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;font-weight:700;">AI ZONE BRIEFING</div>
+      <div id="detail-typed" style="font-size:11px;color:#888;line-height:1.7;margin-bottom:14px;min-height:80px;border-left:2px solid ${detail.color};padding-left:12px;"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+        ${detail.chips.map(c => `<button onclick="spDetailAsk('${key}','${c}')" style="font-size:9px;padding:5px 11px;border-radius:20px;background:#111;border:1px solid #1c1c1c;color:#555;cursor:pointer;font-family:inherit;">${c}</button>`).join('')}
+      </div>
+      <div id="detail-chat" style="min-height:40px;max-height:200px;overflow-y:auto;margin-bottom:10px;"></div>
+      <div style="display:flex;gap:6px;">
+        <input id="detail-input" placeholder="Ask about ${detail.title}..."
+          style="flex:1;background:#111;border:1px solid #1c1c1c;border-radius:6px;padding:8px 10px;font-size:10px;color:#fff;font-family:inherit;"
+          onkeydown="if(event.key==='Enter'){spDetailAsk('${key}',null);}">
+        <button onclick="spDetailAsk('${key}',null)"
+          style="background:${detail.color};border:none;border-radius:6px;padding:8px 14px;font-size:10px;font-weight:700;color:#000;cursor:pointer;">
+          Ask
+        </button>
+      </div>
+    </div>`;
+  var typed = document.getElementById('detail-typed');
+  var text = detail.briefing;
+  var i = 0;
+  var t = setInterval(function() {
+    if (i < text.length) { typed.textContent += text[i]; i++; } else { clearInterval(t); }
+  }, 15);
+}
+
+var _spDetailHistory = {};
+async function spDetailAsk(key, text) {
+  var input = document.getElementById('detail-input');
+  var chat  = document.getElementById('detail-chat');
+  var q = (typeof text === 'string' && text) ? text : (input ? input.value.trim() : '');
+  if (!q || !chat) return;
+  if (input) input.value = '';
+  var detail = _SP_DETAILS[key];
+  if (!_spDetailHistory[key]) _spDetailHistory[key] = [];
+
+  var userDiv = document.createElement('div');
+  userDiv.style.cssText = 'text-align:right;margin-bottom:6px;';
+  userDiv.innerHTML = '<span style="background:#1a1a1a;border-radius:8px 8px 2px 8px;padding:6px 10px;font-size:9px;color:#aaa;display:inline-block;">' + q + '</span>';
+  chat.appendChild(userDiv);
+
+  _spDetailHistory[key].push({ role: 'user', content: q });
+
+  var aiDiv = document.createElement('div');
+  aiDiv.style.cssText = 'margin-bottom:8px;';
+  aiDiv.innerHTML = '<div style="background:#111;border-radius:8px 8px 8px 2px;padding:8px 10px;font-size:9px;color:#666;border-left:2px solid ' + (detail ? detail.color : '#e10600') + ';line-height:1.6;"><div class=\'typing-dots\'><div class=\'typing-dot\'></div><div class=\'typing-dot\'></div><div class=\'typing-dot\'></div></div></div>';
+  chat.appendChild(aiDiv);
+  chat.scrollTop = chat.scrollHeight;
+
+  var bubble = aiDiv.querySelector('div');
+  var sys = 'You are answering questions about Miami GP 2026 race strategy and tyres. Topic: ' + (detail ? detail.title : key) + '. Keep answers 3 to 5 sentences. Be specific and practical. Today is April 2026.';
+
+  try {
+    var res = await fetch(BACKEND + '/api/chat-stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: sys, messages: _spDetailHistory[key] }),
+      signal: AbortSignal.timeout(30000)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var fullText = '';
+    await _readTokenStream(res, function(txt) { fullText = txt; bubble.textContent = txt; chat.scrollTop = chat.scrollHeight; });
+    bubble.innerHTML = escapeHtml(fullText || '(No response)').replace(/\n/g,'<br>');
+    _spDetailHistory[key].push({ role: 'assistant', content: fullText || '(No response)' });
+  } catch(e) {
+    bubble.textContent = 'Could not connect. Try again.';
+  }
+}
 </script>
 
 <!-- ── NEWS ARTICLE POPUP OVERLAY (desktop) ──────── -->
