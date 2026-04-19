@@ -5769,6 +5769,26 @@ const _SP_SECTIONS = {
           <div class="sp-row"><span class="sp-row-label">Expected stint</span><span class="sp-row-val">18–22 laps</span></div>
           <div class="sp-row"><span class="sp-row-label">Critical degradation</span><span class="sp-row-val">Front-left T4</span></div>
           <div class="sp-row"><span class="sp-row-label">Rain alternative</span><span class="sp-badge sp-badge-yellow">Inters ready</span></div>
+        </div>
+        <div class="sp-companion-card">
+          <div class="sp-companion-hdr-bar" style="background:#22c55e12;border-left:3px solid #22c55e">
+            <div class="sp-companion-hdr-dot" style="background:#22c55e"></div>
+            <span class="sp-companion-hdr-label">Strategy Companion</span>
+          </div>
+          <div class="sp-companion-chips" id="spCompChips">
+            <button class="sp-companion-chip" onclick="spCompSend('What is an undercut?')">What is an undercut?</button>
+            <button class="sp-companion-chip" onclick="spCompSend('Why laps 14 to 24?')">Why laps 14–24?</button>
+            <button class="sp-companion-chip" onclick="spCompSend('Safety car impact on strategy?')">Safety car impact?</button>
+            <button class="sp-companion-chip" onclick="spCompSend('What is the best tyre strategy for Miami 2026?')">Best tyre strategy?</button>
+          </div>
+          <div class="sp-companion-msgs" id="spCompMsgs">
+            <div class="sp-companion-bubble-ai" style="border-left-color:#22c55e60">Ask me anything about Miami race strategy in plain English. Pit stops, undercut, tyre calls — all explained simply.</div>
+          </div>
+          <div class="sp-companion-input-row">
+            <input class="sp-companion-input" id="spCompInput" placeholder="Ask about strategy..."
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spCompSend();}"/>
+            <button class="sp-companion-send" id="spCompSendBtn" style="background:#22c55e" onclick="spCompSend()">Ask</button>
+          </div>
         </div>`;
     }
   },
@@ -5815,6 +5835,25 @@ const _SP_SECTIONS = {
           <div class="sp-row"><span class="sp-row-label">Tyre surface peak</span><span class="sp-row-val">105–112°C</span></div>
           <div class="sp-row"><span class="sp-row-label">Deg rate vs Barcelona</span><span class="sp-badge sp-badge-yellow">+40% higher</span></div>
           <div class="sp-row"><span class="sp-row-label">Overheating risk</span><span class="sp-badge sp-badge-red">HIGH — front-left</span></div>
+        </div>
+        <div class="sp-companion-card">
+          <div class="sp-companion-hdr-bar" style="background:#378ADD12;border-left:3px solid #378ADD">
+            <div class="sp-companion-hdr-dot" style="background:#378ADD"></div>
+            <span class="sp-companion-hdr-label">Weather Companion</span>
+          </div>
+          <div class="sp-companion-chips" id="spCompChips">
+            <button class="sp-companion-chip" onclick="spCompSend('Why does the front-left tyre overheat at Miami?')">Why does FL tyre overheat?</button>
+            <button class="sp-companion-chip" onclick="spCompSend('How does flash rain impact race strategy at Miami?')">Flash rain impact?</button>
+            <button class="sp-companion-chip" onclick="spCompSend('Has rain caused red flags at previous Miami GPs?')">Has rain caused red flags?</button>
+          </div>
+          <div class="sp-companion-msgs" id="spCompMsgs">
+            <div class="sp-companion-bubble-ai" style="border-left-color:#378ADD60">Miami weather is the biggest wildcard this weekend. Ask me how heat or rain changes absolutely everything.</div>
+          </div>
+          <div class="sp-companion-input-row">
+            <input class="sp-companion-input" id="spCompInput" placeholder="Ask about weather..."
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spCompSend();}"/>
+            <button class="sp-companion-send" id="spCompSendBtn" style="background:#378ADD" onclick="spCompSend()">Ask</button>
+          </div>
         </div>`;
     }
   },
@@ -5859,6 +5898,25 @@ const _SP_SECTIONS = {
           <div class="sp-row"><span class="sp-row-label">Ferrari race pace</span><span class="sp-badge sp-badge-yellow">Strong in heat</span></div>
           <div class="sp-row"><span class="sp-row-label">McLaren threat</span><span class="sp-badge sp-badge-yellow">Top 3 capable</span></div>
           <div class="sp-row"><span class="sp-row-label">Red Bull recovery</span><span class="sp-badge sp-badge-red">Upgrade needed</span></div>
+        </div>
+        <div class="sp-companion-card">
+          <div class="sp-companion-hdr-bar" style="background:#AFA9EC12;border-left:3px solid #AFA9EC">
+            <div class="sp-companion-hdr-dot" style="background:#AFA9EC"></div>
+            <span class="sp-companion-hdr-label">Storylines Companion</span>
+          </div>
+          <div class="sp-companion-chips" id="spCompChips">
+            <button class="sp-companion-chip" onclick="spCompSend('Who is Kimi Antonelli and why is he the 2026 championship leader?')">Who is Antonelli?</button>
+            <button class="sp-companion-chip" onclick="spCompSend('Why did Lewis Hamilton join Ferrari for 2025?')">Why did Hamilton join Ferrari?</button>
+            <button class="sp-companion-chip" onclick="spCompSend('Why is Verstappen struggling in 2026 and sitting ninth in the championship?')">Why is Verstappen struggling?</button>
+          </div>
+          <div class="sp-companion-msgs" id="spCompMsgs">
+            <div class="sp-companion-bubble-ai" style="border-left-color:#AFA9EC60">Ask me about any driver heading into Miami. I know the 2026 storylines inside out.</div>
+          </div>
+          <div class="sp-companion-input-row">
+            <input class="sp-companion-input" id="spCompInput" placeholder="Ask about drivers..."
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spCompSend();}"/>
+            <button class="sp-companion-send" id="spCompSendBtn" style="background:#AFA9EC" onclick="spCompSend()">Ask</button>
+          </div>
         </div>`;
     }
   },
@@ -5901,6 +5959,25 @@ const _SP_SECTIONS = {
           <div class="sp-row"><span class="sp-row-label">Russell (Mercedes)</span><span class="sp-row-val">22% win · 48% podium</span></div>
           <div class="sp-row"><span class="sp-row-label">Hamilton (Ferrari)</span><span class="sp-row-val">19% win · 41% podium</span></div>
           <div class="sp-row"><span class="sp-row-label">Norris (McLaren)</span><span class="sp-row-val">12% win · 32% podium</span></div>
+        </div>
+        <div class="sp-companion-card">
+          <div class="sp-companion-hdr-bar" style="background:#e1060012;border-left:3px solid #e10600">
+            <div class="sp-companion-hdr-dot" style="background:#e10600"></div>
+            <span class="sp-companion-hdr-label">Prediction Companion</span>
+          </div>
+          <div class="sp-companion-chips" id="spCompChips">
+            <button class="sp-companion-chip" onclick="spCompSend('Why is Antonelli the favourite for Miami 2026?')">Why is Antonelli favourite?</button>
+            <button class="sp-companion-chip" onclick="spCompSend('What causes red flags at Miami and why is the risk 24%?')">What causes red flags here?</button>
+            <button class="sp-companion-chip" onclick="spCompSend('Which drivers benefit most from a safety car at Miami 2026?')">Who benefits from safety car?</button>
+          </div>
+          <div class="sp-companion-msgs" id="spCompMsgs">
+            <div class="sp-companion-bubble-ai" style="border-left-color:#e1060060">These predictions use 2026 championship data and Miami history. Ask me to explain any of the numbers.</div>
+          </div>
+          <div class="sp-companion-input-row">
+            <input class="sp-companion-input" id="spCompInput" placeholder="Ask about predictions..."
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spCompSend();}"/>
+            <button class="sp-companion-send" id="spCompSendBtn" style="background:#e10600" onclick="spCompSend()">Ask</button>
+          </div>
         </div>`;
     }
   },
@@ -5937,6 +6014,25 @@ const _SP_SECTIONS = {
           <div class="sp-row"><span class="sp-row-label">Safety cars across all years</span><span class="sp-badge sp-badge-yellow">4 from 4 races</span></div>
           <div class="sp-row"><span class="sp-row-label">Most wins</span><span class="sp-row-val">Verstappen · 2</span></div>
           <div class="sp-row"><span class="sp-row-label">Peak US audience</span><span class="sp-row-val">3.6M (2024)</span></div>
+        </div>
+        <div class="sp-companion-card">
+          <div class="sp-companion-hdr-bar" style="background:#ffd70012;border-left:3px solid #ffd700">
+            <div class="sp-companion-hdr-dot" style="background:#ffd700"></div>
+            <span class="sp-companion-hdr-label">History Companion</span>
+          </div>
+          <div class="sp-companion-chips" id="spCompChips">
+            <button class="sp-companion-chip" onclick="spCompSend('Why does every Miami Grand Prix have a safety car?')">Why always safety cars?</button>
+            <button class="sp-companion-chip" onclick="spCompSend('Who has won at the Miami Grand Prix and how many times?')">Who has won here?</button>
+            <button class="sp-companion-chip" onclick="spCompSend('What makes the Miami Grand Prix so special and unpredictable?')">What makes Miami special?</button>
+          </div>
+          <div class="sp-companion-msgs" id="spCompMsgs">
+            <div class="sp-companion-bubble-ai" style="border-left-color:#ffd70060">Ask me about any Miami GP year or what makes this circuit so unpredictable.</div>
+          </div>
+          <div class="sp-companion-input-row">
+            <input class="sp-companion-input" id="spCompInput" placeholder="Ask about Miami history..."
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spCompSend();}"/>
+            <button class="sp-companion-send" id="spCompSendBtn" style="background:#ffd700;color:#000" onclick="spCompSend()">Ask</button>
+          </div>
         </div>`;
     }
   }
@@ -5962,7 +6058,7 @@ function openSection(key) {
   ).join('');
 
   _spRenderContent(key);
-  _spRenderCompanion(key);
+  _spRestoreHistory(key);
 
   page.classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -5984,7 +6080,7 @@ function switchSection(key) {
   });
   document.getElementById('spBody').scrollTop = 0;
   _spRenderContent(key);
-  _spRenderCompanion(key);
+  _spRestoreHistory(key);
 }
 
 function _spRenderContent(key) {
@@ -5996,46 +6092,17 @@ function _spRenderContent(key) {
   body.scrollTop = 0;
 }
 
-function _spRenderCompanion(key) {
-  const sec  = _SP_SECTIONS[key];
-  const col  = sec.color;
-  const hist = _spHistory[key];
-
-  const chipsHtml = sec.chips.map(c =>
-    `<button class="sp-companion-chip" onclick="spCompSend(${JSON.stringify(c)})">${c}</button>`
+function _spRestoreHistory(key) {
+  const hist   = _spHistory[key];
+  const msgsEl = document.getElementById('spCompMsgs');
+  if (!msgsEl || hist.length === 0) return;
+  const col = _SP_SECTIONS[key].color;
+  // Replace static opening message with real conversation history
+  msgsEl.innerHTML = hist.map(m =>
+    `<div class="${m.role === 'user' ? 'sp-companion-bubble-user' : 'sp-companion-bubble-ai'}"
+      style="${m.role !== 'user' ? 'border-left-color:' + col + '60' : ''}">${escapeHtml(m.content).replace(/\n/g,'<br>')}</div>`
   ).join('');
-
-  // Build messages: opening msg when no history, else restored history
-  let msgsHtml = '';
-  if (hist.length === 0) {
-    msgsHtml = `<div class="sp-companion-bubble-ai" style="border-left-color:${col}60">${escapeHtml(sec.openingMsg)}</div>`;
-  } else {
-    msgsHtml = hist.map(m =>
-      `<div class="${m.role === 'user' ? 'sp-companion-bubble-user' : 'sp-companion-bubble-ai'}"
-        style="${m.role !== 'user' ? 'border-left-color:' + col + '60' : ''}">${escapeHtml(m.content).replace(/\n/g,'<br>')}</div>`
-    ).join('');
-  }
-
-  const body = document.getElementById('spBody');
-  body.insertAdjacentHTML('beforeend', `
-    <div class="sp-companion-card">
-      <div class="sp-companion-hdr-bar" style="background:${col}12;border-left:3px solid ${col}">
-        <div class="sp-companion-hdr-dot" style="background:${col}"></div>
-        <span class="sp-companion-hdr-label">${sec.title} Companion</span>
-      </div>
-      <div class="sp-companion-chips" id="spCompChips">${chipsHtml}</div>
-      <div class="sp-companion-msgs" id="spCompMsgs">${msgsHtml}</div>
-      <div class="sp-companion-input-row">
-        <input class="sp-companion-input" id="spCompInput" placeholder="${sec.placeholder}"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spCompSend();}"/>
-        <button class="sp-companion-send" id="spCompSendBtn" style="background:${col}" onclick="spCompSend()">Ask</button>
-      </div>
-    </div>`);
-
-  if (hist.length > 0) {
-    const msgsEl = document.getElementById('spCompMsgs');
-    msgsEl.scrollTop = msgsEl.scrollHeight;
-  }
+  msgsEl.scrollTop = msgsEl.scrollHeight;
 }
 
 function spWeatherToggle(rain) {
