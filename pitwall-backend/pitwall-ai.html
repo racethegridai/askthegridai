@@ -4470,6 +4470,55 @@
     @keyframes rpBlink { 0%,100%{opacity:1} 50%{opacity:0} }
     .rp-ai-ask-btn { margin-top:12px; font-size:9px; color:#e10600; cursor:pointer; font-weight:700; background:none; border:1px solid #2a0000; padding:5px 12px; border-radius:2px; font-family:'Titillium Web',Arial,sans-serif; letter-spacing:.5px; display:block; width:100%; text-align:left; box-sizing:border-box; }
     .rp-ai-ask-btn:hover { color:#ff4444; border-color:#600000; background:#0d0000; }
+  /* ── RULES TAB ──────────────────────────────────── */
+  .rl-wrap { display:flex; gap:20px; padding:20px; width:100%; height:100%; overflow:hidden; box-sizing:border-box; }
+  .rl-left { flex:1; min-width:0; display:flex; flex-direction:column; gap:14px; overflow-y:auto; }
+  .rl-right { width:320px; flex-shrink:0; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
+  .rl-hero { background:#0a0a0a; border:1px solid #1e1e1e; border-left:3px solid var(--red); border-radius:2px; padding:16px 18px; flex-shrink:0; }
+  .rl-hero-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--red); margin-bottom:8px; }
+  .rl-hero-title { font-size:15px; font-weight:700; color:var(--white); line-height:1.3; margin-bottom:8px; }
+  .rl-hero-body  { font-size:11px; color:var(--gray); line-height:1.7; }
+  .rl-chat-card { background:#0a0a0a; border:1px solid #1e1e1e; border-radius:2px; padding:14px 16px; display:flex; flex-direction:column; gap:10px; flex:1; min-height:280px; }
+  .rl-section-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--red); }
+  .rl-chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .rl-chip { background:#111; border:1px solid #2a2a2a; color:#aaa; font-size:10px; padding:5px 10px; border-radius:2px; cursor:pointer; font-family:inherit; transition:border-color .2s,color .2s; white-space:nowrap; }
+  .rl-chip:hover { border-color:var(--red); color:var(--white); }
+  .rl-msgs { flex:1; min-height:120px; max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding:4px 0; }
+  .rl-bubble-ai { background:#0d0d0d; border:1px solid #1a1a1a; border-left:2px solid #e1060060; padding:8px 10px; font-size:11px; color:#ccc; line-height:1.7; border-radius:2px; }
+  .rl-bubble-user { background:#0e0e1a; border:1px solid #1e1e30; padding:7px 10px; font-size:11px; color:#e0e0ff; line-height:1.6; border-radius:2px; align-self:flex-end; max-width:85%; }
+  .rl-input-row { display:flex; gap:8px; }
+  .rl-input { flex:1; background:#0d0d0d; border:1px solid #2a2a2a; color:var(--white); font-family:inherit; font-size:11px; padding:8px 10px; border-radius:2px; outline:none; }
+  .rl-input:focus { border-color:var(--red); }
+  .rl-send { background:var(--red); border:none; color:var(--white); font-family:inherit; font-size:10px; font-weight:700; letter-spacing:1px; padding:0 14px; border-radius:2px; cursor:pointer; }
+  .rl-send:disabled { opacity:.4; cursor:default; }
+  .rl-glossary-card { background:#0a0a0a; border:1px solid #1e1e1e; border-radius:2px; padding:14px 16px; flex-shrink:0; }
+  .rl-glossary-row { padding:8px 0; border-bottom:1px solid #111; cursor:pointer; display:flex; flex-direction:column; gap:2px; }
+  .rl-glossary-row:last-child { border-bottom:none; }
+  .rl-glossary-row:hover .rl-glossary-term { color:var(--red); }
+  .rl-glossary-term { font-size:10px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--white); transition:color .2s; }
+  .rl-glossary-def  { font-size:10px; color:var(--gray); line-height:1.5; }
+  .rl-right-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--gray); padding:2px 0; flex-shrink:0; }
+  .rl-change-card { background:#0a0a0a; border:1px solid #1e1e1e; border-radius:2px; padding:12px 14px; flex-shrink:0; }
+  .rl-change-cat   { font-size:9px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:4px; }
+  .rl-change-title { font-size:12px; font-weight:700; color:var(--white); margin-bottom:6px; }
+  .rl-change-body  { font-size:10px; color:var(--gray); line-height:1.6; margin-bottom:8px; }
+  .rl-change-ask { background:none; border:none; font-family:inherit; font-size:9px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; padding:0; transition:opacity .2s; }
+  .rl-change-ask:hover { opacity:.7; }
+  .rl-rulebook-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .rl-rulebook-card { background:#0a0a0a; border:1px solid #1e1e1e; border-radius:2px; padding:10px 12px; cursor:pointer; transition:border-color .2s; }
+  .rl-rulebook-card:hover { border-color:#333; }
+  .rl-rulebook-name { font-size:10px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; margin-bottom:3px; }
+  .rl-rulebook-desc { font-size:9px; color:var(--gray); line-height:1.5; }
+  .rl-miami-card { background:#0a0a0a; border:1px solid #1e1e1e; border-radius:2px; padding:12px 14px; flex-shrink:0; }
+  .rl-miami-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #111; cursor:pointer; }
+  .rl-miami-row:last-child { border-bottom:none; }
+  .rl-miami-label { font-size:10px; color:var(--white); }
+  .rl-miami-ask { background:none; border:none; font-family:inherit; font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--red); cursor:pointer; }
+  @media (max-width:768px) {
+    .rl-wrap { flex-direction:column; overflow-y:auto; padding:12px; height:auto; min-height:100%; }
+    .rl-right { width:100%; }
+    .rl-msgs  { max-height:220px; }
+  }
   </style>
 </head>
 <body>
@@ -4855,7 +4904,65 @@
 
     <!-- Rules panel -->
     <div class="mob-news-panel" id="mob-news-rules">
-      <div class="mob-news-coming-soon">Rules &amp; Regulations explained in plain English — coming before Miami weekend.</div>
+      <div class="rl-wrap" style="flex-direction:column;height:auto;overflow-y:visible;padding:12px;">
+        <div class="rl-hero">
+          <div class="rl-hero-label">2026 F1 Rules · Plain English</div>
+          <div class="rl-hero-title">Everything changed for 2026. Here is what you actually need to know.</div>
+          <div class="rl-hero-body">New hybrid power units. Active aero replacing DRS. Two new teams. If you are confused watching 2026 you are not alone — even the drivers are still figuring it out.</div>
+        </div>
+        <div class="rl-chat-card" style="min-height:auto;">
+          <div class="rl-section-label">Ask AI about any F1 rule</div>
+          <div class="rl-chips">
+            <button class="rl-chip" onclick="rlAsk('What is active aero and how does it work in 2026 F1?')">What is active aero?</button>
+            <button class="rl-chip" onclick="rlAsk('Why do F1 cars suddenly lose power on straights in 2026?')">Why do cars lose power?</button>
+            <button class="rl-chip" onclick="rlAsk('Explain the sprint weekend format in F1 2026?')">Explain the sprint format</button>
+            <button class="rl-chip" onclick="rlAsk('Who are Audi and Cadillac and when did they join F1?')">Who are Audi and Cadillac?</button>
+            <button class="rl-chip" onclick="rlAsk('Why is Max Verstappen so angry about the 2026 F1 rules?')">Why is Verstappen angry?</button>
+          </div>
+          <div class="rl-msgs" id="rl-msgs-mob" style="max-height:220px;">
+            <div class="rl-bubble-ai">Ask me anything about F1 rules and regulations. I explain everything in plain English — no jargon, no assumptions. What do you want to understand?</div>
+          </div>
+          <div class="rl-input-row">
+            <input class="rl-input" id="rl-input-mob" placeholder="Ask about any F1 rule…"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();rlAskMob(null);}"/>
+            <button class="rl-send" id="rl-send-mob" onclick="rlAskMob(null)">Ask</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="rl-right-label">The big 2026 changes</div>
+          <div class="rl-change-card" style="border-left:2px solid #e10600"><div class="rl-change-cat" style="color:#e10600">Power Unit</div><div class="rl-change-title">The yo-yo power effect</div><div class="rl-change-body">Cars accelerate then suddenly lose power on straights. The new hybrid deployment rules cause this. Red Bull suffer most.</div><button class="rl-change-ask" style="color:#e10600" onclick="rlAskMob('Explain why F1 cars have the yo-yo power effect in 2026?')">Ask AI about this →</button></div>
+          <div class="rl-change-card" style="border-left:2px solid #3b82f6"><div class="rl-change-cat" style="color:#3b82f6">Aerodynamics</div><div class="rl-change-title">Active aero replaced DRS</div><div class="rl-change-body">DRS is gone. Active aero adjusts wings automatically. Some drivers love it. Most hate it.</div><button class="rl-change-ask" style="color:#3b82f6" onclick="rlAskMob('Explain how active aero replaced DRS in 2026 F1?')">Ask AI about this →</button></div>
+          <div class="rl-change-card" style="border-left:2px solid #22c55e"><div class="rl-change-cat" style="color:#22c55e">Race Starts</div><div class="rl-change-title">Why starts look so weird</div><div class="rl-change-body">Cars rev for 10 seconds before moving. The hybrid system needs time to charge before the clutch releases.</div><button class="rl-change-ask" style="color:#22c55e" onclick="rlAskMob('Why do 2026 F1 race starts look so weird?')">Ask AI about this →</button></div>
+          <div class="rl-change-card" style="border-left:2px solid #f5c842"><div class="rl-change-cat" style="color:#f5c842">Teams</div><div class="rl-change-title">Two brand new teams</div><div class="rl-change-body">Audi and Cadillac joined F1. Cadillac is the first American team in decades. Miami is their home race.</div><button class="rl-change-ask" style="color:#f5c842" onclick="rlAskMob('Tell me about Audi and Cadillac joining F1 in 2026?')">Ask AI about this →</button></div>
+          <div class="rl-change-card" style="border-left:2px solid #a855f7"><div class="rl-change-cat" style="color:#a855f7">Scoring</div><div class="rl-change-title">Sprint weekends score more</div><div class="rl-change-body">Miami is a sprint weekend. Saturday results now matter more for the championship than before.</div><button class="rl-change-ask" style="color:#a855f7" onclick="rlAskMob('Explain how sprint weekend scoring works in 2026 F1?')">Ask AI about this →</button></div>
+          <div class="rl-change-card" style="border-left:2px solid #e10600"><div class="rl-change-cat" style="color:#e10600">Controversy</div><div class="rl-change-title">Why Verstappen is so angry</div><div class="rl-change-body">He compared 2026 racing to Mario Kart. Red Bull engine loses power on straights. Genuinely furious.</div><button class="rl-change-ask" style="color:#e10600" onclick="rlAskMob('Why is Max Verstappen so angry about 2026 F1?')">Ask AI about this →</button></div>
+          <div class="rl-right-label">F1 Rulebook</div>
+          <div class="rl-rulebook-grid">
+            <div class="rl-rulebook-card" style="border-left:2px solid #e10600" onclick="rlAskMob('Explain all the main rules about what F1 cars can and cannot have in 2026')"><div class="rl-rulebook-name" style="color:#e10600">The Cars</div><div class="rl-rulebook-desc">Weight limits engine rules aerodynamic restrictions</div></div>
+            <div class="rl-rulebook-card" style="border-left:2px solid #22c55e" onclick="rlAskMob('Explain all the rules around F1 race starts including formation lap and false starts')"><div class="rl-rulebook-name" style="color:#22c55e">Race Starts</div><div class="rl-rulebook-desc">Formation lap false starts rain procedure</div></div>
+            <div class="rl-rulebook-card" style="border-left:2px solid #f5c842" onclick="rlAskMob('Explain all the pit stop rules in F1 including speed limits')"><div class="rl-rulebook-name" style="color:#f5c842">Pit Stops</div><div class="rl-rulebook-desc">Speed limits unsafe release what teams can change</div></div>
+            <div class="rl-rulebook-card" style="border-left:2px solid #3b82f6" onclick="rlAskMob('Explain every flag in F1 and what drivers must do for each one')"><div class="rl-rulebook-name" style="color:#3b82f6">Flags</div><div class="rl-rulebook-desc">Every flag explained yellow red blue black checkered</div></div>
+            <div class="rl-rulebook-card" style="border-left:2px solid #ff8c00" onclick="rlAskMob('Explain how F1 penalties work and how stewards decide them')"><div class="rl-rulebook-name" style="color:#ff8c00">Penalties</div><div class="rl-rulebook-desc">Time penalties grid drops disqualification</div></div>
+            <div class="rl-rulebook-card" style="border-left:2px solid #a855f7" onclick="rlAskMob('Explain all the safety car rules in F1 including VSC')"><div class="rl-rulebook-name" style="color:#a855f7">Safety Car</div><div class="rl-rulebook-desc">When deployed driver rules VSC rules</div></div>
+            <div class="rl-rulebook-card" style="border-left:2px solid #f5c842" onclick="rlAskMob('Explain exactly how the F1 points system works in 2026')"><div class="rl-rulebook-name" style="color:#f5c842">Points</div><div class="rl-rulebook-desc">Championship sprint fastest lap tie rules</div></div>
+            <div class="rl-rulebook-card" style="border-left:2px solid #14b8a6" onclick="rlAskMob('Explain the rules around overtaking and defending in F1')"><div class="rl-rulebook-name" style="color:#14b8a6">Driver Conduct</div><div class="rl-rulebook-desc">Track limits defending overtaking</div></div>
+          </div>
+          <div class="rl-miami-card">
+            <div class="rl-right-label" style="margin-bottom:8px">Miami Specific Rules</div>
+            <div class="rl-miami-row" onclick="rlAskMob('Explain the Miami GP sprint weekend format?')"><span class="rl-miami-label">Sprint weekend format</span><button class="rl-miami-ask">Ask AI →</button></div>
+            <div class="rl-miami-row" onclick="rlAskMob('What are the track limits rules at Miami GP?')"><span class="rl-miami-label">Track limits at Miami</span><button class="rl-miami-ask">Ask AI →</button></div>
+            <div class="rl-miami-row" onclick="rlAskMob('How does active aero work at Miami GP?')"><span class="rl-miami-label">Active aero zones at Miami</span><button class="rl-miami-ask">Ask AI →</button></div>
+          </div>
+          <div class="rl-glossary-card">
+            <div class="rl-section-label" style="margin-bottom:10px">F1 Basics Glossary</div>
+            <div class="rl-glossary-row" onclick="rlAskMob('Explain active aero in F1 2026 — what replaced DRS?')"><div class="rl-glossary-term">Active Aero</div><div class="rl-glossary-def">Replaced DRS — adjusts wings for overtaking</div></div>
+            <div class="rl-glossary-row" onclick="rlAskMob('Explain the undercut strategy in F1?')"><div class="rl-glossary-term">Undercut</div><div class="rl-glossary-def">Pitting before rivals to come out ahead on fresher tyres</div></div>
+            <div class="rl-glossary-row" onclick="rlAskMob('What does box box mean in F1?')"><div class="rl-glossary-term">Box Box</div><div class="rl-glossary-def">Radio code telling driver to pit immediately</div></div>
+            <div class="rl-glossary-row" onclick="rlAskMob('What is the Virtual Safety Car in F1?')"><div class="rl-glossary-term">VSC</div><div class="rl-glossary-def">Virtual Safety Car — cars slow without physical SC</div></div>
+            <div class="rl-glossary-row" onclick="rlAskMob('What is parc fermé in F1?')"><div class="rl-glossary-term">Parc Fermé</div><div class="rl-glossary-def">Rule preventing teams changing car setup after qualifying</div></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Race Preview panel — mobile hub -->
@@ -5839,11 +5946,148 @@
     </div>
   </div>
   <div class="news-panel" id="news-rules">
-    <div class="news-coming-soon">
-      <div class="news-coming-soon-icon">📋</div>
-      <div class="news-coming-soon-title">2026 Rules Explained</div>
-      <div class="news-coming-soon-sub">Every major regulation change this season explained in plain English for new fans. Coming soon.</div>
-    </div>
+    <div class="rl-wrap">
+      <!-- LEFT COLUMN -->
+      <div class="rl-left">
+        <div class="rl-hero">
+          <div class="rl-hero-label">2026 F1 Rules · Plain English</div>
+          <div class="rl-hero-title">Everything changed for 2026. Here is what you actually need to know.</div>
+          <div class="rl-hero-body">New hybrid power units. Active aero replacing DRS. Two new teams. If you are confused watching 2026 you are not alone — even the drivers are still figuring it out.</div>
+        </div>
+        <div class="rl-chat-card">
+          <div class="rl-section-label">Ask AI about any F1 rule</div>
+          <div class="rl-chips">
+            <button class="rl-chip" onclick="rlAsk('What is active aero and how does it work in 2026 F1?')">What is active aero?</button>
+            <button class="rl-chip" onclick="rlAsk('Why do F1 cars suddenly lose power on straights in 2026?')">Why do cars lose power?</button>
+            <button class="rl-chip" onclick="rlAsk('Explain the sprint weekend format in F1 2026 — what happens each day?')">Explain the sprint format</button>
+            <button class="rl-chip" onclick="rlAsk('Who are Audi and Cadillac and when did they join F1?')">Who are Audi and Cadillac?</button>
+            <button class="rl-chip" onclick="rlAsk('Why is Max Verstappen so angry about the 2026 F1 rules and cars?')">Why is Verstappen angry?</button>
+          </div>
+          <div class="rl-msgs" id="rl-msgs">
+            <div class="rl-bubble-ai">Ask me anything about F1 rules and regulations. I explain everything in plain English — no jargon, no assumptions. What do you want to understand?</div>
+          </div>
+          <div class="rl-input-row">
+            <input class="rl-input" id="rl-input" placeholder="Ask about any F1 rule…"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();rlAsk(null);}"/>
+            <button class="rl-send" id="rl-send" onclick="rlAsk(null)">Ask</button>
+          </div>
+        </div>
+        <div class="rl-glossary-card">
+          <div class="rl-section-label" style="margin-bottom:10px">F1 Basics Glossary</div>
+          <div class="rl-glossary-row" onclick="rlAsk('Explain active aero in F1 2026 — what replaced DRS and how does it work for overtaking?')">
+            <div class="rl-glossary-term">Active Aero</div>
+            <div class="rl-glossary-def">Replaced DRS — system that adjusts wings for overtaking</div>
+          </div>
+          <div class="rl-glossary-row" onclick="rlAsk('Explain the undercut strategy in F1 — how does pitting before rivals help you come out ahead on fresher tyres?')">
+            <div class="rl-glossary-term">Undercut</div>
+            <div class="rl-glossary-def">Pitting before rivals to come out ahead on fresher tyres</div>
+          </div>
+          <div class="rl-glossary-row" onclick="rlAsk('What does box box mean in F1 and why do teams use that phrase on team radio?')">
+            <div class="rl-glossary-term">Box Box</div>
+            <div class="rl-glossary-def">Radio code telling driver to pit immediately</div>
+          </div>
+          <div class="rl-glossary-row" onclick="rlAsk('What is the Virtual Safety Car in F1, how is it different from a real safety car, and what rules apply?')">
+            <div class="rl-glossary-term">VSC</div>
+            <div class="rl-glossary-def">Virtual Safety Car — cars slow without physical SC on track</div>
+          </div>
+          <div class="rl-glossary-row" onclick="rlAsk('What is parc fermé in F1 and what rules does it impose on teams after qualifying?')">
+            <div class="rl-glossary-term">Parc Fermé</div>
+            <div class="rl-glossary-def">Rule preventing teams changing car setup after qualifying</div>
+          </div>
+        </div>
+      </div><!-- /rl-left -->
+
+      <!-- RIGHT COLUMN -->
+      <div class="rl-right">
+        <div class="rl-right-label">The big 2026 changes</div>
+        <div class="rl-change-card" style="border-left:2px solid #e10600">
+          <div class="rl-change-cat" style="color:#e10600">Power Unit</div>
+          <div class="rl-change-title">The yo-yo power effect</div>
+          <div class="rl-change-body">Cars accelerate then suddenly lose power on straights. The new hybrid deployment rules cause this. Red Bull suffer most.</div>
+          <button class="rl-change-ask" style="color:#e10600" onclick="rlAsk('Explain why F1 cars have the yo-yo power effect in 2026 — why do they suddenly lose power on straights and which teams suffer most?')">Ask AI about this →</button>
+        </div>
+        <div class="rl-change-card" style="border-left:2px solid #3b82f6">
+          <div class="rl-change-cat" style="color:#3b82f6">Aerodynamics</div>
+          <div class="rl-change-title">Active aero replaced DRS</div>
+          <div class="rl-change-body">DRS is gone. Active aero adjusts wings automatically. Some drivers love it. Most hate it.</div>
+          <button class="rl-change-ask" style="color:#3b82f6" onclick="rlAsk('Explain how active aero replaced DRS in 2026 F1, how it works, and why some drivers hate it?')">Ask AI about this →</button>
+        </div>
+        <div class="rl-change-card" style="border-left:2px solid #22c55e">
+          <div class="rl-change-cat" style="color:#22c55e">Race Starts</div>
+          <div class="rl-change-title">Why starts look so weird</div>
+          <div class="rl-change-body">Cars rev for 10 seconds before moving. The hybrid system needs time to charge before the clutch releases.</div>
+          <button class="rl-change-ask" style="color:#22c55e" onclick="rlAsk('Why do 2026 F1 race starts look so weird with cars revving before moving — explain the hybrid charging rule?')">Ask AI about this →</button>
+        </div>
+        <div class="rl-change-card" style="border-left:2px solid #f5c842">
+          <div class="rl-change-cat" style="color:#f5c842">Teams</div>
+          <div class="rl-change-title">Two brand new teams</div>
+          <div class="rl-change-body">Audi and Cadillac joined F1. Cadillac is the first American team in decades. Miami is their home race.</div>
+          <button class="rl-change-ask" style="color:#f5c842" onclick="rlAsk('Tell me about Audi and Cadillac joining F1 in 2026 and what it means for the sport?')">Ask AI about this →</button>
+        </div>
+        <div class="rl-change-card" style="border-left:2px solid #a855f7">
+          <div class="rl-change-cat" style="color:#a855f7">Scoring</div>
+          <div class="rl-change-title">Sprint weekends score more</div>
+          <div class="rl-change-body">Miami is a sprint weekend. Saturday results now matter more for the championship than before.</div>
+          <button class="rl-change-ask" style="color:#a855f7" onclick="rlAsk('Explain how sprint weekend scoring works in 2026 F1 and why Miami sprint results matter more for the championship?')">Ask AI about this →</button>
+        </div>
+        <div class="rl-change-card" style="border-left:2px solid #e10600">
+          <div class="rl-change-cat" style="color:#e10600">Controversy</div>
+          <div class="rl-change-title">Why Verstappen is so angry</div>
+          <div class="rl-change-body">He compared 2026 racing to Mario Kart. Red Bull engine loses power on straights. Genuinely furious.</div>
+          <button class="rl-change-ask" style="color:#e10600" onclick="rlAsk('Why is Max Verstappen so angry about 2026 F1 and why did he compare it to Mario Kart?')">Ask AI about this →</button>
+        </div>
+        <div class="rl-right-label" style="margin-top:6px">F1 Rulebook</div>
+        <div class="rl-rulebook-grid">
+          <div class="rl-rulebook-card" style="border-left:2px solid #e10600" onclick="rlAsk('Explain all the main rules about what F1 cars can and cannot have in 2026')">
+            <div class="rl-rulebook-name" style="color:#e10600">The Cars</div>
+            <div class="rl-rulebook-desc">Weight limits engine rules aerodynamic restrictions</div>
+          </div>
+          <div class="rl-rulebook-card" style="border-left:2px solid #22c55e" onclick="rlAsk('Explain all the rules around F1 race starts including formation lap and false starts')">
+            <div class="rl-rulebook-name" style="color:#22c55e">Race Starts</div>
+            <div class="rl-rulebook-desc">Formation lap false starts rain procedure</div>
+          </div>
+          <div class="rl-rulebook-card" style="border-left:2px solid #f5c842" onclick="rlAsk('Explain all the pit stop rules in F1 including speed limits and what teams can and cannot change')">
+            <div class="rl-rulebook-name" style="color:#f5c842">Pit Stops</div>
+            <div class="rl-rulebook-desc">Speed limits unsafe release what teams can change</div>
+          </div>
+          <div class="rl-rulebook-card" style="border-left:2px solid #3b82f6" onclick="rlAsk('Explain every flag in F1 and what drivers must do for each one')">
+            <div class="rl-rulebook-name" style="color:#3b82f6">Flags and Signals</div>
+            <div class="rl-rulebook-desc">Every flag explained yellow red blue black checkered</div>
+          </div>
+          <div class="rl-rulebook-card" style="border-left:2px solid #ff8c00" onclick="rlAsk('Explain how F1 penalties work and how stewards decide them')">
+            <div class="rl-rulebook-name" style="color:#ff8c00">Penalties</div>
+            <div class="rl-rulebook-desc">Time penalties grid drops drive-throughs disqualification</div>
+          </div>
+          <div class="rl-rulebook-card" style="border-left:2px solid #a855f7" onclick="rlAsk('Explain all the safety car rules in F1 including VSC')">
+            <div class="rl-rulebook-name" style="color:#a855f7">Safety Car Rules</div>
+            <div class="rl-rulebook-desc">When deployed driver rules pit stop rules VSC rules</div>
+          </div>
+          <div class="rl-rulebook-card" style="border-left:2px solid #f5c842" onclick="rlAsk('Explain exactly how the F1 points system works in 2026')">
+            <div class="rl-rulebook-name" style="color:#f5c842">Points System</div>
+            <div class="rl-rulebook-desc">Championship points sprint points fastest lap tie rules</div>
+          </div>
+          <div class="rl-rulebook-card" style="border-left:2px solid #14b8a6" onclick="rlAsk('Explain the rules around overtaking and defending in F1 and what is and is not allowed')">
+            <div class="rl-rulebook-name" style="color:#14b8a6">Driver Conduct</div>
+            <div class="rl-rulebook-desc">Track limits defending overtaking dangerous driving</div>
+          </div>
+        </div>
+        <div class="rl-miami-card">
+          <div class="rl-right-label" style="margin-bottom:8px">Miami Specific Rules</div>
+          <div class="rl-miami-row" onclick="rlAsk('Explain the Miami GP sprint weekend format — what happens on Friday Saturday and Sunday?')">
+            <span class="rl-miami-label">Sprint weekend format</span>
+            <button class="rl-miami-ask">Ask AI →</button>
+          </div>
+          <div class="rl-miami-row" onclick="rlAsk('What are the track limits rules at Miami GP and which corners are most monitored?')">
+            <span class="rl-miami-label">Track limits at Miami</span>
+            <button class="rl-miami-ask">Ask AI →</button>
+          </div>
+          <div class="rl-miami-row" onclick="rlAsk('How does active aero work at Miami GP and which zones can drivers use it for overtaking?')">
+            <span class="rl-miami-label">Active aero zones at Miami</span>
+            <button class="rl-miami-ask">Ask AI →</button>
+          </div>
+        </div>
+      </div><!-- /rl-right -->
+    </div><!-- /rl-wrap -->
   </div>
   <div class="news-panel" id="news-preview">
   <div class="rp-wrap">
@@ -10715,6 +10959,80 @@ function _rpTypeText(el, text) {
     }
   }, 18);
 }
+
+/* ──────────────────────────────────────────────────
+   RULES TAB CHAT
+────────────────────────────────────────────────── */
+const _RL_SYSTEM = `You are an F1 rules expert for 2026. Today is April 2026. Explain all F1 rules in plain English. Never use FIA article numbers. Always explain WHY a rule exists. Use the users explanation style.
+
+Key rules you know:
+- Minimum car weight 800kg with driver
+- Drivers minimum 80kg with ballast
+- Maximum 4 power unit components per driver per season
+- Pit lane speed limit 80km/h
+- Teams run maximum 2 cars
+- DRS replaced by active aero in 2026
+- Sprint race maximum 100km
+- Points 25-18-15-12-10-8-6-4-2-1
+- Sprint points 8-7-6-5-4-3-2-1
+- Fastest lap point if finishing top 10
+- Cost cap 135 million USD per season
+- Drivers must complete 90 percent of race to be classified
+- Track limits all four wheels within white lines
+- Each tyre compound used once minimum in dry race conditions`;
+
+let _rlHistory = [];
+let _rlBusy = false;
+let _rlHistoryMob = [];
+let _rlBusyMob = false;
+
+async function _rlSend(text, msgsId, inputId, sendId, histRef, busyRef, setBusy) {
+  if (busyRef()) return;
+  const inputEl = document.getElementById(inputId);
+  const sendEl  = document.getElementById(sendId);
+  const msgsEl  = document.getElementById(msgsId);
+  if (!msgsEl) return;
+  const q = (typeof text === 'string' && text) ? text : (inputEl ? inputEl.value.trim() : '');
+  if (!q) return;
+  if (inputEl) inputEl.value = '';
+  setBusy(true);
+  if (sendEl) sendEl.disabled = true;
+  const userBubble = document.createElement('div');
+  userBubble.className = 'rl-bubble-user';
+  userBubble.textContent = q;
+  msgsEl.appendChild(userBubble);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+  histRef.push({ role: 'user', content: q });
+  const aiBubble = document.createElement('div');
+  aiBubble.className = 'rl-bubble-ai';
+  aiBubble.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  msgsEl.appendChild(aiBubble);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+  try {
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: _RL_SYSTEM, messages: histRef }),
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${res.status}`); }
+    let fullText = '';
+    await _readTokenStream(res, txt => { fullText = txt; });
+    aiBubble.innerHTML = escapeHtml(fullText || '(No response)').replace(/\n/g, '<br>');
+    histRef.push({ role: 'assistant', content: fullText || '(No response)' });
+  } catch (e) {
+    const errMsg = (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) ? '⚠ Cannot reach the backend.' : `⚠ ${e.message}`;
+    aiBubble.innerHTML = escapeHtml(errMsg);
+    histRef.push({ role: 'assistant', content: errMsg });
+  } finally {
+    setBusy(false);
+    if (sendEl) sendEl.disabled = false;
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+}
+
+function rlAsk(text)    { _rlSend(text, 'rl-msgs',     'rl-input',     'rl-send',     _rlHistory,    () => _rlBusy,    v => { _rlBusy    = v; }); }
+function rlAskMob(text) { _rlSend(text, 'rl-msgs-mob', 'rl-input-mob', 'rl-send-mob', _rlHistoryMob, () => _rlBusyMob, v => { _rlBusyMob = v; }); }
 </script>
 
 <!-- ── NEWS ARTICLE POPUP OVERLAY (desktop) ──────── -->
