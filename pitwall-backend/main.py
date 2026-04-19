@@ -1083,6 +1083,8 @@ async def chat_stream(req: ChatRequest, request: Request):
                 max_tokens=600,
                 system=system_blocks,
                 messages=req.messages,
+                tools=[{"type": "web_search_20250305", "name": "web_search"}],
+                betas=["web-search-2025-03-05"],
             ) as stream:
                 async for text in stream.text_stream:
                     if first_token:
