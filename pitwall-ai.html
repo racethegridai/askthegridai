@@ -6144,6 +6144,7 @@ async function spAsk(section, text) {
   console.log('[spAsk] sec =', _SP_SECTIONS[section]);
   const key = section || _spCurrent;
   if (!key || _spBusy[key]) return;
+  console.log('[spAsk] msgsEl:', document.getElementById('sp-chat-' + key), 'bodyEl:', document.getElementById('spBody'));
 
   const inputEl = document.getElementById('sp-input-' + key);
   const sendEl  = document.getElementById('sp-send-' + key);
