@@ -6138,6 +6138,10 @@ function _spTypewriter(el, text, scrollEl, msPerChar) {
 }
 
 async function spAsk(section, text) {
+  console.log('[spAsk] called', section, text);
+  console.log('[spAsk] BACKEND =', BACKEND);
+  console.log('[spAsk] _SP_SECTIONS keys =', Object.keys(_SP_SECTIONS));
+  console.log('[spAsk] sec =', _SP_SECTIONS[section]);
   const key = section || _spCurrent;
   if (!key || _spBusy[key]) return;
 
