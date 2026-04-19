@@ -927,6 +927,28 @@ async def _enforce_rate_limit(request: Request) -> None:
 
 # ── Chat proxy ────────────────────────────────────────
 
+_CRITICAL_CONTEXT = """CRITICAL CONTEXT — READ FIRST:
+Today's date is April 2026.
+The 2026 F1 season is currently underway with 4 races completed.
+This is NOT 2024 or 2025.
+
+Lewis Hamilton is NOW at Ferrari.
+He LEFT Mercedes after 2024.
+He signed with Ferrari for 2026.
+This already happened.
+
+Kimi Antonelli replaced Hamilton at Mercedes for 2026 and is currently leading the championship.
+
+When anyone asks about Hamilton at Ferrari treat this as current fact not future speculation.
+When anyone asks about Antonelli at Mercedes treat this as current fact not future speculation.
+
+Never say 'Hamilton might move to Ferrari' or 'if Hamilton joins Ferrari'.
+He is already there. It already happened.
+
+Never reference 2024 season results as the most recent season.
+The most recent completed races are from the 2026 season."""
+
+
 class ChatRequest(BaseModel):
     system: str
     messages: list[dict]
@@ -1097,7 +1119,7 @@ async def chat(req: ChatRequest, request: Request):
         response = await client.messages.create(
             model="claude-sonnet-4-20250514",
             max_tokens=600,
-            system=req.system,
+            system=_CRITICAL_CONTEXT + "\n\n" + req.system,
             messages=req.messages,
         )
         return {"reply": response.content[0].text}
@@ -1131,16 +1153,18 @@ async def chat_stream(req: ChatRequest, request: Request):
 
     print(f"[STREAM] Auth done: {time.time()-t0:.2f}s", flush=True)
 
+    # Block 0 — critical context: date + season facts (never cached, always first).
     # Block 1 — static (prompt-cached): mode/style instructions from frontend.
     # Block 2 — dynamic (never cached): live standings + news + session + radio.
     # Block 3 — optional: driver profile stats when user is on a driver page.
     # Block 4 — optional: race-specific snapshot when message asks for live data.
     system_blocks: list[dict] = [
+        {"type": "text", "text": _CRITICAL_CONTEXT},
         {
             "type": "text",
             "text": req.system,
             "cache_control": {"type": "ephemeral"},
-        }
+        },
     ]
 
     # Always inject live app data — standings, news, session, radio

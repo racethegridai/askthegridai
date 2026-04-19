@@ -4753,9 +4753,9 @@
       <div class="mob-news-ask-box">
         <div class="mob-news-ask-title">Ask about today's news</div>
         <div class="mob-news-ask-chips">
-          <button class="mob-news-ask-chip" onclick="newsAsk('How does the 2026 championship math work with 4 races gone?')">How does the 2026 championship math work?</button>
-          <button class="mob-news-ask-chip" onclick="newsAsk('Why does Miami heat affect tyre choices in F1?')">Why does Miami heat matter for tyres?</button>
-          <button class="mob-news-ask-chip" onclick="newsAsk('What are the biggest rule changes in 2026 F1?')">What changed in the 2026 regulations?</button>
+          <button class="mob-news-ask-chip" onclick="mobNewsAsk('How does the 2026 championship math work with 4 races gone?')">How does the 2026 championship math work?</button>
+          <button class="mob-news-ask-chip" onclick="mobNewsAsk('Why does Miami heat affect tyre choices in F1?')">Why does Miami heat matter for tyres?</button>
+          <button class="mob-news-ask-chip" onclick="mobNewsAsk('What are the biggest rule changes in 2026 F1?')">What changed in the 2026 regulations?</button>
         </div>
         <div class="mob-news-ai-row">
           <input class="mob-news-ai-input" id="mobNewsAiInput"
@@ -4769,16 +4769,16 @@
       <!-- People are asking -->
       <div class="mob-news-paq">
         <div class="mob-news-paq-title">People are asking</div>
-        <div class="mob-news-paq-item" onclick="newsAsk('Can anyone stop Mercedes dominating the 2026 championship?')">
+        <div class="mob-news-paq-item" onclick="mobNewsAsk('Can anyone stop Mercedes dominating the 2026 championship?')">
           <span class="mob-news-paq-num">1</span>Can anyone stop Mercedes in 2026?
         </div>
-        <div class="mob-news-paq-item" onclick="newsAsk('Why is Lewis Hamilton struggling at Ferrari in 2026?')">
+        <div class="mob-news-paq-item" onclick="mobNewsAsk('Why is Lewis Hamilton struggling at Ferrari in 2026?')">
           <span class="mob-news-paq-num">2</span>Why is Hamilton struggling at Ferrari?
         </div>
-        <div class="mob-news-paq-item" onclick="newsAsk('What makes the Miami International Autodrome different from other F1 circuits?')">
+        <div class="mob-news-paq-item" onclick="mobNewsAsk('What makes the Miami International Autodrome different from other F1 circuits?')">
           <span class="mob-news-paq-num">3</span>What makes Miami different from other tracks?
         </div>
-        <div class="mob-news-paq-item" onclick="newsAsk('Does Lando Norris still have a realistic chance of winning the 2026 championship?')">
+        <div class="mob-news-paq-item" onclick="mobNewsAsk('Does Lando Norris still have a realistic chance of winning the 2026 championship?')">
           <span class="mob-news-paq-num">4</span>Can Norris still win the championship?
         </div>
       </div>
@@ -7537,25 +7537,46 @@ function _renderMobInsights(el, d) {
     <div class="mob-news-sheet-insight-val">${escapeHtml(d.casual_fan_take || '')}</div>`;
 }
 
+function mobNewsAsk(q) {
+  const inp = document.getElementById('mobNewsAiInput');
+  if (inp) inp.value = q;
+  mobSendNewsAI();
+}
+
+let _mobNewsBusy = false;
 async function mobSendNewsAI() {
+  if (_mobNewsBusy) return;
   const input = document.getElementById('mobNewsAiInput');
   const resp  = document.getElementById('mobNewsAiResp');
   if (!input || !resp) return;
   const q = input.value.trim();
   if (!q) return;
+  _mobNewsBusy = true;
   input.value = '';
   resp.style.display = 'block';
-  resp.textContent = 'Thinking…';
+  resp.textContent = 'Thinking\u2026';
+  const styleInst = STYLE_INSTRUCTIONS[getExplainStyle()] || STYLE_INSTRUCTIONS.beginner;
+  const system = `You are an F1 expert explaining today's Formula 1 news.
+Keep answers to 3-4 sentences maximum.
+Focus on why this matters for a fan watching the 2026 season.
+Never quote articles or reproduce headlines. Write only original explanations.
+
+${styleInst}`;
   try {
-    const res = await fetch(`${BACKEND}/api/ask`, {
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({question: q, context: 'news'}),
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({ system, messages: [{ role: 'user', content: q }] }),
+      signal: AbortSignal.timeout(25000),
     });
-    const data = await res.json();
-    resp.textContent = data.answer || data.response || 'No response.';
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await _readTokenStream(res, txt => {
+      resp.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+    });
   } catch(e) {
-    resp.textContent = 'Could not get a response. Try again.';
+    resp.textContent = '\u26a0 Could not connect to AI. Try again.';
+  } finally {
+    _mobNewsBusy = false;
   }
 }
 
