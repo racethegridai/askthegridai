@@ -2817,9 +2817,9 @@
         </div>
 
         <!-- SVG Track Map -->
-        <div class="rp-track-wrap">
+        <div class="rp-track-wrap" style="max-height:320px;overflow:hidden;">
           <!-- Track path: Wikimedia Commons · CC BY-SA 3.0 · Hard_Rock_Stadium_Circuit_2022.svg -->
-          <svg viewBox="0 0 343.96 132.29" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+          <svg viewBox="0 0 343.96 132.29" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:320px;height:auto;display:block;">
             <rect width="343.96" height="132.29" fill="#0d1117"/>
             <!-- Horizontal flip (left↔right mirror) -->
             <g transform="scale(-1,1) translate(-343.96,0)">
@@ -5183,7 +5183,9 @@ init();
 let _rpRain = false;
 
 function rpSend(q) {
+  switchTab('live');
   document.getElementById('chatInput').value = q;
+  document.getElementById('chatMessages').scrollTop = 0;
   sendMsg();
 }
 

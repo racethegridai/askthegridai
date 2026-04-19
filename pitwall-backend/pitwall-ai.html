@@ -5238,8 +5238,8 @@
           </div>
 
           <!-- SVG circuit map — Wikimedia Commons · CC BY-SA 3.0 · Hard_Rock_Stadium_Circuit_2022.svg -->
-          <div class="rp-track-wrap" style="padding:8px;">
-            <svg viewBox="0 0 343.96 132.29" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+          <div class="rp-track-wrap" style="padding:8px;max-height:320px;overflow:hidden;">
+            <svg viewBox="0 0 343.96 132.29" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:320px;height:auto;display:block;">
               <rect width="343.96" height="132.29" fill="#0d1117"/>
 
               <!-- Horizontal flip (left↔right mirror) -->
@@ -9487,8 +9487,14 @@ if (isMobile()) {
    RACE PREVIEW TAB
 ───────────────────────────────────────────── */
 function rpSend(q) {
+  switchTab('live');
   const inp = document.getElementById('chatInput');
-  if (inp) { inp.value = q; sendMsg(); }
+  if (inp) {
+    inp.value = q;
+    const chatBox = document.getElementById('chatMessages');
+    if (chatBox) chatBox.scrollTop = 0;
+    sendMsg();
+  }
 }
 
 function rpSendHistory() {
