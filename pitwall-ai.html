@@ -5775,19 +5775,19 @@ const _SP_SECTIONS = {
             <div class="sp-companion-hdr-dot" style="background:#22c55e"></div>
             <span class="sp-companion-hdr-label">Strategy Companion</span>
           </div>
-          <div class="sp-companion-chips" id="spCompChips">
-            <button class="sp-companion-chip" onclick="spCompSend('What is an undercut?')">What is an undercut?</button>
-            <button class="sp-companion-chip" onclick="spCompSend('Why laps 14 to 24?')">Why laps 14–24?</button>
-            <button class="sp-companion-chip" onclick="spCompSend('Safety car impact on strategy?')">Safety car impact?</button>
-            <button class="sp-companion-chip" onclick="spCompSend('What is the best tyre strategy for Miami 2026?')">Best tyre strategy?</button>
+          <div class="sp-companion-chips">
+            <button class="sp-companion-chip" onclick="spAsk('strategy','What is an undercut?')">What is an undercut?</button>
+            <button class="sp-companion-chip" onclick="spAsk('strategy','Why laps 14 to 24?')">Why laps 14–24?</button>
+            <button class="sp-companion-chip" onclick="spAsk('strategy','Safety car impact on strategy?')">Safety car impact?</button>
+            <button class="sp-companion-chip" onclick="spAsk('strategy','What is the best tyre strategy for Miami 2026?')">Best tyre strategy?</button>
           </div>
-          <div class="sp-companion-msgs" id="spCompMsgs">
+          <div id="sp-chat-strategy" style="padding:8px 12px;min-height:60px;max-height:180px;overflow-y:auto;">
             <div class="sp-companion-bubble-ai" style="border-left-color:#22c55e60">Ask me anything about Miami race strategy in plain English. Pit stops, undercut, tyre calls — all explained simply.</div>
           </div>
           <div class="sp-companion-input-row">
-            <input class="sp-companion-input" id="spCompInput" placeholder="Ask about strategy..."
-              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spCompSend();}"/>
-            <button class="sp-companion-send" id="spCompSendBtn" style="background:#22c55e" onclick="spCompSend()">Ask</button>
+            <input id="sp-input-strategy" class="sp-companion-input" placeholder="Ask about strategy..."
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spAsk('strategy',null);}"/>
+            <button id="sp-send-strategy" class="sp-companion-send" style="background:#22c55e" onclick="spAsk('strategy',null)">Ask</button>
           </div>
         </div>`;
     }
@@ -5841,18 +5841,18 @@ const _SP_SECTIONS = {
             <div class="sp-companion-hdr-dot" style="background:#378ADD"></div>
             <span class="sp-companion-hdr-label">Weather Companion</span>
           </div>
-          <div class="sp-companion-chips" id="spCompChips">
-            <button class="sp-companion-chip" onclick="spCompSend('Why does the front-left tyre overheat at Miami?')">Why does FL tyre overheat?</button>
-            <button class="sp-companion-chip" onclick="spCompSend('How does flash rain impact race strategy at Miami?')">Flash rain impact?</button>
-            <button class="sp-companion-chip" onclick="spCompSend('Has rain caused red flags at previous Miami GPs?')">Has rain caused red flags?</button>
+          <div class="sp-companion-chips">
+            <button class="sp-companion-chip" onclick="spAsk('weather','Why does the front-left tyre overheat at Miami?')">Why does FL tyre overheat?</button>
+            <button class="sp-companion-chip" onclick="spAsk('weather','How does flash rain impact race strategy at Miami?')">Flash rain impact?</button>
+            <button class="sp-companion-chip" onclick="spAsk('weather','Has rain caused red flags at previous Miami GPs?')">Has rain caused red flags?</button>
           </div>
-          <div class="sp-companion-msgs" id="spCompMsgs">
+          <div id="sp-chat-weather" style="padding:8px 12px;min-height:60px;max-height:180px;overflow-y:auto;">
             <div class="sp-companion-bubble-ai" style="border-left-color:#378ADD60">Miami weather is the biggest wildcard this weekend. Ask me how heat or rain changes absolutely everything.</div>
           </div>
           <div class="sp-companion-input-row">
-            <input class="sp-companion-input" id="spCompInput" placeholder="Ask about weather..."
-              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spCompSend();}"/>
-            <button class="sp-companion-send" id="spCompSendBtn" style="background:#378ADD" onclick="spCompSend()">Ask</button>
+            <input id="sp-input-weather" class="sp-companion-input" placeholder="Ask about weather..."
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spAsk('weather',null);}"/>
+            <button id="sp-send-weather" class="sp-companion-send" style="background:#378ADD" onclick="spAsk('weather',null)">Ask</button>
           </div>
         </div>`;
     }
@@ -5867,7 +5867,7 @@ const _SP_SECTIONS = {
       return `
         <div class="sp-card">
           <div class="sp-card-title">Three Big Storylines</div>
-          <div class="sp-story-row" onclick="spCompSend('Can Antonelli win the Miami GP and what does he need to protect his championship lead?')">
+          <div class="sp-story-row" onclick="spAsk('storylines','Can Antonelli win the Miami GP and what does he need to protect his championship lead?')">
             <div class="sp-story-avatar" style="background:#0a1a06;border:2px solid #00d84b;color:#00d84b">KA</div>
             <div style="flex:1;min-width:0">
               <div class="sp-story-name">Antonelli's nerve test</div>
@@ -5875,7 +5875,7 @@ const _SP_SECTIONS = {
             </div>
             <div class="sp-story-chevron">›</div>
           </div>
-          <div class="sp-story-row" onclick="spCompSend('Can Hamilton win Miami in the Ferrari and what does he need to make it happen?')">
+          <div class="sp-story-row" onclick="spAsk('storylines','Can Hamilton win Miami in the Ferrari and what does he need to make it happen?')">
             <div class="sp-story-avatar" style="background:#1a0000;border:2px solid #e10600;color:#e10600">LH</div>
             <div style="flex:1;min-width:0">
               <div class="sp-story-name">Hamilton's Ferrari moment</div>
@@ -5883,7 +5883,7 @@ const _SP_SECTIONS = {
             </div>
             <div class="sp-story-chevron">›</div>
           </div>
-          <div class="sp-story-row" onclick="spCompSend('What does Verstappen need at Miami to get back into the 2026 championship fight?')">
+          <div class="sp-story-row" onclick="spAsk('storylines','What does Verstappen need at Miami to get back into the 2026 championship fight?')">
             <div class="sp-story-avatar" style="background:#06060f;border:2px solid #3b82f6;color:#3b82f6">MV</div>
             <div style="flex:1;min-width:0">
               <div class="sp-story-name">Verstappen's desperation</div>
@@ -5904,18 +5904,18 @@ const _SP_SECTIONS = {
             <div class="sp-companion-hdr-dot" style="background:#AFA9EC"></div>
             <span class="sp-companion-hdr-label">Storylines Companion</span>
           </div>
-          <div class="sp-companion-chips" id="spCompChips">
-            <button class="sp-companion-chip" onclick="spCompSend('Who is Kimi Antonelli and why is he the 2026 championship leader?')">Who is Antonelli?</button>
-            <button class="sp-companion-chip" onclick="spCompSend('Why did Lewis Hamilton join Ferrari for 2025?')">Why did Hamilton join Ferrari?</button>
-            <button class="sp-companion-chip" onclick="spCompSend('Why is Verstappen struggling in 2026 and sitting ninth in the championship?')">Why is Verstappen struggling?</button>
+          <div class="sp-companion-chips">
+            <button class="sp-companion-chip" onclick="spAsk('storylines','Who is Kimi Antonelli and why is he the 2026 championship leader?')">Who is Antonelli?</button>
+            <button class="sp-companion-chip" onclick="spAsk('storylines','Why did Lewis Hamilton join Ferrari for 2025?')">Why did Hamilton join Ferrari?</button>
+            <button class="sp-companion-chip" onclick="spAsk('storylines','Why is Verstappen struggling in 2026 and sitting ninth in the championship?')">Why is Verstappen struggling?</button>
           </div>
-          <div class="sp-companion-msgs" id="spCompMsgs">
+          <div id="sp-chat-storylines" style="padding:8px 12px;min-height:60px;max-height:180px;overflow-y:auto;">
             <div class="sp-companion-bubble-ai" style="border-left-color:#AFA9EC60">Ask me about any driver heading into Miami. I know the 2026 storylines inside out.</div>
           </div>
           <div class="sp-companion-input-row">
-            <input class="sp-companion-input" id="spCompInput" placeholder="Ask about drivers..."
-              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spCompSend();}"/>
-            <button class="sp-companion-send" id="spCompSendBtn" style="background:#AFA9EC" onclick="spCompSend()">Ask</button>
+            <input id="sp-input-storylines" class="sp-companion-input" placeholder="Ask about drivers..."
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spAsk('storylines',null);}"/>
+            <button id="sp-send-storylines" class="sp-companion-send" style="background:#AFA9EC" onclick="spAsk('storylines',null)">Ask</button>
           </div>
         </div>`;
     }
@@ -5965,18 +5965,18 @@ const _SP_SECTIONS = {
             <div class="sp-companion-hdr-dot" style="background:#e10600"></div>
             <span class="sp-companion-hdr-label">Prediction Companion</span>
           </div>
-          <div class="sp-companion-chips" id="spCompChips">
-            <button class="sp-companion-chip" onclick="spCompSend('Why is Antonelli the favourite for Miami 2026?')">Why is Antonelli favourite?</button>
-            <button class="sp-companion-chip" onclick="spCompSend('What causes red flags at Miami and why is the risk 24%?')">What causes red flags here?</button>
-            <button class="sp-companion-chip" onclick="spCompSend('Which drivers benefit most from a safety car at Miami 2026?')">Who benefits from safety car?</button>
+          <div class="sp-companion-chips">
+            <button class="sp-companion-chip" onclick="spAsk('prediction','Why is Antonelli the favourite for Miami 2026?')">Why is Antonelli favourite?</button>
+            <button class="sp-companion-chip" onclick="spAsk('prediction','What causes red flags at Miami and why is the risk 24%?')">What causes red flags here?</button>
+            <button class="sp-companion-chip" onclick="spAsk('prediction','Which drivers benefit most from a safety car at Miami 2026?')">Who benefits from safety car?</button>
           </div>
-          <div class="sp-companion-msgs" id="spCompMsgs">
+          <div id="sp-chat-prediction" style="padding:8px 12px;min-height:60px;max-height:180px;overflow-y:auto;">
             <div class="sp-companion-bubble-ai" style="border-left-color:#e1060060">These predictions use 2026 championship data and Miami history. Ask me to explain any of the numbers.</div>
           </div>
           <div class="sp-companion-input-row">
-            <input class="sp-companion-input" id="spCompInput" placeholder="Ask about predictions..."
-              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spCompSend();}"/>
-            <button class="sp-companion-send" id="spCompSendBtn" style="background:#e10600" onclick="spCompSend()">Ask</button>
+            <input id="sp-input-prediction" class="sp-companion-input" placeholder="Ask about predictions..."
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spAsk('prediction',null);}"/>
+            <button id="sp-send-prediction" class="sp-companion-send" style="background:#e10600" onclick="spAsk('prediction',null)">Ask</button>
           </div>
         </div>`;
     }
@@ -5991,19 +5991,19 @@ const _SP_SECTIONS = {
       return `
         <div class="sp-card">
           <div class="sp-card-title">Miami GP Race History</div>
-          <div class="sp-hist-row" onclick="spCompSend('Tell me about the 2022 Miami Grand Prix, the very first one, and how Verstappen won it')">
+          <div class="sp-hist-row" onclick="spAsk('history','Tell me about the 2022 Miami Grand Prix, the very first one, and how Verstappen won it')">
             <div class="sp-hist-year">2022 · First ever Miami GP</div>
             <div class="sp-hist-sub">Verstappen won from pole. Built around Hard Rock Stadium. Became an instant F1 classic in its debut season and announced Miami as a true calendar highlight.</div>
           </div>
-          <div class="sp-hist-row" onclick="spCompSend('Tell me about the 2023 Miami GP where Verstappen charged from ninth on the grid to win')">
+          <div class="sp-hist-row" onclick="spAsk('history','Tell me about the 2023 Miami GP where Verstappen charged from ninth on the grid to win')">
             <div class="sp-hist-year">2023 · Verstappen from ninth</div>
             <div class="sp-hist-sub">Red Bull's pace advantage was so overwhelming that Max carved from P9 on the grid all the way to the victory. A dominant display that showcased the car's raw speed at this circuit.</div>
           </div>
-          <div class="sp-hist-row" onclick="spCompSend('Why did Miami 2024 break US F1 viewership records and what made Lando Norris winning so special?')">
+          <div class="sp-hist-row" onclick="spAsk('history','Why did Miami 2024 break US F1 viewership records and what made Lando Norris winning so special?')">
             <div class="sp-hist-year">2024 · Record audience · Norris wins</div>
             <div class="sp-hist-sub">3.6 million viewers — the largest US F1 TV audience ever. Norris took his maiden victory in dramatic circumstances, validating McLaren's rise to the top.</div>
           </div>
-          <div class="sp-hist-row" onclick="spCompSend('Why does every Miami GP have a safety car and what does it mean for 2026 race strategy?')">
+          <div class="sp-hist-row" onclick="spAsk('history','Why does every Miami GP have a safety car and what does it mean for 2026 race strategy?')">
             <div class="sp-hist-year">Every race · Safety car guaranteed</div>
             <div class="sp-hist-sub">Every single Miami GP has had at least one safety car. T14-15 with concrete walls on both sides is the usual trigger. Every team builds their strategy around expecting it.</div>
           </div>
@@ -6020,18 +6020,18 @@ const _SP_SECTIONS = {
             <div class="sp-companion-hdr-dot" style="background:#ffd700"></div>
             <span class="sp-companion-hdr-label">History Companion</span>
           </div>
-          <div class="sp-companion-chips" id="spCompChips">
-            <button class="sp-companion-chip" onclick="spCompSend('Why does every Miami Grand Prix have a safety car?')">Why always safety cars?</button>
-            <button class="sp-companion-chip" onclick="spCompSend('Who has won at the Miami Grand Prix and how many times?')">Who has won here?</button>
-            <button class="sp-companion-chip" onclick="spCompSend('What makes the Miami Grand Prix so special and unpredictable?')">What makes Miami special?</button>
+          <div class="sp-companion-chips">
+            <button class="sp-companion-chip" onclick="spAsk('history','Why does every Miami Grand Prix have a safety car?')">Why always safety cars?</button>
+            <button class="sp-companion-chip" onclick="spAsk('history','Who has won at the Miami Grand Prix and how many times?')">Who has won here?</button>
+            <button class="sp-companion-chip" onclick="spAsk('history','What makes the Miami Grand Prix so special and unpredictable?')">What makes Miami special?</button>
           </div>
-          <div class="sp-companion-msgs" id="spCompMsgs">
+          <div id="sp-chat-history" style="padding:8px 12px;min-height:60px;max-height:180px;overflow-y:auto;">
             <div class="sp-companion-bubble-ai" style="border-left-color:#ffd70060">Ask me about any Miami GP year or what makes this circuit so unpredictable.</div>
           </div>
           <div class="sp-companion-input-row">
-            <input class="sp-companion-input" id="spCompInput" placeholder="Ask about Miami history..."
-              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spCompSend();}"/>
-            <button class="sp-companion-send" id="spCompSendBtn" style="background:#ffd700;color:#000" onclick="spCompSend()">Ask</button>
+            <input id="sp-input-history" class="sp-companion-input" placeholder="Ask about Miami history..."
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spAsk('history',null);}"/>
+            <button id="sp-send-history" class="sp-companion-send" style="background:#ffd700;color:#000" onclick="spAsk('history',null)">Ask</button>
           </div>
         </div>`;
     }
@@ -6094,10 +6094,9 @@ function _spRenderContent(key) {
 
 function _spRestoreHistory(key) {
   const hist   = _spHistory[key];
-  const msgsEl = document.getElementById('spCompMsgs');
+  const msgsEl = document.getElementById('sp-chat-' + key);
   if (!msgsEl || hist.length === 0) return;
   const col = _SP_SECTIONS[key].color;
-  // Replace static opening message with real conversation history
   msgsEl.innerHTML = hist.map(m =>
     `<div class="${m.role === 'user' ? 'sp-companion-bubble-user' : 'sp-companion-bubble-ai'}"
       style="${m.role !== 'user' ? 'border-left-color:' + col + '60' : ''}">${escapeHtml(m.content).replace(/\n/g,'<br>')}</div>`
@@ -6138,18 +6137,18 @@ function _spTypewriter(el, text, scrollEl, msPerChar) {
   });
 }
 
-async function spCompSend(q) {
-  const key = _spCurrent;
+async function spAsk(section, text) {
+  const key = section || _spCurrent;
   if (!key || _spBusy[key]) return;
 
-  const inputEl = document.getElementById('spCompInput');
-  const sendEl  = document.getElementById('spCompSendBtn');
-  const msgsEl  = document.getElementById('spCompMsgs');
+  const inputEl = document.getElementById('sp-input-' + key);
+  const sendEl  = document.getElementById('sp-send-' + key);
+  const msgsEl  = document.getElementById('sp-chat-' + key);
   const bodyEl  = document.getElementById('spBody');
   const sec     = _SP_SECTIONS[key];
 
-  const text = (typeof q === 'string' && q) ? q : (inputEl ? inputEl.value.trim() : '');
-  if (!text) return;
+  const q = (typeof text === 'string' && text) ? text : (inputEl ? inputEl.value.trim() : '');
+  if (!q) return;
 
   if (inputEl) inputEl.value = '';
   _spBusy[key] = true;
@@ -6157,11 +6156,11 @@ async function spCompSend(q) {
 
   const userBubble = document.createElement('div');
   userBubble.className = 'sp-companion-bubble-user';
-  userBubble.textContent = text;
+  userBubble.textContent = q;
   msgsEl.appendChild(userBubble);
   bodyEl.scrollTop = bodyEl.scrollHeight;
 
-  _spHistory[key].push({ role: 'user', content: text });
+  _spHistory[key].push({ role: 'user', content: q });
 
   const aiBubble = document.createElement('div');
   aiBubble.className = 'sp-companion-bubble-ai';
@@ -6188,12 +6187,12 @@ async function spCompSend(q) {
     await _spTypewriter(aiBubble, fullText || '(No response)', bodyEl, 15);
 
     _spHistory[key].push({ role: 'assistant', content: fullText || '(No response)' });
-  } catch (err) {
-    const msg = (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))
+  } catch (e) {
+    const errMsg = (e.message.includes('Failed to fetch') || e.message.includes('NetworkError'))
       ? '⚠ Cannot reach the backend.'
-      : `⚠ ${err.message}`;
-    aiBubble.innerHTML = escapeHtml(msg);
-    _spHistory[key].push({ role: 'assistant', content: msg });
+      : `⚠ ${e.message}`;
+    aiBubble.innerHTML = escapeHtml(errMsg);
+    _spHistory[key].push({ role: 'assistant', content: errMsg });
   } finally {
     _spBusy[key] = false;
     if (sendEl) sendEl.disabled = false;
