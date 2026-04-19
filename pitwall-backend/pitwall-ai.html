@@ -971,36 +971,44 @@
     .free-limit-upgrade:hover { text-decoration: underline; }
 
     /* ── EXPLANATION STYLE SELECTOR ─────────────────── */
-    #style-selector {
+    #style-selector, .style-bar {
       flex-shrink: 0;
       display: flex;
       gap: 5px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
       padding: 8px 16px;
       background: #060606;
       border-top: 1px solid #161616;
     }
-    #style-selector button {
-      padding: 6px 11px;
+    #style-selector::-webkit-scrollbar, .style-bar::-webkit-scrollbar { display: none; }
+    #style-selector button, .style-bar button {
+      flex-shrink: 0;
+      padding: 5px 10px;
       border: 1px solid #2a2a2a;
       background: #111;
       color: #888;
       font-family: 'Titillium Web', sans-serif;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.5px;
       cursor: pointer;
       transition: background .12s, color .12s, border-color .12s;
       white-space: nowrap;
     }
-    #style-selector button:hover {
+    #style-selector button:hover, .style-bar button:hover {
       border-color: #e10600;
       color: #fff;
     }
-    #style-selector button.selected {
+    #style-selector button.selected, .style-bar button.selected {
       background: #e10600;
       border-color: #e10600;
       color: #fff;
+    }
+    @media (min-width: 768px) {
+      #style-selector button, .style-bar button { font-size: 10px; }
     }
 
     /* ── UPGRADE PANEL ───────────────────────────────── */
@@ -4955,11 +4963,11 @@
 
     <!-- STYLE SELECTOR -->
     <div id="style-selector">
-      <button onclick="setStyle('beginner')">Beginner</button>
-      <button onclick="setStyle('football')">Football terms</button>
-      <button onclick="setStyle('curious')">F1 curious</button>
-      <button onclick="setStyle('enthusiast')">Enthusiast</button>
-      <button onclick="setStyle('kid')">Kid friendly</button>
+      <button data-style="beginner"    onclick="setStyle('beginner')">Beginner</button>
+      <button data-style="football"    onclick="setStyle('football')">Football terms</button>
+      <button data-style="curious"     onclick="setStyle('curious')">F1 curious</button>
+      <button data-style="enthusiast"  onclick="setStyle('enthusiast')">Enthusiast</button>
+      <button data-style="kid"         onclick="setStyle('kid')">Kid friendly</button>
     </div>
 
     <!-- INPUT -->
@@ -5137,6 +5145,13 @@
             <button class="news-ai-chip" onclick="newsAsk('How does the 2026 championship math work with 4 races gone?')">How does the 2026 championship math work?</button>
             <button class="news-ai-chip" onclick="newsAsk('Why does Miami heat affect tyre choices in F1?')">Why does Miami heat matter for tyres?</button>
             <button class="news-ai-chip" onclick="newsAsk('What are the biggest rule changes in 2026 F1?')">What changed in the 2026 regulations?</button>
+          </div>
+          <div class="style-bar">
+            <button data-style="beginner"   onclick="setStyle('beginner')">Beginner</button>
+            <button data-style="football"   onclick="setStyle('football')">Football terms</button>
+            <button data-style="curious"    onclick="setStyle('curious')">F1 curious</button>
+            <button data-style="enthusiast" onclick="setStyle('enthusiast')">Enthusiast</button>
+            <button data-style="kid"        onclick="setStyle('kid')">Kid friendly</button>
           </div>
           <div class="news-ai-input-row">
             <input class="news-ai-input" id="newsAiInput"
@@ -5501,6 +5516,13 @@
         <button class="rpc-chip" onclick="rpChatSend('Who will win Miami?')">Who will win Miami?</button>
         <button class="rpc-chip" onclick="rpChatSend('How does weather affect strategy?')">How does weather affect strategy?</button>
         <button class="rpc-chip" onclick="rpChatSend('What makes Miami so unpredictable?')">What makes Miami so unpredictable?</button>
+      </div>
+      <div class="style-bar">
+        <button data-style="beginner"   onclick="setStyle('beginner')">Beginner</button>
+        <button data-style="football"   onclick="setStyle('football')">Football terms</button>
+        <button data-style="curious"    onclick="setStyle('curious')">F1 curious</button>
+        <button data-style="enthusiast" onclick="setStyle('enthusiast')">Enthusiast</button>
+        <button data-style="kid"        onclick="setStyle('kid')">Kid friendly</button>
       </div>
       <div class="rpc-input-row">
         <input class="rpc-input" id="rpChatInput" placeholder="Ask about the Miami GP…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();rpChatSend();}"/>
@@ -6443,17 +6465,16 @@ function getExplainStyle() {
 
 function setStyle(style) {
   localStorage.setItem(STYLE_KEY, style);
-  // Desktop selector
-  document.querySelectorAll('#style-selector button').forEach(btn => {
-    const btnStyle = btn.getAttribute('onclick').match(/'([^']+)'/)?.[1];
-    btn.classList.toggle('selected', btnStyle === style);
+  // Sync all style-bar and #style-selector instances (including dynamically rendered ones)
+  document.querySelectorAll('#style-selector button[data-style], .style-bar button[data-style]').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.style === style);
   });
-  // Mobile selector
+  // Mobile pill selector (uses inline styles)
   document.querySelectorAll('#mobStyleSelector button').forEach(btn => {
     const active = btn.dataset.style === style;
-    btn.style.background = active ? 'var(--red)' : '#111';
-    btn.style.color      = active ? '#fff'        : '#666';
-    btn.style.borderColor= active ? 'var(--red)'  : '#2a2a2a';
+    btn.style.background  = active ? 'var(--red)' : '#111';
+    btn.style.color       = active ? '#fff'        : '#666';
+    btn.style.borderColor = active ? 'var(--red)'  : '#2a2a2a';
   });
 }
 
@@ -7129,10 +7150,13 @@ async function sendNewsAI() {
   resp.style.display = '';
   resp.textContent   = 'Thinking\u2026';
 
-  const system = `You are an F1 expert explaining today's Formula 1 news to someone brand new to the sport.
-Answer in plain English with no jargon. Keep answers to 3-4 sentences maximum.
-Focus on why this matters for a new fan watching their first season.
-Never quote articles or reproduce headlines. Write only original explanations.`;
+  const styleInst = STYLE_INSTRUCTIONS[getExplainStyle()] || STYLE_INSTRUCTIONS.beginner;
+  const system = `You are an F1 expert explaining today's Formula 1 news.
+Keep answers to 3-4 sentences maximum.
+Focus on why this matters for a fan watching the 2026 season.
+Never quote articles or reproduce headlines. Write only original explanations.
+
+${styleInst}`;
 
   try {
     const res = await fetch(`${BACKEND}/api/chat`, {
@@ -8806,6 +8830,7 @@ function openDriverProfile(id) {
   gridView.style.display    = 'none';
   profileView.style.display = 'flex';
   profileView.innerHTML     = _buildProfileHTML(driver);
+  setStyle(getExplainStyle());  // sync selected state on newly rendered style bar
   _renderDrvMsgs(id);
   _updateDrvCounter(id);
 }
@@ -8952,6 +8977,14 @@ function _buildProfileHTML(d) {
           ${qs.map(q => `<button class="drp-q-btn" onclick="drvChipClick('${d.id}',this)">${escapeHtml(q)}<\/button>`).join('')}
         <\/div>
 
+        <!-- Style selector -->
+        <div class="style-bar">
+          <button data-style="beginner"   onclick="setStyle('beginner')">Beginner<\/button>
+          <button data-style="football"   onclick="setStyle('football')">Football terms<\/button>
+          <button data-style="curious"    onclick="setStyle('curious')">F1 curious<\/button>
+          <button data-style="enthusiast" onclick="setStyle('enthusiast')">Enthusiast<\/button>
+          <button data-style="kid"        onclick="setStyle('kid')">Kid friendly<\/button>
+        <\/div>
         <!-- Input -->
         <div class="drp-input-row">
           <input class="drp-chat-input" id="drvInput_${d.id}"
@@ -9063,7 +9096,10 @@ async function sendDriverMsg(id) {
     textEl.innerHTML = '<span style="color:#444">Thinking\u2026</span>';
   }
 
-  const system = `You are an expert F1 analyst explaining ${driver.name} to a brand new F1 fan. Answer questions about their career, personality, driving style, rivalries, and achievements in plain English. Be engaging and tell stories. Never assume F1 knowledge. Keep answers to 4–5 sentences max.`;
+  const styleInst = STYLE_INSTRUCTIONS[getExplainStyle()] || STYLE_INSTRUCTIONS.beginner;
+  const system = `You are an expert F1 analyst answering questions about ${driver.name}. Cover their career, personality, driving style, rivalries, and achievements. Be engaging and tell stories. Keep answers to 4–5 sentences max.
+
+${styleInst}`;
 
   try {
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
@@ -9647,7 +9683,7 @@ async function rpChatSend(q) {
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ system: _RP_SYSTEM, messages: _rpcHistory }),
+      body: JSON.stringify({ system: _RP_SYSTEM + '\n\n' + (STYLE_INSTRUCTIONS[getExplainStyle()] || STYLE_INSTRUCTIONS.beginner), messages: _rpcHistory }),
       signal: AbortSignal.timeout(30000),
     });
     if (!res.ok) {
