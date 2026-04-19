@@ -5748,7 +5748,7 @@ const _SP_SECTIONS = {
     system: 'You are answering questions about Miami GP 2026 race strategy. Focus on pit stops, undercut, overcut, tyre management, and safety car scenarios. Keep answers 3 to 5 sentences. Be specific and practical.',
     renderContent: function() {
       return `
-        <div class="sp-card">
+        <div class="sp-card" style="cursor:pointer" onclick="spAsk('strategy','Explain the Miami GP strategy matrix — what is the pit window, why is the undercut so strong, and what does the safety car probability mean for race strategy?')">
           <div class="sp-card-title">Strategy Matrix</div>
           <div class="sp-row"><span class="sp-row-label">Pit window</span><span class="sp-row-val">Laps 14–24</span></div>
           <div class="sp-row"><span class="sp-row-label">Safety car prob</span><span class="sp-badge sp-badge-yellow">45–50%</span></div>
@@ -5756,14 +5756,14 @@ const _SP_SECTIONS = {
           <div class="sp-row"><span class="sp-row-label">Tyre call</span><span class="sp-row-val">Med → Hard</span></div>
           <div class="sp-warn">⚠ Safety car before lap 12 throws the strategy book away. Teams gamble on very early stops that can win or lose the race outright.</div>
         </div>
-        <div class="sp-card">
+        <div class="sp-card" style="cursor:pointer" onclick="spAsk('strategy','Explain the undercut at Miami — what lap should teams pit, how much time can they gain, and what gap do they need to make it work?')">
           <div class="sp-card-title">Undercut Analysis</div>
           <div class="sp-row"><span class="sp-row-label">Ideal undercut lap</span><span class="sp-row-val">Lap 16–18</span></div>
           <div class="sp-row"><span class="sp-row-label">Time gain per lap</span><span class="sp-badge sp-badge-green">0.8s delta</span></div>
           <div class="sp-row"><span class="sp-row-label">Gap needed to cover</span><span class="sp-row-val">~22s</span></div>
           <div class="sp-row"><span class="sp-row-label">Overcut risk</span><span class="sp-badge sp-badge-yellow">MEDIUM</span></div>
         </div>
-        <div class="sp-card">
+        <div class="sp-card" style="cursor:pointer" onclick="spAsk('strategy','Explain the tyre compounds at Miami 2026 — why start on the Medium, how long does the stint last, and why does the front-left degrade first?')">
           <div class="sp-card-title">Tyre Compounds</div>
           <div class="sp-row"><span class="sp-row-label">Recommended start</span><span class="sp-row-val">Medium (C3)</span></div>
           <div class="sp-row"><span class="sp-row-label">Expected stint</span><span class="sp-row-val">18–22 laps</span></div>
