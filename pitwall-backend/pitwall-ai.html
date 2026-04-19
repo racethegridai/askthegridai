@@ -4183,7 +4183,9 @@
     .rp-weather-block-label { font-size:9px; color:#4a7ab5; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:5px; }
     .rp-weather-block-val { font-size:13px; font-weight:700; color:#93c5fd; }
     .rp-weather-block-sub { font-size:9px; color:#4a7ab5; margin-top:2px; }
-    .rp-weather-text { font-size:11px; color:#9ab8d8; line-height:1.68; margin-bottom:12px; }
+    .rp-weather-text { font-size:11px; color:#9ab8d8; line-height:1.68; }
+    .rp-weather-impact { background:#020810; border:1px solid #1a3060; border-radius:2px; padding:10px 12px; margin-bottom:12px; }
+    .rp-weather-impact-label { font-size:8px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#4a7ab5; margin-bottom:7px; }
     .rp-btn-blue { background:#1d4ed8; color:#fff; border:none; padding:8px 14px; font-size:10px; font-weight:700; cursor:pointer; border-radius:2px; width:100%; font-family:inherit; }
     .rp-btn-blue:hover { background:#1e40af; }
     .rp-storyline-row { padding:11px 0; border-bottom:1px solid var(--border); }
@@ -4208,8 +4210,8 @@
     .rp-history-row { padding:9px 0; border-bottom:1px solid #111; cursor:pointer; }
     .rp-history-row:first-child { padding-top:0; }
     .rp-history-row:last-child { border-bottom:none; }
-    .rp-history-row:hover .rp-history-row-title { color:var(--yellow); }
-    .rp-history-row-title { font-size:10px; font-weight:700; color:var(--white); margin-bottom:3px; transition:color .15s; }
+    .rp-history-row:hover .rp-history-row-title { color:#e8c042; }
+    .rp-history-row-title { font-size:10px; font-weight:700; color:var(--yellow); margin-bottom:3px; transition:color .15s; }
     .rp-history-row-sub { font-size:9px; color:var(--gray); line-height:1.5; }
     .rp-chips-label { font-size:9px; color:var(--gray); margin-top:12px; margin-bottom:7px; font-weight:600; }
     .rp-chips { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
@@ -4231,7 +4233,7 @@
     .rp-predict-block-val { font-size:17px; font-weight:700; color:var(--red); }
     .rp-predict-block-sub { font-size:9px; color:#804040; margin-top:2px; }
     .rp-predict-winner { background:#1a0000; border:1px solid #2d0000; padding:12px; border-radius:2px; margin-bottom:12px; text-align:center; }
-    .rp-predict-winner-label { font-size:9px; color:#804040; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; }
+    .rp-predict-winner-label { font-size:9px; color:var(--green); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; }
     .rp-predict-winner-name { font-size:19px; font-weight:700; color:#fff; }
     .rp-predict-winner-pct { font-size:11px; color:var(--red); margin-top:2px; }
     @media (max-width:768px) {
@@ -5207,7 +5209,7 @@
     <div class="rp-hero">
       <div class="rp-hero-label">AI Race Preview · Miami GP 2026</div>
       <div class="rp-hero-headline">This is Antonelli's race to lose — but Miami has never played nice with championship leaders</div>
-      <div class="rp-hero-text">The 2026 Miami GP arrives with Antonelli sitting 34 points clear at the top of the standings, but this circuit has produced a safety car in every single edition since 2022. Hamilton is desperate for his first win in Ferrari red, and Verstappen arrives with a fresh engine upgrade and nothing to lose.</div>
+      <div class="rp-hero-text">The 19-year-old arrives in Miami with a 9-point championship lead. One safety car at the wrong moment could hand Hamilton his first Ferrari win and flip the entire title fight.</div>
       <div class="rp-hero-btns">
         <button class="rp-btn-red" onclick="rpSend('Give me a full breakdown of who can win the Miami GP 2026')">Ask AI for full preview →</button>
         <button class="rp-btn-dark" onclick="rpSend('What happened at last years Miami GP and how does it affect strategy this year?')">Last year comparison →</button>
@@ -5333,11 +5335,134 @@
           </div>
         </div><!-- /track card -->
 
+        <!-- WEATHER CARD -->
+        <div class="rp-card rp-weather-card">
+          <div class="rp-weather-title">Miami Weather Forecast</div>
+          <div class="rp-weather-blocks">
+            <div class="rp-weather-block">
+              <div class="rp-weather-block-label">Race Day</div>
+              <div class="rp-weather-block-val">34°C</div>
+              <div class="rp-weather-block-sub">Humid · Sunny</div>
+            </div>
+            <div class="rp-weather-block">
+              <div class="rp-weather-block-label">Rain Chance</div>
+              <div class="rp-weather-block-val" style="color:#f5c842">38%</div>
+              <div class="rp-weather-block-sub">Afternoon storm</div>
+            </div>
+            <div class="rp-weather-block">
+              <div class="rp-weather-block-label">Wind</div>
+              <div class="rp-weather-block-val">12kph</div>
+              <div class="rp-weather-block-sub">SE direction</div>
+            </div>
+          </div>
+          <div class="rp-weather-impact">
+            <div class="rp-weather-impact-label">AI weather impact</div>
+            <div class="rp-weather-text" id="rpWeatherText">Miami averages 34C on race day with high humidity causing tyre surface temperatures to spike 12 to 15 degrees above ambient. The front-left tyre at Turn 4 is the first to go. Expect most teams to pit earlier than their models suggest. A 38 percent rain chance means teams will watch the sky from lap 20.</div>
+          </div>
+          <button class="rp-btn-blue" id="rpWeatherBtn" onclick="rpSend('How does Miami heat and potential rain affect race strategy and tyre choices for the 2026 Miami GP?')">Ask AI about weather impact on strategy →</button>
+        </div><!-- /weather card -->
+
       </div><!-- /col-left -->
 
-      <!-- RIGHT COLUMN (placeholder — remaining sections coming next) -->
+      <!-- RIGHT COLUMN -->
       <div class="rp-col-right">
-      </div>
+
+        <!-- STORYLINES CARD -->
+        <div class="rp-card">
+          <div class="rp-card-title" style="color:var(--red);margin-bottom:12px">Three big storylines</div>
+          <div class="rp-storyline-row">
+            <div class="rp-storyline-title">Antonelli's nerve test</div>
+            <div class="rp-storyline-text">Championship leader at 19. Miami is volatile. One safety car changes everything.</div>
+            <button class="rp-ask-link" onclick="rpSend('Can Antonelli win the Miami GP and what does he need to do?')">Ask AI →</button>
+          </div>
+          <div class="rp-storyline-row">
+            <div class="rp-storyline-title">Hamilton's Ferrari moment</div>
+            <div class="rp-storyline-text">Seven titles. Never won in red. Miami suits his aggressive braking style.</div>
+            <button class="rp-ask-link" onclick="rpSend('Can Hamilton win Miami in the Ferrari and what does he need?')">Ask AI →</button>
+          </div>
+          <div class="rp-storyline-row">
+            <div class="rp-storyline-title">Verstappen's desperation</div>
+            <div class="rp-storyline-text">Ninth in standings. Engine upgrade confirmed. Needs points badly or the title is gone.</div>
+            <button class="rp-ask-link" onclick="rpSend('What does Verstappen need at Miami to get back into the championship?')">Ask AI →</button>
+          </div>
+        </div><!-- /storylines -->
+
+        <!-- STRATEGY MATRIX CARD -->
+        <div class="rp-card">
+          <div class="rp-card-title" style="color:var(--red);margin-bottom:10px">Strategy matrix</div>
+          <div class="rp-strat-row">
+            <span class="rp-strat-label">Pit window</span>
+            <span class="rp-strat-val">Laps 14–24</span>
+          </div>
+          <div class="rp-strat-row">
+            <span class="rp-strat-label">Safety car prob</span>
+            <span class="rp-badge rp-badge-yellow">45–50%</span>
+          </div>
+          <div class="rp-strat-row">
+            <span class="rp-strat-label">Undercut strength</span>
+            <span class="rp-badge rp-badge-green">HIGH · 0.8s/lap</span>
+          </div>
+          <div class="rp-strat-row">
+            <span class="rp-strat-label">Best tyre call</span>
+            <span class="rp-strat-val">Medium → Hard</span>
+          </div>
+          <div class="rp-strat-warn" id="rpStratWarn">If safety car before lap 12 the strategy book gets thrown away. Teams will gamble on very early stops that could win or lose the race.</div>
+        </div><!-- /strategy -->
+
+        <!-- TRACK HISTORY CARD -->
+        <div class="rp-card rp-history-card">
+          <div class="rp-history-title">Miami GP · Track history</div>
+          <div class="rp-history-row" onclick="rpSend('Tell me about the history of the Miami Grand Prix and why it became such an important race on the F1 calendar')">
+            <div class="rp-history-row-title">2022 · First ever Miami GP</div>
+            <div class="rp-history-row-sub">Verstappen won from pole. Built around Hard Rock Stadium. Became an instant F1 classic in its debut season.</div>
+          </div>
+          <div class="rp-history-row" onclick="rpSend('Why did Miami 2024 break US viewership records and what made that race so special?')">
+            <div class="rp-history-row-title">2024 · Record US audience</div>
+            <div class="rp-history-row-sub">3.6 million viewers — the largest US F1 TV audience ever. Bigger than the Super Bowl for the 18-49 demographic.</div>
+          </div>
+          <div class="rp-history-row" onclick="rpSend('Why does Miami always have safety cars and how should teams and drivers plan for it?')">
+            <div class="rp-history-row-title">Every race · Safety car</div>
+            <div class="rp-history-row-sub">Every single Miami GP has had at least one safety car. Miami is chaos by design. Always plan for it.</div>
+          </div>
+          <div class="rp-chips-label">Ask anything about Miami</div>
+          <div class="rp-chips">
+            <button class="rp-chip" onclick="rpSend('Why is Miami unpredictable?')">Why is Miami unpredictable?</button>
+            <button class="rp-chip" onclick="rpSend('What makes this track unique?')">What makes this track unique?</button>
+            <button class="rp-chip" onclick="rpSend('Who has won here before?')">Who has won here before?</button>
+          </div>
+          <div class="rp-history-input-row">
+            <input class="rp-history-input" id="rpHistoryInput" placeholder="Ask about Miami GP history…" onkeydown="if(event.key==='Enter'){rpSendHistory()}"/>
+            <button class="rp-btn-gold" onclick="rpSendHistory()">Ask</button>
+          </div>
+        </div><!-- /history -->
+
+        <!-- AI PREDICTION CARD -->
+        <div class="rp-card rp-predict-card">
+          <div class="rp-predict-hdr">
+            <div class="rp-predict-dot"></div>
+            <div class="rp-predict-badge">AI Race Prediction</div>
+          </div>
+          <div class="rp-predict-blocks">
+            <div class="rp-predict-block">
+              <div class="rp-predict-block-label" style="color:var(--red)">Red flag risk</div>
+              <div class="rp-predict-block-val">24%</div>
+              <div class="rp-predict-block-sub">first 5 laps</div>
+            </div>
+            <div class="rp-predict-block">
+              <div class="rp-predict-block-label" style="color:var(--yellow)">Safety car</div>
+              <div class="rp-predict-block-val">47%</div>
+              <div class="rp-predict-block-sub">before lap 20</div>
+            </div>
+          </div>
+          <div class="rp-predict-winner">
+            <div class="rp-predict-winner-label">Predicted winner</div>
+            <div class="rp-predict-winner-name">Antonelli</div>
+            <div class="rp-predict-winner-pct">38% chance</div>
+          </div>
+          <button class="rp-btn-red" style="width:100%" onclick="rpSend('Give me a full AI race prediction for the Miami GP 2026 including all safety car and strategy scenarios')">Get full AI race prediction →</button>
+        </div><!-- /prediction -->
+
+      </div><!-- /col-right -->
 
     </div><!-- /rp-cols -->
   </div><!-- /rp-wrap -->
