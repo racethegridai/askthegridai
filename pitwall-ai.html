@@ -4217,7 +4217,7 @@ async function _translateRadio(r) {
   try {
     const res = await fetch(`${BACKEND}/api/chat`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({
         system: `You are explaining F1 team radio to a brand new fan. Reply with EXACTLY 3 lines, nothing else.
 Line 1: Plain English explanation of what the message means, one sentence.
@@ -4478,7 +4478,7 @@ async function sendMsg() {
   try {
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({
         system: buildSystem(mode),
         messages: history,
@@ -4753,7 +4753,7 @@ async function _fetchStratAi(data, isLive) {
   try {
     const res = await fetch(`${BACKEND}/api/chat`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({
         system: `You are an F1 strategy analyst. Reply with EXACTLY 3 lines and nothing else:
 Line 1: The key strategic situation in one sentence.
@@ -4830,50 +4830,52 @@ function _startUpdateTimer() {
 /* ──────────────────────────────────────────────────
    OWNER MODE
 ────────────────────────────────────────────────── */
-function _setOwnerMode(on) {
-  if (on) {
-    localStorage.setItem('ownerMode', 'true');
-  } else {
-    localStorage.removeItem('ownerMode');
-  }
-  document.getElementById('ownerBadge').style.display = on ? 'block' : 'none';
-  document.querySelectorAll('.pro-gate').forEach(el => {
-    el.style.display = on ? 'none' : '';
-  });
+function activateOwnerMode() {
+  localStorage.setItem('ownerMode', 'true');
+
+  // Remove all paywalls and upgrade prompts
+  document.querySelectorAll('.pro-gate').forEach(el => { el.style.display = 'none'; });
   document.querySelectorAll('.pro-blur-wrap').forEach(el => {
-    el.style.filter = on ? 'none' : '';
-    el.style.pointerEvents = on ? '' : '';
+    el.style.filter = 'none';
+    el.style.pointerEvents = '';
   });
-  document.querySelectorAll('.tab-lock').forEach(el => {
-    el.style.display = on ? 'none' : '';
-  });
-}
+  document.querySelectorAll('.tab-lock').forEach(el => { el.style.display = 'none'; });
 
-function _showOwnerToast() {
+  // Hide free-limit bar and upgrade panel
+  const bar = document.getElementById('freeLimitBar');
+  if (bar) bar.classList.add('hidden');
+  const panel = document.getElementById('upgradePanel');
+  if (panel) panel.classList.remove('visible');
+
+  // Re-enable main chat inputs
+  const inp = document.getElementById('chatInput');
+  const btn = document.getElementById('sendBtn');
+  if (inp) { inp.disabled = false; inp.placeholder = 'Ask anything about F1…'; }
+  if (btn) btn.disabled = false;
+
+  // Tiny persistent owner badge (barely visible)
   const badge = document.getElementById('ownerBadge');
-  badge.textContent = 'Owner mode active';
-  badge.style.display = 'block';
-  badge.style.opacity = '1';
-  setTimeout(() => {
-    badge.style.opacity = '0';
-    setTimeout(() => { badge.style.display = 'none'; }, 400);
-  }, 2000);
+  if (badge) {
+    badge.textContent = 'OWNER';
+    badge.style.display = 'block';
+    badge.style.opacity = '1';
+  }
 }
 
-(function _initOwnerMode() {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('reset') === 'true') {
-    localStorage.removeItem('ownerMode');
-    window.history.replaceState({}, document.title, window.location.pathname);
-  } else if (params.get('owner') === 'atgaiimamw2026') {
-    localStorage.setItem('ownerMode', 'true');
-    window.history.replaceState({}, document.title, window.location.pathname);
-    document.addEventListener('DOMContentLoaded', _showOwnerToast);
+function deactivateOwnerMode() {
+  localStorage.removeItem('ownerMode');
+  localStorage.removeItem('ownerActivated');
+  const badge = document.getElementById('ownerBadge');
+  if (badge) badge.style.display = 'none';
+}
+
+function getHeaders() {
+  const h = { 'Content-Type': 'application/json' };
+  if (localStorage.getItem('ownerMode') === 'true') {
+    h['X-Owner-Mode'] = 'atgaiimamw2026';
   }
-  if (isOwnerMode()) {
-    document.addEventListener('DOMContentLoaded', () => _setOwnerMode(true));
-  }
-}());
+  return h;
+}
 
 /* ──────────────────────────────────────────────────
    DRIVER DATABASE  (hardcoded bio + career facts)
@@ -5416,7 +5418,7 @@ async function sendDriverMsg(id) {
   try {
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ system, messages: _drvHistories[id] }),
       signal: AbortSignal.timeout(20000),
     });
@@ -5449,6 +5451,33 @@ async function sendDriverMsg(id) {
    INIT
 ────────────────────────────────────────────────── */
 function init() {
+  // ── Owner mode URL activation ──────────────────────
+  const _urlP = new URLSearchParams(window.location.search);
+  const _ownerParam = _urlP.get('owner');
+  const _resetParam = _urlP.get('reset');
+
+  if (_resetParam === 'true') {
+    localStorage.removeItem('ownerMode');
+    localStorage.removeItem('ownerActivated');
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  if (_ownerParam === 'atgaiimamw2026') {
+    localStorage.setItem('ownerMode', 'true');
+    localStorage.setItem('ownerActivated', 'true');
+    window.history.replaceState({}, document.title, window.location.pathname);
+    const _toast = document.createElement('div');
+    _toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:8px 16px;border-radius:6px;font-size:11px;font-weight:700;z-index:99999;letter-spacing:.5px;pointer-events:none;';
+    _toast.textContent = 'Owner mode active';
+    document.body.appendChild(_toast);
+    setTimeout(() => _toast.remove(), 2000);
+  }
+
+  if (localStorage.getItem('ownerMode') === 'true') {
+    activateOwnerMode();
+  }
+  // ──────────────────────────────────────────────────
+
   // Restore saved explanation style from localStorage
   const savedMode = localStorage.getItem('pitwall_explain_mode');
   if (savedMode && STYLE_LABELS[savedMode]) {
@@ -5473,11 +5502,6 @@ function init() {
 
   // Fix 3: keep Railway server warm — ping every 4 minutes so it never cold-starts
   setInterval(() => { fetch(`${BACKEND}/api/ping`).catch(() => {}); }, 4 * 60 * 1000);
-
-  if (isOwnerMode()) {
-    _setOwnerMode(true);
-  }
-
 
   updateFreeLimitUI();
 }
@@ -5542,7 +5566,7 @@ async function rpChatSend(q) {
   try {
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ system: _RP_SYSTEM, messages: _rpcHistory }),
       signal: AbortSignal.timeout(30000),
     });
@@ -6083,7 +6107,7 @@ async function spCompSend(q) {
   try {
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ system: sec.system, messages: _spHistory[key] }),
       signal: AbortSignal.timeout(30000),
     });

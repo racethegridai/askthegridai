@@ -907,7 +907,11 @@ async def _enforce_rate_limit(request: Request) -> None:
     Sliding-window rate limiter: max _RATE_MAX requests per IP per _RATE_WINDOW seconds.
     Raises HTTP 429 if the limit is exceeded.
     IPs listed in OWNER_IPS env var are exempt.
+    Requests with X-Owner-Mode header matching the owner token are exempt.
     """
+    owner_header = request.headers.get("X-Owner-Mode")
+    if owner_header == "atgaiimamw2026":
+        return
     ip = _get_client_ip(request)
     if ip in OWNER_IPS:
         return
