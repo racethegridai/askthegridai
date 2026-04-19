@@ -5748,27 +5748,40 @@ const _SP_SECTIONS = {
     system: 'You are answering questions about Miami GP 2026 race strategy. Focus on pit stops, undercut, overcut, tyre management, and safety car scenarios. Keep answers 3 to 5 sentences. Be specific and practical.',
     renderContent: function() {
       return `
-        <div class="sp-card" style="cursor:pointer" onclick="spAsk('strategy','Explain the Miami GP strategy matrix — what is the pit window, why is the undercut so strong, and what does the safety car probability mean for race strategy?')">
-          <div class="sp-card-title">Strategy Matrix</div>
-          <div class="sp-row"><span class="sp-row-label">Pit window</span><span class="sp-row-val">Laps 14–24</span></div>
-          <div class="sp-row"><span class="sp-row-label">Safety car prob</span><span class="sp-badge sp-badge-yellow">45–50%</span></div>
-          <div class="sp-row"><span class="sp-row-label">Undercut</span><span class="sp-badge sp-badge-green">HIGH · 0.8s/lap</span></div>
-          <div class="sp-row"><span class="sp-row-label">Tyre call</span><span class="sp-row-val">Med → Hard</span></div>
-          <div class="sp-warn">⚠ Safety car before lap 12 throws the strategy book away. Teams gamble on very early stops that can win or lose the race outright.</div>
+        <div class="sp-card" style="cursor:pointer" onclick="spStrategyDetail('hardC2')">
+          <div class="sp-card-title">HARD · C2</div>
+          <div class="sp-row"><span class="sp-row-label">Role</span><span class="sp-row-val">Long-stint tyre</span></div>
+          <div class="sp-row"><span class="sp-row-label">Stint length</span><span class="sp-row-val">30–40 laps</span></div>
+          <div class="sp-row"><span class="sp-row-label">Degradation</span><span class="sp-badge sp-badge-green">LOW</span></div>
+          <div style="font-size:9px;color:var(--gray);margin-top:4px">Tap to explore ›</div>
         </div>
-        <div class="sp-card" style="cursor:pointer" onclick="spAsk('strategy','Explain the undercut at Miami — what lap should teams pit, how much time can they gain, and what gap do they need to make it work?')">
-          <div class="sp-card-title">Undercut Analysis</div>
-          <div class="sp-row"><span class="sp-row-label">Ideal undercut lap</span><span class="sp-row-val">Lap 16–18</span></div>
-          <div class="sp-row"><span class="sp-row-label">Time gain per lap</span><span class="sp-badge sp-badge-green">0.8s delta</span></div>
-          <div class="sp-row"><span class="sp-row-label">Gap needed to cover</span><span class="sp-row-val">~22s</span></div>
-          <div class="sp-row"><span class="sp-row-label">Overcut risk</span><span class="sp-badge sp-badge-yellow">MEDIUM</span></div>
+        <div class="sp-card" style="cursor:pointer" onclick="spStrategyDetail('mediumC3')">
+          <div class="sp-card-title">MEDIUM · C3</div>
+          <div class="sp-row"><span class="sp-row-label">Role</span><span class="sp-row-val">Main race tyre</span></div>
+          <div class="sp-row"><span class="sp-row-label">Stint length</span><span class="sp-row-val">18–22 laps</span></div>
+          <div class="sp-row"><span class="sp-row-label">Heat risk</span><span class="sp-badge sp-badge-yellow">FRONT-LEFT</span></div>
+          <div style="font-size:9px;color:var(--gray);margin-top:4px">Tap to explore ›</div>
         </div>
-        <div class="sp-card" style="cursor:pointer" onclick="spAsk('strategy','Explain the tyre compounds at Miami 2026 — why start on the Medium, how long does the stint last, and why does the front-left degrade first?')">
-          <div class="sp-card-title">Tyre Compounds</div>
-          <div class="sp-row"><span class="sp-row-label">Recommended start</span><span class="sp-row-val">Medium (C3)</span></div>
-          <div class="sp-row"><span class="sp-row-label">Expected stint</span><span class="sp-row-val">18–22 laps</span></div>
-          <div class="sp-row"><span class="sp-row-label">Critical degradation</span><span class="sp-row-val">Front-left T4</span></div>
-          <div class="sp-row"><span class="sp-row-label">Rain alternative</span><span class="sp-badge sp-badge-yellow">Inters ready</span></div>
+        <div class="sp-card" style="cursor:pointer" onclick="spStrategyDetail('softC4')">
+          <div class="sp-card-title">SOFT · C4</div>
+          <div class="sp-row"><span class="sp-row-label">Role</span><span class="sp-row-val">Qualifying tyre</span></div>
+          <div class="sp-row"><span class="sp-row-label">Race stint</span><span class="sp-row-val">10–12 laps max</span></div>
+          <div class="sp-row"><span class="sp-row-label">Cliff risk</span><span class="sp-badge sp-badge-red">HIGH</span></div>
+          <div style="font-size:9px;color:var(--gray);margin-top:4px">Tap to explore ›</div>
+        </div>
+        <div class="sp-card" style="cursor:pointer" onclick="spStrategyDetail('oneStop')">
+          <div class="sp-card-title">LIKELY 1-STOP</div>
+          <div class="sp-row"><span class="sp-row-label">Pit window</span><span class="sp-row-val">Lap 18–22</span></div>
+          <div class="sp-row"><span class="sp-row-label">Tyre combo</span><span class="sp-row-val">Soft → Hard/Med</span></div>
+          <div class="sp-row"><span class="sp-row-label">Probability</span><span class="sp-badge sp-badge-green">MOST LIKELY</span></div>
+          <div style="font-size:9px;color:var(--gray);margin-top:4px">Tap to explore ›</div>
+        </div>
+        <div class="sp-card" style="cursor:pointer" onclick="spStrategyDetail('safetyCar')">
+          <div class="sp-card-title">SAFETY CAR SCENARIO</div>
+          <div class="sp-row"><span class="sp-row-label">Probability</span><span class="sp-badge sp-badge-yellow">47%</span></div>
+          <div class="sp-row"><span class="sp-row-label">Impact</span><span class="sp-row-val">Rewrites race order</span></div>
+          <div class="sp-row"><span class="sp-row-label">Every Miami GP</span><span class="sp-row-val">Has had at least one</span></div>
+          <div style="font-size:9px;color:var(--gray);margin-top:4px">Tap to explore ›</div>
         </div>
         <div class="sp-companion-card">
           <div class="sp-companion-hdr-bar" style="background:#22c55e12;border-left:3px solid #22c55e">
@@ -6037,6 +6050,70 @@ const _SP_SECTIONS = {
     }
   }
 };
+
+const _spStrategyCards = {
+  hardC2: {
+    title: 'Hard Tyre · C2', badge: 'LOW DEGRADATION', badgeClass: 'sp-badge-green',
+    briefing: 'The Hard tyre is the tortoise of Miami. Slow but it goes the distance. Teams running a 1-stop strategy need this compound for the long second stint. If you qualify on Mediums you can run Hard all the way to the end without panic. The risk is you are slow early and get undercut by someone on fresher rubber.',
+    chips: ['Who should run the Hard tyre?', 'When does the Hard tyre make sense?', 'What happens if Hard tyre fails?']
+  },
+  mediumC3: {
+    title: 'Medium Tyre · C3', badge: 'MAIN RACE TYRE', badgeClass: 'sp-badge-yellow',
+    briefing: 'The Medium is the tyre everyone wants but nobody fully trusts at Miami. It balances pace and durability but the heat here pushes it to its limits faster than the data predicts. Most teams start on Medium from the midfield. If the front-left goes off early on Medium you are looking at an emergency stop that hands your position to whoever pitted on lap 14.',
+    chips: ['Why do midfield teams start on Medium?', 'When does Medium tyre degrade?', 'Medium vs Soft at start?']
+  },
+  softC4: {
+    title: 'Soft Tyre · C4', badge: 'QUALIFYING TYRE', badgeClass: 'sp-badge-red',
+    briefing: 'Everyone qualifies on Soft. In the race it is a weapon for the first 10 to 12 laps then it falls off a cliff. If a safety car comes before lap 12 the drivers on Soft get a free pit stop on fresh rubber — that is the moment midfield teams dream about all weekend.',
+    chips: ['How long does Soft last at Miami?', 'Safety car and Soft tyre gamble?', 'Who benefits from starting on Soft?']
+  },
+  oneStop: {
+    title: '1-Stop Strategy', badge: 'MOST LIKELY', badgeClass: 'sp-badge-green',
+    briefing: 'Pit once around lap 18 to 22. Start on Soft run to lap 18 then switch to Hard or Medium for the rest. Mercedes and McLaren with their upgrades can manage tyres well enough to make this work. The danger is if the Safety car comes late — you have old tyres and everyone around you has just pitted for free.',
+    chips: ['Which teams prefer 1-stop?', 'When does 1-stop fail?', 'Lap 18 vs lap 22 pit stop?']
+  },
+  safetyCar: {
+    title: 'Safety Car Scenario', badge: '47% PROBABILITY', badgeClass: 'sp-badge-yellow',
+    briefing: 'Nearly half of all Miami races have had a safety car that changed the result completely. If it comes before lap 12 everyone who has not pitted gets a free stop. Hamilton and Norris are historically the best at exploiting this window. This is when a driver starting tenth can finish on the podium.',
+    chips: ['Who benefits most from safety car?', 'What is a free pit stop?', 'How does safety car change positions?']
+  }
+};
+
+function spStrategyDetail(cardId) {
+  const d = _spStrategyCards[cardId];
+  if (!d) return;
+  const body = document.getElementById('spBody');
+  body.innerHTML = `
+    <div style="padding:4px 0 8px">
+      <button style="background:none;border:none;color:var(--gray);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;padding:0"
+        onclick="_spRenderContent('strategy');_spRestoreHistory('strategy')">← Strategy</button>
+    </div>
+    <div class="sp-card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fff">${d.title}</span>
+        <span class="sp-badge ${d.badgeClass}">${d.badge}</span>
+      </div>
+      <div id="sp-detail-text" style="font-size:11px;color:#ccc;line-height:1.8;min-height:60px"></div>
+    </div>
+    <div class="sp-companion-card">
+      <div class="sp-companion-hdr-bar" style="background:#22c55e12;border-left:3px solid #22c55e">
+        <div class="sp-companion-hdr-dot" style="background:#22c55e"></div>
+        <span class="sp-companion-hdr-label">${d.title}</span>
+      </div>
+      <div class="sp-companion-chips">
+        ${d.chips.map(c => `<button class="sp-companion-chip" onclick="spAsk('strategy','${c}')">${c}</button>`).join('')}
+      </div>
+      <div id="sp-chat-strategy" style="padding:8px 12px;min-height:60px;max-height:180px;overflow-y:auto;">
+        <div class="sp-companion-bubble-ai" style="border-left-color:#22c55e60">Ask me anything about ${d.title}.</div>
+      </div>
+      <div class="sp-companion-input-row">
+        <input id="sp-input-strategy" class="sp-companion-input" placeholder="Ask about strategy..."
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spAsk('strategy',null);}"/>
+        <button id="sp-send-strategy" class="sp-companion-send" style="background:#22c55e" onclick="spAsk('strategy',null)">Ask</button>
+      </div>
+    </div>`;
+  _spTypewriter(document.getElementById('sp-detail-text'), d.briefing, body, 15);
+}
 
 let _spCurrent = null;
 let _spWeatherRain = false;
