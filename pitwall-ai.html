@@ -2330,6 +2330,12 @@
     .rp-cols { display:flex; gap:14px; align-items:flex-start; }
     .rp-col-left { flex:1; min-width:0; display:flex; flex-direction:column; gap:14px; }
     .rp-col-right { width:280px; flex-shrink:0; display:flex; flex-direction:column; gap:14px; }
+    /* New grid layout */
+    .rp-map-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start; }
+    .rp-map-col { display:flex; flex-direction:column; gap:10px; }
+    .rp-right-col { display:flex; flex-direction:column; gap:14px; }
+    .rp-three-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; align-items:start; }
+    .rp-zone-card-desc { font-size:9px; color:var(--gray); line-height:1.5; margin-top:3px; }
     .rp-card { background:var(--bg2); border:1px solid var(--border); border-radius:2px; padding:14px 16px; }
     .rp-card-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
     .rp-card-title { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); }
@@ -2376,7 +2382,7 @@
     .rp-track-legend { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
     .rp-legend-item { display:flex; align-items:center; gap:5px; font-size:9px; color:var(--gray); font-weight:600; }
     .rp-legend-dot { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
-    .rp-zone-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px; }
+    .rp-zone-cards { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
     .rp-zone-card { background:#0d0d0d; border:1px solid var(--border); padding:8px 10px; border-radius:2px; }
     .rp-zone-card-name { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
     .rp-zone-card-rating { font-size:10px; font-weight:700; margin-bottom:2px; }
@@ -2461,6 +2467,8 @@
     @media (max-width:768px) {
       .rp-cols { flex-direction:column; }
       .rp-col-right { width:100%; }
+      .rp-map-grid { grid-template-columns:1fr; }
+      .rp-three-grid { grid-template-columns:1fr; }
       .rp-zone-cards { grid-template-columns:repeat(2,1fr); }
       .rp-weather-blocks { flex-direction:column; }
       .rp-weather-block { border-right:none; border-bottom:1px solid #1a3060; }
@@ -2811,11 +2819,11 @@
     </div>
   </div>
 
-  <!-- ── TWO COLUMN LAYOUT ──────────────────── -->
-  <div class="rp-cols">
+  <!-- ── MAP + STORYLINES GRID ──────────────── -->
+  <div class="rp-map-grid">
 
-    <!-- ════ LEFT COLUMN ════ -->
-    <div class="rp-col-left">
+    <!-- ════ MAP COL ════ -->
+    <div class="rp-map-col">
 
       <!-- TRACK MAP CARD -->
       <div class="rp-card">
@@ -2907,66 +2915,40 @@
           </div>
         </div>
 
-        <!-- Zone cards -->
-        <div class="rp-zone-cards">
-          <div class="rp-zone-card">
-            <div class="rp-zone-card-name" style="color:#f5c842">T4-8 Flow</div>
-            <div class="rp-zone-card-rating" id="rpZc1Rating" style="color:#f5c842">HIGH</div>
-            <div class="rp-zone-card-sub" id="rpZc1Sub">Tyre surface heat</div>
-          </div>
-          <div class="rp-zone-card">
-            <div class="rp-zone-card-name" style="color:#00d84b">T11 Overtake</div>
-            <div class="rp-zone-card-rating" id="rpZc2Rating" style="color:#00d84b">MEDIUM</div>
-            <div class="rp-zone-card-sub" id="rpZc2Sub">Late braking zone</div>
-          </div>
-          <div class="rp-zone-card">
-            <div class="rp-zone-card-name" style="color:#e10600">T14-15 Bridge</div>
-            <div class="rp-zone-card-rating" id="rpZc3Rating" style="color:#e10600">EXTREME</div>
-            <div class="rp-zone-card-sub" id="rpZc3Sub">Kerb damage risk</div>
-          </div>
-          <div class="rp-zone-card">
-            <div class="rp-zone-card-name" style="color:#a855f7" id="rpZc4Name">Back Straight</div>
-            <div class="rp-zone-card-rating" id="rpZc4Rating" style="color:#a855f7">DRS ZONE</div>
-            <div class="rp-zone-card-sub" id="rpZc4Sub">Overtake on entry</div>
-          </div>
-        </div>
       </div><!-- /track card -->
 
-      <!-- WEATHER CARD -->
-      <div class="rp-card rp-weather-card">
-        <div class="rp-weather-title">Miami Weather Forecast</div>
-        <div class="rp-weather-blocks">
-          <div class="rp-weather-block">
-            <div class="rp-weather-block-label">Race Day</div>
-            <div class="rp-weather-block-val">34°C</div>
-            <div class="rp-weather-block-sub">Humid · Sunny</div>
-          </div>
-          <div class="rp-weather-block">
-            <div class="rp-weather-block-label">Rain Chance</div>
-            <div class="rp-weather-block-val">38%</div>
-            <div class="rp-weather-block-sub">Afternoon storm</div>
-          </div>
-          <div class="rp-weather-block">
-            <div class="rp-weather-block-label">Wind</div>
-            <div class="rp-weather-block-val">12kph</div>
-            <div class="rp-weather-block-sub">SE direction</div>
-          </div>
+      <!-- ZONE CARDS 2×2 -->
+      <div class="rp-zone-cards">
+        <div class="rp-zone-card" style="cursor:pointer" onclick="showBriefing('yellow')">
+          <div class="rp-zone-card-name" style="color:#f5c842">T4-8 Flow</div>
+          <div class="rp-zone-card-desc" id="rpZc1Sub">The fake marina S-curves. Lateral G-force destroys the front-left tyre faster than anywhere on the circuit.</div>
+          <div style="display:none" id="rpZc1Rating"></div>
         </div>
-        <div class="rp-weather-impact">
-          <div class="rp-weather-impact-label">AI weather impact</div>
-          <div class="rp-weather-text" id="rpWeatherText">Miami averages 34C on race day with high humidity causing tyre surface temperatures to spike 12 to 15 degrees above ambient. The front-left tyre at Turn 4 is the first to go. Expect most teams to pit earlier than their models suggest. A 38 percent rain chance means teams will watch the sky from lap 20.</div>
+        <div class="rp-zone-card" style="cursor:pointer" onclick="showBriefing('green')">
+          <div class="rp-zone-card-name" style="color:#00d84b">T11 Overtake</div>
+          <div class="rp-zone-card-desc" id="rpZc2Sub">Battery management through the infield decides who has the overtake opportunity entering this straight.</div>
+          <div style="display:none" id="rpZc2Rating"></div>
         </div>
-        <button class="rp-btn-blue" id="rpWeatherBtn" onclick="rpSend('How does Miami heat and potential rain affect race strategy and tyre choices for the 2026 Miami GP?')">Ask AI about weather impact on strategy →</button>
-      </div><!-- /weather card -->
+        <div class="rp-zone-card" style="cursor:pointer" onclick="showBriefing('red')">
+          <div class="rp-zone-card-name" style="color:#e10600">T14-15 Max Danger</div>
+          <div class="rp-zone-card-desc" id="rpZc3Sub">Concrete walls on both sides with zero escape road. Every Miami GP has seen an incident in this section.</div>
+          <div style="display:none" id="rpZc3Rating"></div>
+        </div>
+        <div class="rp-zone-card" style="cursor:pointer" onclick="showBriefing('purple')">
+          <div class="rp-zone-card-name" style="color:#a855f7" id="rpZc4Name">Back Straight DRS</div>
+          <div class="rp-zone-card-desc" id="rpZc4Sub">1.2km at full throttle topping 340+ km/h. High-drag setups become sitting ducks here.</div>
+          <div style="display:none" id="rpZc4Rating"></div>
+        </div>
+      </div><!-- /zone cards -->
 
-    </div><!-- /col-left -->
+    </div><!-- /map col -->
 
-    <!-- ════ RIGHT COLUMN ════ -->
-    <div class="rp-col-right">
+    <!-- ════ RIGHT COL: storylines + prediction ════ -->
+    <div class="rp-right-col">
 
       <!-- STORYLINES CARD -->
       <div class="rp-card">
-        <div class="rp-card-title" style="margin-bottom:12px">Three Big Storylines</div>
+        <div class="rp-card-title" style="color:var(--red);margin-bottom:12px">Three Big Storylines</div>
         <div class="rp-storyline-row">
           <div class="rp-storyline-title">Antonelli's nerve test</div>
           <div class="rp-storyline-text">Championship leader at 19. Miami is volatile. One safety car changes everything.</div>
@@ -2983,55 +2965,6 @@
           <button class="rp-ask-link" onclick="rpSend('What does Verstappen need at Miami to get back into the championship?')">Ask AI →</button>
         </div>
       </div><!-- /storylines -->
-
-      <!-- STRATEGY MATRIX CARD -->
-      <div class="rp-card">
-        <div class="rp-card-title" style="margin-bottom:10px">Strategy Matrix</div>
-        <div class="rp-strat-row">
-          <span class="rp-strat-label">Pit window</span>
-          <span class="rp-strat-val">Laps 14–24</span>
-        </div>
-        <div class="rp-strat-row">
-          <span class="rp-strat-label">Safety car prob</span>
-          <span class="rp-badge rp-badge-yellow" id="rpScBadge" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px">45–50%</span>
-        </div>
-        <div class="rp-strat-row">
-          <span class="rp-strat-label">Undercut</span>
-          <span class="rp-badge rp-badge-green" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px">HIGH · 0.8s/lap</span>
-        </div>
-        <div class="rp-strat-row">
-          <span class="rp-strat-label">Tyre call</span>
-          <span class="rp-strat-val" id="rpTyreCall">Med → Hard</span>
-        </div>
-        <div class="rp-strat-warn" id="rpStratWarn">If safety car before lap 12 the strategy book gets thrown away. Teams will gamble on very early stops that could win or lose the race.</div>
-      </div><!-- /strategy -->
-
-      <!-- TRACK HISTORY CARD -->
-      <div class="rp-card rp-history-card">
-        <div class="rp-history-title">Miami GP · Track History</div>
-        <div class="rp-history-row" onclick="rpSend('Tell me about the history of the Miami Grand Prix and why it became such an important race on the F1 calendar')">
-          <div class="rp-history-row-title">2022 · First ever Miami GP</div>
-          <div class="rp-history-row-sub">Verstappen won from pole. Built around Hard Rock Stadium. Became an instant F1 classic in its debut season.</div>
-        </div>
-        <div class="rp-history-row" onclick="rpSend('Why did Miami 2024 break US viewership records and what made that race so special?')">
-          <div class="rp-history-row-title">2024 · Record US audience</div>
-          <div class="rp-history-row-sub">3.6 million viewers — the largest US F1 TV audience ever. Bigger than the Super Bowl for the 18-49 demographic.</div>
-        </div>
-        <div class="rp-history-row" onclick="rpSend('Why does Miami always have safety cars and how should teams and drivers plan for it?')">
-          <div class="rp-history-row-title">Every race · Safety car</div>
-          <div class="rp-history-row-sub">Every single Miami GP has had at least one safety car. Miami is chaos by design. Always plan for it.</div>
-        </div>
-        <div class="rp-chips-label">Ask anything about Miami</div>
-        <div class="rp-chips">
-          <button class="rp-chip" onclick="rpSend('Why is Miami unpredictable?')">Why is Miami unpredictable?</button>
-          <button class="rp-chip" onclick="rpSend('What makes this track unique?')">What makes this track unique?</button>
-          <button class="rp-chip" onclick="rpSend('Who has won here before?')">Who has won here before?</button>
-        </div>
-        <div class="rp-history-input-row">
-          <input class="rp-history-input" id="rpHistoryInput" placeholder="Ask about Miami GP history…" onkeydown="if(event.key==='Enter'){rpSendHistory()}"/>
-          <button class="rp-btn-gold" onclick="rpSendHistory()">Ask</button>
-        </div>
-      </div><!-- /history -->
 
       <!-- AI PREDICTION CARD -->
       <div class="rp-card rp-predict-card">
@@ -3059,25 +2992,132 @@
         <button class="rp-btn-red" style="width:100%" onclick="rpSend('Give me a full AI race prediction for the Miami GP 2026 including all safety car and strategy scenarios')">Get full AI race prediction →</button>
       </div><!-- /prediction -->
 
-      <!-- RACE PREVIEW AI CHAT -->
-      <div class="rpc-card" id="rpChatCard">
-        <div class="rpc-label">Ask AI about Miami</div>
-        <div class="rpc-msgs" id="rpChatMsgs">
-          <div class="rpc-msgs-empty" id="rpChatEmpty">Ask anything about the Miami GP — strategy, history, weather, drivers</div>
-        </div>
-        <div class="rpc-chips">
-          <button class="rpc-chip" onclick="rpChatSend('Who will win Miami?')">Who will win Miami?</button>
-          <button class="rpc-chip" onclick="rpChatSend('How does weather affect strategy?')">How does weather affect strategy?</button>
-          <button class="rpc-chip" onclick="rpChatSend('What makes Miami so unpredictable?')">What makes Miami so unpredictable?</button>
-        </div>
-        <div class="rpc-input-row">
-          <input class="rpc-input" id="rpChatInput" placeholder="Ask about the Miami GP…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();rpChatSend();}"/>
-          <button class="rpc-send-btn" id="rpChatSendBtn" onclick="rpChatSend()">Ask</button>
-        </div>
-      </div><!-- /rp-chat -->
+    </div><!-- /right col -->
 
-    </div><!-- /col-right -->
-  </div><!-- /rp-cols -->
+  </div><!-- /map grid -->
+
+  <!-- ── THREE EQUAL CARDS ─────────────────────── -->
+  <div class="rp-three-grid">
+
+    <!-- STRATEGY MATRIX -->
+    <div class="rp-card">
+      <div class="rp-card-title" style="color:var(--red);margin-bottom:10px">Strategy Matrix</div>
+      <div class="rp-strat-row">
+        <span class="rp-strat-label">Pit window</span>
+        <span class="rp-strat-val">Laps 14–24</span>
+      </div>
+      <div class="rp-strat-row">
+        <span class="rp-strat-label">Safety car prob</span>
+        <span class="rp-badge rp-badge-yellow" id="rpScBadge">45–50%</span>
+      </div>
+      <div class="rp-strat-row">
+        <span class="rp-strat-label">Undercut</span>
+        <span class="rp-badge rp-badge-green">HIGH · 0.8s/lap</span>
+      </div>
+      <div class="rp-strat-row">
+        <span class="rp-strat-label">Tyre call</span>
+        <span class="rp-strat-val" id="rpTyreCall">Med → Hard</span>
+      </div>
+      <div class="rp-strat-warn" id="rpStratWarn">If safety car before lap 12 the strategy book gets thrown away. Teams will gamble on very early stops that could win or lose the race.</div>
+    </div><!-- /strategy -->
+
+    <!-- WEATHER CARD -->
+    <div class="rp-card rp-weather-card">
+      <div class="rp-weather-title">Miami Weather Forecast</div>
+      <div class="rp-weather-blocks">
+        <div class="rp-weather-block">
+          <div class="rp-weather-block-label">Race Day</div>
+          <div class="rp-weather-block-val">34°C</div>
+          <div class="rp-weather-block-sub">Humid · Sunny</div>
+        </div>
+        <div class="rp-weather-block">
+          <div class="rp-weather-block-label">Rain Chance</div>
+          <div class="rp-weather-block-val" style="color:#f5c842">38%</div>
+          <div class="rp-weather-block-sub">Afternoon storm</div>
+        </div>
+        <div class="rp-weather-block">
+          <div class="rp-weather-block-label">Wind</div>
+          <div class="rp-weather-block-val">12kph</div>
+          <div class="rp-weather-block-sub">SE direction</div>
+        </div>
+      </div>
+      <div class="rp-ai-weather-row" style="margin-bottom:10px">
+        <button class="rp-toggle-btn active-dry" id="rpBtnDry2" onclick="rpToggleWeather(false)">Dry</button>
+        <button class="rp-toggle-btn" id="rpBtnRain2" onclick="rpToggleWeather(true)">⚡ Rain</button>
+      </div>
+      <div class="rp-weather-impact">
+        <div class="rp-weather-impact-label">AI weather impact</div>
+        <div class="rp-weather-text" id="rpWeatherText">Miami averages 34C on race day with high humidity causing tyre surface temperatures to spike 12 to 15 degrees above ambient. The front-left tyre at Turn 4 is the first to go. Expect most teams to pit earlier than their models suggest. A 38 percent rain chance means teams will watch the sky from lap 20.</div>
+      </div>
+      <button class="rp-btn-blue" id="rpWeatherBtn" onclick="rpSend('How does Miami heat and potential rain affect race strategy and tyre choices for the 2026 Miami GP?')">Ask AI about weather impact on strategy →</button>
+    </div><!-- /weather -->
+
+    <!-- SPEED TRAP CARD -->
+    <div class="rp-card">
+      <div class="rp-card-title" style="margin-bottom:10px">Speed Trap</div>
+      <div class="rp-strat-row">
+        <span class="rp-strat-label">Top speed</span>
+        <span class="rp-strat-val">340+ km/h</span>
+      </div>
+      <div class="rp-strat-row">
+        <span class="rp-strat-label">DRS zone</span>
+        <span class="rp-strat-val">1.2 km</span>
+      </div>
+      <div class="rp-strat-row">
+        <span class="rp-strat-label">S1 king</span>
+        <span class="rp-badge rp-badge-red">McLaren</span>
+      </div>
+      <div class="rp-strat-row">
+        <span class="rp-strat-label">S3 king</span>
+        <span class="rp-badge rp-badge-yellow">Red Bull</span>
+      </div>
+    </div><!-- /speed trap -->
+
+  </div><!-- /three grid -->
+
+  <!-- ── TRACK HISTORY ─────────────────────────── -->
+  <div class="rp-card rp-history-card">
+    <div class="rp-history-title">Miami GP · Track History</div>
+    <div class="rp-history-row" onclick="rpSend('Tell me about the history of the Miami Grand Prix and why it became such an important race on the F1 calendar')">
+      <div class="rp-history-row-title">2022 · First ever Miami GP</div>
+      <div class="rp-history-row-sub">Verstappen won from pole. Built around Hard Rock Stadium. Became an instant F1 classic in its debut season.</div>
+    </div>
+    <div class="rp-history-row" onclick="rpSend('Why did Miami 2024 break US viewership records and what made that race so special?')">
+      <div class="rp-history-row-title">2024 · Record US audience</div>
+      <div class="rp-history-row-sub">3.6 million viewers — the largest US F1 TV audience ever. Bigger than the Super Bowl for the 18-49 demographic.</div>
+    </div>
+    <div class="rp-history-row" onclick="rpSend('Why does Miami always have safety cars and how should teams and drivers plan for it?')">
+      <div class="rp-history-row-title">Every race · Safety car</div>
+      <div class="rp-history-row-sub">Every single Miami GP has had at least one safety car. Miami is chaos by design. Always plan for it.</div>
+    </div>
+    <div class="rp-chips-label">Ask anything about Miami</div>
+    <div class="rp-chips">
+      <button class="rp-chip" onclick="rpSend('Why is Miami unpredictable?')">Why is Miami unpredictable?</button>
+      <button class="rp-chip" onclick="rpSend('What makes this track unique?')">What makes this track unique?</button>
+      <button class="rp-chip" onclick="rpSend('Who has won here before?')">Who has won here before?</button>
+    </div>
+    <div class="rp-history-input-row">
+      <input class="rp-history-input" id="rpHistoryInput" placeholder="Ask about Miami GP history…" onkeydown="if(event.key==='Enter'){rpSendHistory()}"/>
+      <button class="rp-btn-gold" onclick="rpSendHistory()">Ask</button>
+    </div>
+  </div><!-- /history -->
+
+  <!-- ── AI CHAT ────────────────────────────────── -->
+  <div class="rpc-card" id="rpChatCard">
+    <div class="rpc-label">Ask AI about Miami</div>
+    <div class="rpc-msgs" id="rpChatMsgs">
+      <div class="rpc-msgs-empty" id="rpChatEmpty">Ask anything about the Miami GP — strategy, history, weather, drivers</div>
+    </div>
+    <div class="rpc-chips">
+      <button class="rpc-chip" onclick="rpChatSend('Who will win Miami?')">Who will win Miami?</button>
+      <button class="rpc-chip" onclick="rpChatSend('How does weather affect strategy?')">How does weather affect strategy?</button>
+      <button class="rpc-chip" onclick="rpChatSend('What makes Miami so unpredictable?')">What makes Miami so unpredictable?</button>
+    </div>
+    <div class="rpc-input-row">
+      <input class="rpc-input" id="rpChatInput" placeholder="Ask about the Miami GP…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();rpChatSend();}"/>
+      <button class="rpc-send-btn" id="rpChatSendBtn" onclick="rpChatSend()">Ask</button>
+    </div>
+  </div><!-- /ai chat -->
 </div><!-- /rp-wrap -->
 </div>
 
@@ -5300,6 +5340,10 @@ function rpToggleWeather(rain) {
   /* Toggle buttons */
   document.getElementById('rpBtnDry').className  = 'rp-toggle-btn' + (rain ? '' : ' active-dry');
   document.getElementById('rpBtnRain').className = 'rp-toggle-btn' + (rain ? ' active-rain' : '');
+  const dry2 = document.getElementById('rpBtnDry2');
+  const rain2 = document.getElementById('rpBtnRain2');
+  if (dry2)  dry2.className  = 'rp-toggle-btn' + (rain ? '' : ' active-dry');
+  if (rain2) rain2.className = 'rp-toggle-btn' + (rain ? ' active-rain' : '');
 
   /* rain overlay and zone paths removed — toggle lives inside AI briefing card */
 
