@@ -2608,58 +2608,61 @@
     .sp-hist-year { font-size:10px; font-weight:700; color:var(--white); margin-bottom:3px; }
     .sp-hist-sub { font-size:9px; color:var(--gray); line-height:1.5; }
 
-    /* Companion Chat */
-    .sp-companion {
-      flex-shrink:0; background:#000; border-top:1px solid #1a1a1a;
-      padding:12px 14px 14px; max-height:55vh;
-      display:flex; flex-direction:column; gap:0;
+    /* Companion card — rendered inside spBody */
+    .sp-companion-card {
+      background: #080808; border: 1px solid #1a1a1a; border-radius: 2px;
+      overflow: hidden; margin-bottom: 8px;
     }
-    .sp-companion-hdr { display:flex; align-items:center; gap:8px; margin-bottom:9px; }
-    .sp-companion-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-    .sp-companion-label {
-      font-size:8px; font-weight:700; letter-spacing:1.5px;
-      text-transform:uppercase; color:var(--gray-lt);
+    .sp-companion-hdr-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 13px; border-bottom: 1px solid #111;
+    }
+    .sp-companion-hdr-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+    .sp-companion-hdr-label {
+      font-size: 8px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--gray-lt);
     }
     .sp-companion-chips {
-      display:flex; gap:5px; overflow-x:auto; margin-bottom:9px;
-      scrollbar-width:none; padding-bottom:1px;
+      display: flex; gap: 5px; overflow-x: auto; padding: 10px 13px 8px;
+      scrollbar-width: none; border-bottom: 1px solid #0f0f0f;
     }
-    .sp-companion-chips::-webkit-scrollbar { display:none; }
+    .sp-companion-chips::-webkit-scrollbar { display: none; }
     .sp-companion-chip {
-      flex-shrink:0; background:#0d0d0d; border:1px solid var(--border);
-      color:var(--gray-lt); font-size:9px; padding:5px 9px;
-      cursor:pointer; border-radius:2px; font-family:inherit; white-space:nowrap;
+      flex-shrink: 0; background: #0d0d0d; border: 1px solid #222;
+      color: #ccc; font-size: 9px; padding: 5px 10px;
+      cursor: pointer; border-radius: 2px; font-family: inherit; white-space: nowrap;
     }
-    .sp-companion-chip:hover { border-color:var(--sp-color, var(--red)); color:var(--sp-color, var(--red)); }
+    .sp-companion-chip:hover { color: #fff; border-color: #444; }
     .sp-companion-msgs {
-      flex:1; min-height:60px; max-height:160px; overflow-y:auto;
-      display:flex; flex-direction:column; gap:8px; margin-bottom:9px;
+      min-height: 80px; max-height: 320px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 8px;
+      padding: 12px 13px;
     }
-    .sp-companion-empty { font-size:9px; color:#444; font-style:italic; padding:10px 0; }
     .sp-companion-bubble-user {
-      align-self:flex-end; background:#1a1a1a; color:var(--white);
-      font-size:10px; padding:6px 10px;
-      border-radius:12px 12px 2px 12px; max-width:85%; line-height:1.5;
+      align-self: flex-end; background: #1a1a1a; color: #fff;
+      font-size: 11px; padding: 7px 11px;
+      border-radius: 14px 14px 2px 14px; max-width: 85%; line-height: 1.5;
     }
     .sp-companion-bubble-ai {
-      align-self:flex-start; background:transparent;
-      border-left:2px solid var(--sp-color, var(--red));
-      color:var(--gray-lt); font-size:10px; padding:5px 9px;
-      max-width:92%; line-height:1.6;
+      align-self: flex-start; background: transparent;
+      border-left: 2px solid #333; color: #ccc;
+      font-size: 11px; padding: 5px 10px; max-width: 94%; line-height: 1.65;
     }
-    .sp-companion-input-row { display:flex; gap:6px; flex-shrink:0; }
+    .sp-companion-input-row {
+      display: flex; gap: 6px; padding: 10px 13px 12px; border-top: 1px solid #111;
+    }
     .sp-companion-input {
-      flex:1; background:#0d0d0d; border:1px solid var(--border);
-      color:var(--white); font-size:11px; padding:7px 10px;
-      border-radius:2px; font-family:inherit; min-width:0;
+      flex: 1; background: #0d0d0d; border: 1px solid #222; color: #fff;
+      font-size: 11px; padding: 8px 10px; border-radius: 2px;
+      font-family: inherit; min-width: 0;
     }
-    .sp-companion-input:focus { outline:none; border-color:var(--sp-color, var(--red)); }
+    .sp-companion-input:focus { outline: none; border-color: #444; }
     .sp-companion-send {
-      background:var(--sp-color, var(--red)); color:#fff; border:none;
-      padding:7px 14px; font-size:10px; font-weight:700;
-      cursor:pointer; border-radius:2px; font-family:inherit; flex-shrink:0;
+      color: #fff; border: none; padding: 8px 14px; font-size: 10px;
+      font-weight: 700; cursor: pointer; border-radius: 2px;
+      font-family: inherit; flex-shrink: 0; letter-spacing: .5px;
     }
-    .sp-companion-send:disabled { background:#2a2a2a; cursor:not-allowed; }
+    .sp-companion-send:disabled { background: #2a2a2a !important; cursor: not-allowed; }
 
     /* Hub open buttons */
     .sp-open-btn {
@@ -3387,22 +3390,8 @@
   </div>
   <!-- Section tabs -->
   <div class="sp-tabs" id="spTabs"></div>
-  <!-- Scrollable content -->
+  <!-- Scrollable content + companion card rendered inside by JS -->
   <div class="sp-body" id="spBody"></div>
-  <!-- Companion chat (pinned bottom) -->
-  <div class="sp-companion">
-    <div class="sp-companion-hdr">
-      <div class="sp-companion-dot" id="spCompDot"></div>
-      <div class="sp-companion-label" id="spCompLabel"></div>
-    </div>
-    <div class="sp-companion-chips" id="spCompChips"></div>
-    <div class="sp-companion-msgs" id="spCompMsgs"></div>
-    <div class="sp-companion-input-row">
-      <input class="sp-companion-input" id="spCompInput" placeholder=""
-        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spCompSend();}"/>
-      <button class="sp-companion-send" id="spCompSendBtn" onclick="spCompSend()">Ask</button>
-    </div>
-  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════
@@ -5752,11 +5741,11 @@ function _rpTypeText(el, text) {
 
 const _SP_SECTIONS = {
   strategy: {
-    icon: '🏁', title: 'Strategy', color: '#e10600',
+    icon: '🏁', title: 'Strategy', color: '#22c55e',
     placeholder: 'Ask about Miami strategy…',
-    emptyMsg: 'Ask about pit windows, undercut timing, and safety car scenarios',
-    chips: ['Best undercut window?', 'Safety car impact?', 'Soft vs Medium start?', 'Two-stop viable?'],
-    system: 'You are a Formula 1 race strategy expert for the 2026 Miami Grand Prix. Focus on pit window timing, tyre degradation, undercut and overcut scenarios, safety car strategies, and team decision-making specific to Miami 2026. Keep answers 3 to 5 sentences. Be specific and data-driven.',
+    openingMsg: 'Ask me anything about Miami race strategy in plain English.',
+    chips: ['What is an undercut?', 'Why laps 14–24?', 'Safety car impact?', 'Best tyre strategy?'],
+    system: 'You are answering questions about Miami GP 2026 race strategy. Focus on pit stops, undercut, overcut, tyre management, and safety car scenarios. Keep answers 3 to 5 sentences. Be specific and practical.',
     renderContent: function() {
       return `
         <div class="sp-card">
@@ -5786,9 +5775,9 @@ const _SP_SECTIONS = {
   weather: {
     icon: '⛅', title: 'Weather', color: '#2563eb',
     placeholder: 'Ask about Miami weather…',
-    emptyMsg: 'Ask about tyre overheating, flash rain impact, and race conditions',
-    chips: ['Tyre overheating impact?', 'Flash rain probability?', 'Red flag scenarios?', 'Heat vs degradation?'],
-    system: 'You are a meteorology and racing conditions expert for the 2026 Miami Grand Prix. Focus on Miami heat, humidity, thunderstorm probability, tyre thermal management in hot conditions, wet weather race implications, and safety car probability in rain. Keep answers 3 to 5 sentences. Be specific and practical.',
+    openingMsg: 'Miami weather is the biggest wildcard. Ask me how conditions change everything.',
+    chips: ['Why does FL tyre overheat?', 'Flash rain impact on strategy?', 'Has rain caused red flags before?'],
+    system: 'You are answering questions about Miami GP 2026 weather and how it affects the race. Focus on heat, tyre temperatures, flash rain, and condition changes. Keep answers 3 to 5 sentences. Be specific and practical.',
     renderContent: function(rain) {
       const rainActive = rain || false;
       return `
@@ -5830,11 +5819,11 @@ const _SP_SECTIONS = {
     }
   },
   storylines: {
-    icon: '🎭', title: 'Storylines', color: '#00d84b',
+    icon: '🎭', title: 'Storylines', color: '#a855f7',
     placeholder: 'Ask about driver storylines…',
-    emptyMsg: 'Tap any driver row to ask about their 2026 Miami storyline',
-    chips: ["Antonelli's championship pressure?", "Hamilton's Ferrari moment?", "Verstappen's comeback?", 'Who benefits from chaos?'],
-    system: 'You are an F1 narratives expert for the 2026 season and Miami Grand Prix. Cover driver storylines, team dynamics, championship battles, and rivalries. Focus on 2026 narratives: Antonelli as championship leader, Hamilton at Ferrari, Verstappen fighting back from ninth. Keep answers 3 to 5 sentences.',
+    openingMsg: 'Tap any storyline above or ask me about any driver heading into Miami.',
+    chips: ['Who is Antonelli?', 'Why did Hamilton join Ferrari?', 'Why is Verstappen struggling?'],
+    system: 'You are answering questions about the 2026 F1 driver storylines at Miami. Key context: Antonelli leads championship at 19 for Mercedes. Hamilton first season at Ferrari. Verstappen ninth with unreliable Red Bull engine. Keep answers 3 to 5 sentences.',
     renderContent: function() {
       return `
         <div class="sp-card">
@@ -5874,11 +5863,11 @@ const _SP_SECTIONS = {
     }
   },
   prediction: {
-    icon: '🔮', title: 'Prediction', color: '#f5c842',
+    icon: '🔮', title: 'Prediction', color: '#e10600',
     placeholder: 'Ask about race predictions…',
-    emptyMsg: 'Ask about winner odds, safety car timing, and dark horse picks',
-    chips: ['Who wins Miami?', 'Dark horse pick?', 'Safety car timing?', 'Biggest risk factor?'],
-    system: 'You are an F1 race prediction expert for the 2026 Miami Grand Prix. Use statistical models, historical data, and 2026 season form to predict outcomes. Cover win probability, safety car scenarios, dark horse opportunities, and risk factors. Be specific with percentages and clear reasoning. Keep answers 3 to 5 sentences.',
+    openingMsg: 'These predictions are based on 2026 data and Miami history. Ask me to explain any.',
+    chips: ['Why is Antonelli favourite?', 'What causes red flags here?', 'Who benefits from safety car?'],
+    system: 'You are answering questions about Miami GP 2026 race predictions. Antonelli 38% favourite. Safety car probability 47%. Red flag risk 24% first 5 laps. Keep answers 3 to 5 sentences. Be specific with percentages and reasoning.',
     renderContent: function() {
       return `
         <div class="sp-card">
@@ -5916,11 +5905,11 @@ const _SP_SECTIONS = {
     }
   },
   history: {
-    icon: '📖', title: 'History', color: '#a855f7',
+    icon: '📖', title: 'History', color: '#f5c842',
     placeholder: 'Ask about Miami GP history…',
-    emptyMsg: 'Tap any race year to ask about that Miami GP',
-    chips: ['Why is Miami always chaotic?', 'Best Miami race ever?', 'Circuit changes over years?', 'US F1 fan growth?'],
-    system: 'You are an F1 historian specialising in the Miami Grand Prix from 2022 to 2025. Cover race winners, key moments, circuit development, safety car incidents, US F1 fan growth, and how Miami established itself on the calendar. Keep answers 3 to 5 sentences. Be specific and engaging.',
+    openingMsg: 'Ask me about any Miami GP year or what makes this circuit so unpredictable.',
+    chips: ['Why always safety cars at Miami?', 'Who has won here before?', 'What makes Miami special?'],
+    system: 'You are answering questions about Miami GP history 2022 to 2025. 2022 Verstappen won first ever Miami GP. 2023 Verstappen from ninth. 2024 Norris first win, record US audience 3.6 million. Keep answers 3 to 5 sentences. Be specific and engaging.',
     renderContent: function() {
       return `
         <div class="sp-card">
@@ -6008,31 +5997,43 @@ function _spRenderContent(key) {
 }
 
 function _spRenderCompanion(key) {
-  const sec = _SP_SECTIONS[key];
-  document.getElementById('spCompDot').style.background    = sec.color;
-  document.getElementById('spCompLabel').textContent       = sec.title + ' Companion';
-  document.getElementById('spCompInput').placeholder       = sec.placeholder;
-  document.getElementById('spCompSendBtn').style.background = sec.color;
+  const sec  = _SP_SECTIONS[key];
+  const col  = sec.color;
+  const hist = _spHistory[key];
 
-  document.getElementById('spCompChips').innerHTML = sec.chips.map(c =>
+  const chipsHtml = sec.chips.map(c =>
     `<button class="sp-companion-chip" onclick="spCompSend(${JSON.stringify(c)})">${c}</button>`
   ).join('');
 
-  const msgsEl = document.getElementById('spCompMsgs');
-  msgsEl.innerHTML = '';
-  const hist = _spHistory[key];
+  // Build messages: opening msg when no history, else restored history
+  let msgsHtml = '';
   if (hist.length === 0) {
-    const e = document.createElement('div');
-    e.className = 'sp-companion-empty';
-    e.textContent = sec.emptyMsg;
-    msgsEl.appendChild(e);
+    msgsHtml = `<div class="sp-companion-bubble-ai" style="border-left-color:${col}60">${escapeHtml(sec.openingMsg)}</div>`;
   } else {
-    hist.forEach(msg => {
-      const b = document.createElement('div');
-      b.className = msg.role === 'user' ? 'sp-companion-bubble-user' : 'sp-companion-bubble-ai';
-      b.innerHTML = escapeHtml(msg.content).replace(/\n/g, '<br>');
-      msgsEl.appendChild(b);
-    });
+    msgsHtml = hist.map(m =>
+      `<div class="${m.role === 'user' ? 'sp-companion-bubble-user' : 'sp-companion-bubble-ai'}"
+        style="${m.role !== 'user' ? 'border-left-color:' + col + '60' : ''}">${escapeHtml(m.content).replace(/\n/g,'<br>')}</div>`
+    ).join('');
+  }
+
+  const body = document.getElementById('spBody');
+  body.insertAdjacentHTML('beforeend', `
+    <div class="sp-companion-card">
+      <div class="sp-companion-hdr-bar" style="background:${col}12;border-left:3px solid ${col}">
+        <div class="sp-companion-hdr-dot" style="background:${col}"></div>
+        <span class="sp-companion-hdr-label">${sec.title} Companion</span>
+      </div>
+      <div class="sp-companion-chips" id="spCompChips">${chipsHtml}</div>
+      <div class="sp-companion-msgs" id="spCompMsgs">${msgsHtml}</div>
+      <div class="sp-companion-input-row">
+        <input class="sp-companion-input" id="spCompInput" placeholder="${sec.placeholder}"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();spCompSend();}"/>
+        <button class="sp-companion-send" id="spCompSendBtn" style="background:${col}" onclick="spCompSend()">Ask</button>
+      </div>
+    </div>`);
+
+  if (hist.length > 0) {
+    const msgsEl = document.getElementById('spCompMsgs');
     msgsEl.scrollTop = msgsEl.scrollHeight;
   }
 }
@@ -6074,9 +6075,11 @@ async function spCompSend(q) {
   const key = _spCurrent;
   if (!key || _spBusy[key]) return;
 
-  const inputEl  = document.getElementById('spCompInput');
-  const sendEl   = document.getElementById('spCompSendBtn');
-  const msgsEl   = document.getElementById('spCompMsgs');
+  const inputEl = document.getElementById('spCompInput');
+  const sendEl  = document.getElementById('spCompSendBtn');
+  const msgsEl  = document.getElementById('spCompMsgs');
+  const bodyEl  = document.getElementById('spBody');
+  const sec     = _SP_SECTIONS[key];
 
   const text = (typeof q === 'string' && q) ? q : (inputEl ? inputEl.value.trim() : '');
   if (!text) return;
@@ -6085,24 +6088,20 @@ async function spCompSend(q) {
   _spBusy[key] = true;
   if (sendEl) sendEl.disabled = true;
 
-  const emptyEl = msgsEl.querySelector('.sp-companion-empty');
-  if (emptyEl) emptyEl.remove();
-
   const userBubble = document.createElement('div');
   userBubble.className = 'sp-companion-bubble-user';
   userBubble.textContent = text;
   msgsEl.appendChild(userBubble);
-  msgsEl.scrollTop = msgsEl.scrollHeight;
+  bodyEl.scrollTop = bodyEl.scrollHeight;
 
   _spHistory[key].push({ role: 'user', content: text });
 
   const aiBubble = document.createElement('div');
   aiBubble.className = 'sp-companion-bubble-ai';
+  aiBubble.style.borderLeftColor = sec.color + '60';
   aiBubble.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
   msgsEl.appendChild(aiBubble);
-  msgsEl.scrollTop = msgsEl.scrollHeight;
-
-  const sec = _SP_SECTIONS[key];
+  bodyEl.scrollTop = bodyEl.scrollHeight;
 
   try {
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
@@ -6119,7 +6118,7 @@ async function spCompSend(q) {
     await _readTokenStream(res, txt => { fullText = txt; });
 
     aiBubble.innerHTML = '';
-    await _spTypewriter(aiBubble, fullText || '(No response)', msgsEl, 15);
+    await _spTypewriter(aiBubble, fullText || '(No response)', bodyEl, 15);
 
     _spHistory[key].push({ role: 'assistant', content: fullText || '(No response)' });
   } catch (err) {
@@ -6131,7 +6130,7 @@ async function spCompSend(q) {
   } finally {
     _spBusy[key] = false;
     if (sendEl) sendEl.disabled = false;
-    msgsEl.scrollTop = msgsEl.scrollHeight;
+    bodyEl.scrollTop = bodyEl.scrollHeight;
   }
 }
 </script>
