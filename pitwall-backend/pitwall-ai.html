@@ -1011,6 +1011,100 @@
       #style-selector button, .style-bar button { font-size: 10px; }
     }
 
+    /* ── MOBILE RP HUB ──────────────────────────────── */
+    .mob-rp-hub { display:flex; flex-direction:column; gap:12px; padding:12px; }
+    .mob-rp-countdown {
+      background:var(--bg2); border:1px solid var(--border); border-radius:8px;
+      padding:14px 16px; display:flex; align-items:center; justify-content:space-between;
+    }
+    .mob-rp-cd-label { font-size:9px; font-weight:900; letter-spacing:2px; text-transform:uppercase; color:var(--red); }
+    .mob-rp-cd-units { display:flex; align-items:baseline; gap:4px; }
+    .mob-rp-cd-unit  { display:flex; align-items:baseline; gap:2px; }
+    .mob-rp-cd-num   { font-size:22px; font-weight:900; color:#fff; letter-spacing:-0.5px; }
+    .mob-rp-cd-lbl   { font-size:10px; color:#444; font-weight:700; }
+    .mob-rp-cd-sep   { font-size:16px; color:#333; font-weight:900; }
+    .mob-rp-pills {
+      display:flex; gap:7px; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+    }
+    .mob-rp-pills::-webkit-scrollbar { display:none; }
+    .mob-rp-pill {
+      flex-shrink:0; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap;
+    }
+    .mob-rp-pill-red    { background:rgba(225,6,0,.15);   color:#e10600; border:1px solid rgba(225,6,0,.3); }
+    .mob-rp-pill-yellow { background:rgba(255,200,0,.12); color:#ffc800; border:1px solid rgba(255,200,0,.25); }
+    .mob-rp-pill-green  { background:rgba(0,200,100,.12); color:#00c864; border:1px solid rgba(0,200,100,.25); }
+    .mob-rp-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .mob-rp-card {
+      background:var(--bg2); border:1px solid var(--border); border-radius:8px;
+      padding:12px 10px; display:flex; align-items:center; gap:9px; cursor:pointer;
+      transition:border-color .15s, background .15s;
+    }
+    .mob-rp-card:active { background:#101010; border-color:#333; transform:scale(.98); }
+    .mob-rp-card-icon {
+      width:32px; height:32px; border-radius:6px; display:flex;
+      align-items:center; justify-content:center; font-size:15px; flex-shrink:0;
+    }
+    .mob-rp-card-body { flex:1; min-width:0; }
+    .mob-rp-card-title { font-size:12px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mob-rp-card-sub   { font-size:9px; color:#555; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mob-rp-card-arrow { font-size:13px; color:#333; flex-shrink:0; }
+    .mob-rp-ai-strip {
+      background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:10px 12px;
+    }
+    .mob-rp-ai-chips { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; margin-bottom:9px; }
+    .mob-rp-ai-chips::-webkit-scrollbar { display:none; }
+    .mob-rp-chip {
+      flex-shrink:0; padding:5px 10px; background:transparent; border:1px solid #2a2a2a;
+      color:#888; font-family:'Titillium Web',sans-serif; font-size:11px; font-weight:600;
+      border-radius:3px; cursor:pointer; white-space:nowrap;
+    }
+    .mob-rp-chip:active { border-color:var(--red); color:#fff; }
+    .mob-rp-ai-row { display:flex; gap:8px; align-items:center; }
+    .mob-rp-ai-input {
+      flex:1; background:#0d0d0d; border:1px solid #1e1e1e; border-radius:4px; color:#fff;
+      font-family:'Titillium Web',sans-serif; font-size:13px; padding:9px 12px; outline:none;
+    }
+    .mob-rp-ai-input:focus { border-color:var(--red); }
+    .mob-rp-ai-input::placeholder { color:#444; }
+    .mob-rp-ai-ask-btn {
+      background:var(--red); color:#fff; border:none; padding:9px 14px;
+      font-family:'Titillium Web',sans-serif; font-size:12px; font-weight:700;
+      border-radius:4px; cursor:pointer; white-space:nowrap;
+    }
+    .mob-rp-ai-resp { margin-top:9px; font-size:12px; color:#ccc; line-height:1.65; }
+
+    /* RP section overlay pages (z-index above mob-page) */
+    .mob-rp-section {
+      display:none; position:fixed; inset:0; background:var(--bg);
+      z-index:600; flex-direction:column; overflow:hidden;
+    }
+    .mob-rp-section.open { display:flex; }
+    @media (min-width:768px) { .mob-rp-section { display:none !important; } }
+    .mob-rp-section-hdr {
+      flex-shrink:0; height:52px; background:#000; border-bottom:2px solid var(--red);
+      display:flex; align-items:center; gap:14px; padding:0 16px;
+    }
+    .mob-rp-section-body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px; }
+    .mob-rp-sec-badge {
+      display:inline-block; padding:3px 8px; border-radius:3px; font-size:9px;
+      font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:10px;
+    }
+    .mob-rp-sec-row {
+      background:var(--bg2); border:1px solid var(--border); border-radius:6px;
+      padding:12px 14px; margin-bottom:8px;
+    }
+    .mob-rp-sec-row-lbl { font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#555; margin-bottom:4px; }
+    .mob-rp-sec-row-val { font-size:13px; font-weight:700; color:#fff; }
+    .mob-rp-sec-row-sub { font-size:11px; color:#666; margin-top:3px; line-height:1.5; }
+    .mob-rp-sec-h { font-size:11px; font-weight:900; letter-spacing:2px; text-transform:uppercase; color:#444; padding:14px 0 6px; }
+    .mob-rp-sec-stat-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:4px; }
+    .mob-rp-sec-stat {
+      background:var(--bg2); border:1px solid var(--border); border-radius:6px;
+      padding:10px 8px; text-align:center;
+    }
+    .mob-rp-sec-stat-num { font-size:18px; font-weight:900; color:#fff; }
+    .mob-rp-sec-stat-lbl { font-size:9px; color:#555; margin-top:2px; }
+
     /* ── UPGRADE PANEL ───────────────────────────────── */
     .upgrade-panel {
       flex-shrink: 0;
@@ -4696,21 +4790,368 @@
       <div class="mob-news-coming-soon">Rules &amp; Regulations explained in plain English — coming before Miami weekend.</div>
     </div>
 
-    <!-- Race Preview panel -->
+    <!-- Race Preview panel — mobile hub -->
     <div class="mob-news-panel" id="mob-news-preview">
-      <div class="rp-wrap" style="padding:10px;">
+      <div class="mob-rp-hub">
+
+        <!-- Hero card -->
         <div class="rp-hero">
           <div class="rp-hero-label">AI Race Preview · Miami GP 2026</div>
           <div class="rp-hero-headline">This is Antonelli's race to lose — but Miami has never played nice with championship leaders</div>
           <div class="rp-hero-text">Antonelli leads by 34 points. Every Miami GP has had a safety car. Hamilton wants his first Ferrari win. Verstappen has a fresh engine and nothing to lose.</div>
           <div class="rp-hero-btns">
-            <button class="rp-btn-red" onclick="rpSend('Give me a full breakdown of who can win the Miami GP 2026')">Ask AI for full preview →</button>
+            <button class="rp-btn-red" onclick="mobRpChipAsk('Give me a full breakdown of who can win the Miami GP 2026')">Ask AI for full preview →</button>
           </div>
         </div>
-      </div>
+
+        <!-- Countdown card -->
+        <div class="mob-rp-countdown">
+          <div class="mob-rp-cd-label">Miami GP · May 1</div>
+          <div class="mob-rp-cd-units">
+            <div class="mob-rp-cd-unit"><span class="mob-rp-cd-num" id="mrp-d">--</span><span class="mob-rp-cd-lbl">d</span></div>
+            <div class="mob-rp-cd-sep">:</div>
+            <div class="mob-rp-cd-unit"><span class="mob-rp-cd-num" id="mrp-h">--</span><span class="mob-rp-cd-lbl">h</span></div>
+            <div class="mob-rp-cd-sep">:</div>
+            <div class="mob-rp-cd-unit"><span class="mob-rp-cd-num" id="mrp-m">--</span><span class="mob-rp-cd-lbl">m</span></div>
+          </div>
+        </div>
+
+        <!-- Stat pills -->
+        <div class="mob-rp-pills">
+          <div class="mob-rp-pill mob-rp-pill-red">🚩 Red flag 24%</div>
+          <div class="mob-rp-pill mob-rp-pill-yellow">🚗 Safety car 47%</div>
+          <div class="mob-rp-pill mob-rp-pill-green">🏆 Fav to win: KA</div>
+        </div>
+
+        <!-- Explore section label -->
+        <div class="mob-section-label">Explore Miami GP</div>
+
+        <!-- 2×3 hub grid -->
+        <div class="mob-rp-grid">
+          <div class="mob-rp-card" onclick="mobOpenRpSection('track')">
+            <div class="mob-rp-card-icon" style="background:rgba(255,200,0,.15);color:#ffc800">🗺️</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Track Map</div>
+              <div class="mob-rp-card-sub">Layout & hot zones</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="mobOpenRpSection('strategy')">
+            <div class="mob-rp-card-icon" style="background:rgba(0,200,100,.15);color:#00c864">🔧</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Strategy</div>
+              <div class="mob-rp-card-sub">Tyres & pit windows</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="mobOpenRpSection('weather')">
+            <div class="mob-rp-card-icon" style="background:rgba(0,150,255,.15);color:#0096ff">⛈️</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Weather</div>
+              <div class="mob-rp-card-sub">38% rain chance</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="mobOpenRpSection('storylines')">
+            <div class="mob-rp-card-icon" style="background:rgba(150,0,255,.15);color:#9600ff">📖</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Storylines</div>
+              <div class="mob-rp-card-sub">Who has most to lose?</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="mobOpenRpSection('prediction')">
+            <div class="mob-rp-card-icon" style="background:rgba(225,6,0,.15);color:#e10600">🏆</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Prediction</div>
+              <div class="mob-rp-card-sub">AI race winner picks</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="mobOpenRpSection('history')">
+            <div class="mob-rp-card-icon" style="background:rgba(200,160,0,.15);color:#c8a000">🏅</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Track History</div>
+              <div class="mob-rp-card-sub">Past winners & records</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+        </div>
+
+        <!-- AI chat strip -->
+        <div class="mob-rp-ai-strip">
+          <div class="mob-rp-ai-chips">
+            <button class="mob-rp-chip" onclick="mobRpChipAsk('Who will win the Miami GP 2026?')">Who will win?</button>
+            <button class="mob-rp-chip" onclick="mobRpChipAsk('How does rain affect strategy at Miami?')">Rain impact?</button>
+            <button class="mob-rp-chip" onclick="mobRpChipAsk('Can Verstappen challenge at Miami with the engine upgrade?')">Verstappen threat?</button>
+            <button class="mob-rp-chip" onclick="mobRpChipAsk('What makes the Miami circuit so unpredictable?')">Miami unique?</button>
+          </div>
+          <div class="mob-rp-ai-row">
+            <input class="mob-rp-ai-input" id="mobRpAiInput" placeholder="Ask about Miami GP…"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();mobRpAskAI();}">
+            <button class="mob-rp-ai-ask-btn" onclick="mobRpAskAI()">Ask</button>
+          </div>
+          <div class="mob-rp-ai-resp" id="mobRpAiResp" style="display:none"></div>
+        </div>
+
+      </div><!-- /mob-rp-hub -->
     </div>
 
   </div><!-- /mob-page-body -->
+</div>
+
+<!-- ═══ RACE PREVIEW SECTION PAGES (z-index 600, overlay news page) ═══ -->
+
+<div class="mob-rp-section" id="mob-rp-track">
+  <div class="mob-rp-section-hdr">
+    <button class="mob-back-btn" onclick="mobCloseRpSection('track')">← Back</button>
+    <span class="mob-page-title">Track Map</span>
+  </div>
+  <div class="mob-rp-section-body">
+    <div class="mob-rp-sec-badge" style="background:rgba(255,200,0,.15);color:#ffc800">🗺️ Miami International Autodrome</div>
+    <div class="mob-rp-sec-stat-grid">
+      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">57</div><div class="mob-rp-sec-stat-lbl">Laps</div></div>
+      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">5.4</div><div class="mob-rp-sec-stat-lbl">km lap</div></div>
+      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">3</div><div class="mob-rp-sec-stat-lbl">DRS zones</div></div>
+    </div>
+    <div class="mob-rp-sec-h">Circuit Sections</div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">T1–T3 Complex</div>
+      <div class="mob-rp-sec-row-val">Opening chicane sequence</div>
+      <div class="mob-rp-sec-row-sub">Tight right-left-right complex off the long start straight. Heavy braking zone — major overtaking opportunity. T1 is a critical first-lap flashpoint every year.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">T11 Back Straight</div>
+      <div class="mob-rp-sec-row-val">Longest flat-out section</div>
+      <div class="mob-rp-sec-row-sub">Cars hit 315+ km/h here. DRS zone 2 runs along this straight. Straight-line speed is decisive — Red Bull's new engine could be dangerous here.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl" style="color:#e10600">T14–T15 Bridge Chicane ⚠</div>
+      <div class="mob-rp-sec-row-val">Highest incident zone</div>
+      <div class="mob-rp-sec-row-sub">The signature bridge section over the Hard Rock Stadium car park. Awkward rhythm — drivers hate it. More incidents here than anywhere else on the circuit. Watch for safety car triggers here.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">T16–T19 Marina Section</div>
+      <div class="mob-rp-sec-row-val">Technical final sector</div>
+      <div class="mob-rp-sec-row-sub">Flowing medium-speed corners along the marina. Tyre-friendly compared to the rest of the lap. Last DRS zone down the pit straight creates late overtaking opportunities.</div>
+    </div>
+    <div class="mob-rp-sec-h">Key Facts</div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-sub">📍 Built around Hard Rock Stadium in Miami Gardens, Florida. The circuit opened in 2022 and is fully street-adjacent — artificial grass, painted tarmac, and fake marinas included. Every single Miami GP has had at least one safety car.</div>
+    </div>
+  </div>
+</div>
+
+<div class="mob-rp-section" id="mob-rp-strategy">
+  <div class="mob-rp-section-hdr">
+    <button class="mob-back-btn" onclick="mobCloseRpSection('strategy')">← Back</button>
+    <span class="mob-page-title">Strategy</span>
+  </div>
+  <div class="mob-rp-section-body">
+    <div class="mob-rp-sec-badge" style="background:rgba(0,200,100,.15);color:#00c864">🔧 Tyre & Pit Strategy</div>
+    <div class="mob-rp-sec-stat-grid">
+      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">C2–C4</div><div class="mob-rp-sec-stat-lbl">Compounds</div></div>
+      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">1–2</div><div class="mob-rp-sec-stat-lbl">Pit stops</div></div>
+      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">~22s</div><div class="mob-rp-sec-stat-lbl">Pit loss</div></div>
+    </div>
+    <div class="mob-rp-sec-h">Pirelli Compounds</div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">Hard (C2)</div>
+      <div class="mob-rp-sec-row-val">Long-run tyre — low deg</div>
+      <div class="mob-rp-sec-row-sub">Expected for the long first or second stint. Slower but durable. Teams who qualify on mediums may run hard to the end.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">Medium (C3)</div>
+      <div class="mob-rp-sec-row-val">All-rounder — main race tyre</div>
+      <div class="mob-rp-sec-row-sub">Expected to be the most-used compound. Balances pace and longevity. Most teams likely start on medium if starting from the midfield.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">Soft (C4)</div>
+      <div class="mob-rp-sec-row-val">Qualifying tyre — degrades fast</div>
+      <div class="mob-rp-sec-row-sub">Everyone qualifies on soft. Soft stints in the race are short — high deg in Miami heat. If safety car comes, expect soft-shod gambles from drivers outside the points.</div>
+    </div>
+    <div class="mob-rp-sec-h">Race Strategy</div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">Likely: 1-Stop</div>
+      <div class="mob-rp-sec-row-val">Soft → Medium/Hard</div>
+      <div class="mob-rp-sec-row-sub">Optimal without a safety car. Pit around lap 18–22. Mercedes and McLaren with upgrades may manage tyres well enough to go 1-stop.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl" style="color:#ffc800">Safety Car Scenario ⚠</div>
+      <div class="mob-rp-sec-row-val">Free pit stop window</div>
+      <div class="mob-rp-sec-row-sub">Safety car probability is 47%. If it comes before lap 30, expect everyone to pit for free. This is when the race order resets — Hamilton and Norris are the drivers best placed to benefit.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">Sprint Weekend Note</div>
+      <div class="mob-rp-sec-row-val">Sprint race Saturday</div>
+      <div class="mob-rp-sec-row-sub">Miami is a sprint weekend. Saturday's sprint (19 laps) gives teams live tyre data before the main race. Teams will use the sprint to understand deg rates on each compound.</div>
+    </div>
+  </div>
+</div>
+
+<div class="mob-rp-section" id="mob-rp-weather">
+  <div class="mob-rp-section-hdr">
+    <button class="mob-back-btn" onclick="mobCloseRpSection('weather')">← Back</button>
+    <span class="mob-page-title">Weather</span>
+  </div>
+  <div class="mob-rp-section-body">
+    <div class="mob-rp-sec-badge" style="background:rgba(0,150,255,.15);color:#0096ff">⛈️ Miami Weather Forecast</div>
+    <div class="mob-rp-sec-stat-grid">
+      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">38%</div><div class="mob-rp-sec-stat-lbl">Rain chance</div></div>
+      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">30°C</div><div class="mob-rp-sec-stat-lbl">Air temp</div></div>
+      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">High</div><div class="mob-rp-sec-stat-lbl">Humidity</div></div>
+    </div>
+    <div class="mob-rp-sec-h">Race Day Forecast</div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">Afternoon Thunderstorm Risk</div>
+      <div class="mob-rp-sec-row-val">38% chance of rain</div>
+      <div class="mob-rp-sec-row-sub">Miami races run in the afternoon local time — peak thunderstorm hours in Florida. Rain is not guaranteed but is a genuine possibility. Could arrive mid-race and completely rewrite the strategy.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">Track Temperature</div>
+      <div class="mob-rp-sec-row-val">45–50°C surface temp</div>
+      <div class="mob-rp-sec-row-sub">Hot tarmac accelerates tyre degradation on the softer compounds. Teams running the C4 soft will see blistering within 12–15 laps. This drives the 1-stop strategy.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">Humidity Effect</div>
+      <div class="mob-rp-sec-row-val">High humidity all weekend</div>
+      <div class="mob-rp-sec-row-sub">South Florida in May is extremely humid. Affects driver hydration and car cooling. Brake temperatures run higher than expected. Some cars historically overheat in Miami traffic.</div>
+    </div>
+    <div class="mob-rp-sec-h">If Rain Comes</div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl" style="color:#0096ff">Red Flag Risk ⚠ 24%</div>
+      <div class="mob-rp-sec-row-val">Potential race stoppage</div>
+      <div class="mob-rp-sec-row-sub">Heavy rain on a semi-street circuit can trigger a red flag. In 2024 a brief shower caused a VSC period. If a full red flag comes, teams can change tyres freely — this is the wildcard that could let any driver win.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">Drivers who benefit from rain</div>
+      <div class="mob-rp-sec-row-val">Hamilton, Norris</div>
+      <div class="mob-rp-sec-row-sub">Hamilton is historically exceptional in mixed conditions — his wet-weather instinct is unmatched. Norris won here in 2024 partially through excellent tyre management. Both could gain positions if rain arrives.</div>
+    </div>
+  </div>
+</div>
+
+<div class="mob-rp-section" id="mob-rp-storylines">
+  <div class="mob-rp-section-hdr">
+    <button class="mob-back-btn" onclick="mobCloseRpSection('storylines')">← Back</button>
+    <span class="mob-page-title">Storylines</span>
+  </div>
+  <div class="mob-rp-section-body">
+    <div class="mob-rp-sec-badge" style="background:rgba(150,0,255,.15);color:#9600ff">📖 The Narratives to Watch</div>
+    <div class="mob-rp-sec-h">Title Fight</div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl" style="color:#e10600">Antonelli — 72 pts · P1</div>
+      <div class="mob-rp-sec-row-val">19-year-old championship leader</div>
+      <div class="mob-rp-sec-row-sub">The most astonishing story in F1 right now. Kimi Antonelli is 19 years old, in his first season, leading the world championship in a Mercedes. He replaced Hamilton — and is outscoring him. Miami is his to lose. But young drivers under pressure at street circuits with safety cars… this is where championships unravel.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl" style="color:#dc143c">Hamilton — 41 pts · P4</div>
+      <div class="mob-rp-sec-row-val">First Miami GP in Ferrari red</div>
+      <div class="mob-rp-sec-row-sub">Lewis Hamilton moved to Ferrari this season after 12 years at Mercedes. He is 4th in the championship and 31 points off the lead. Miami is a circuit he has driven here many times. Ferrari have upgrades. Hamilton is motivated. This could be the race where he announces himself at his new team.</div>
+    </div>
+    <div class="mob-rp-sec-h">Challengers</div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl" style="color:#ff8000">Verstappen — 12 pts · P9</div>
+      <div class="mob-rp-sec-row-val">Red Bull engine upgrade</div>
+      <div class="mob-rp-sec-row-sub">Verstappen has openly compared the 2026 Red Bull to Mario Kart — the homemade Red Bull engine loses power on straights and is unreliable. But Red Bull confirmed an engine upgrade for Miami. If it works, the long back straight here could be his hunting ground. Do not write him off.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl" style="color:#ff8700">Norris — 37 pts · P5</div>
+      <div class="mob-rp-sec-row-val">Defending Miami winner</div>
+      <div class="mob-rp-sec-row-sub">Lando Norris won the 2024 Miami Grand Prix — his first ever F1 victory on this very circuit. McLaren also bring an upgrade package to Miami. He knows this track can make careers. The gap to Antonelli is 35 points — a win plus a bad weekend for Antonelli and the title race is on.</div>
+    </div>
+    <div class="mob-rp-sec-h">Team Battles</div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">Mercedes vs McLaren</div>
+      <div class="mob-rp-sec-row-val">Both bringing aero upgrades</div>
+      <div class="mob-rp-sec-row-sub">Mercedes have dominated the first 4 races but McLaren are closing. Both teams confirmed upgrade packages for Miami. The development war is heating up — this could be the race where McLaren close the gap to Mercedes on raw pace.</div>
+    </div>
+  </div>
+</div>
+
+<div class="mob-rp-section" id="mob-rp-prediction">
+  <div class="mob-rp-section-hdr">
+    <button class="mob-back-btn" onclick="mobCloseRpSection('prediction')">← Back</button>
+    <span class="mob-page-title">Prediction</span>
+  </div>
+  <div class="mob-rp-section-body">
+    <div class="mob-rp-sec-badge" style="background:rgba(225,6,0,.15);color:#e10600">🏆 AI Race Predictions</div>
+    <div class="mob-rp-sec-h">Race Winner</div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl" style="color:#e10600">Favourite</div>
+      <div class="mob-rp-sec-row-val">Kimi Antonelli</div>
+      <div class="mob-rp-sec-row-sub">Championship leader with the fastest car. Mercedes upgrades should extend their advantage in the fast middle sector. If nothing goes wrong and the safety car doesn't mix things up, Antonelli starts favourite.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl" style="color:#888">Strong challenger</div>
+      <div class="mob-rp-sec-row-val">George Russell</div>
+      <div class="mob-rp-sec-row-sub">Second in the championship and in the same car as Antonelli. Russell has won on circuits like this before. If Antonelli makes a mistake or gets caught by the safety car, Russell is the obvious beneficiary.</div>
+    </div>
+    <div class="mob-rp-sec-h">Dark Horses</div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl" style="color:#dc143c">Dark horse #1</div>
+      <div class="mob-rp-sec-row-val">Lewis Hamilton</div>
+      <div class="mob-rp-sec-row-sub">Hamilton has historically been strong at Miami. Ferrari bring upgrades. A safety car moment mid-race could put him in clean air. His first win for Ferrari would be one of the great F1 stories.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl" style="color:#ff8700">Dark horse #2</div>
+      <div class="mob-rp-sec-row-val">Lando Norris</div>
+      <div class="mob-rp-sec-row-sub">Won here in 2024. McLaren upgrade package. If rain comes, Norris is arguably the best wet-weather driver in the field right now. A safety car gamble on fresh softs could be his path to the win.</div>
+    </div>
+    <div class="mob-rp-sec-h">Podium Prediction</div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">Dry race</div>
+      <div class="mob-rp-sec-row-val">Antonelli · Russell · Norris</div>
+      <div class="mob-rp-sec-row-sub">Mercedes 1-2 with McLaren splitting them if the upgrades hit. Hamilton pushes Norris close for P3.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl" style="color:#0096ff">If it rains</div>
+      <div class="mob-rp-sec-row-val">Hamilton · Norris · Antonelli</div>
+      <div class="mob-rp-sec-row-sub">Wet conditions shuffle the order completely. Hamilton and Norris historically gain in rain. Red Bull's straight-line speed upgrade could move Verstappen into the points.</div>
+    </div>
+  </div>
+</div>
+
+<div class="mob-rp-section" id="mob-rp-history">
+  <div class="mob-rp-section-hdr">
+    <button class="mob-back-btn" onclick="mobCloseRpSection('history')">← Back</button>
+    <span class="mob-page-title">Track History</span>
+  </div>
+  <div class="mob-rp-section-body">
+    <div class="mob-rp-sec-badge" style="background:rgba(200,160,0,.15);color:#c8a000">🏅 Miami GP Results</div>
+    <div class="mob-rp-sec-stat-grid">
+      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">3</div><div class="mob-rp-sec-stat-lbl">Editions</div></div>
+      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">100%</div><div class="mob-rp-sec-stat-lbl">SC rate</div></div>
+      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">3.6M</div><div class="mob-rp-sec-stat-lbl">US viewers</div></div>
+    </div>
+    <div class="mob-rp-sec-h">Past Winners</div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">2024 — Norris wins his first</div>
+      <div class="mob-rp-sec-row-val">Lando Norris · McLaren</div>
+      <div class="mob-rp-sec-row-sub">Norris overtook Verstappen late in the race to claim his first ever F1 victory. 3.6 million US viewers — the largest F1 audience in US history at that point. McLaren's revival began here.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">2023 — Verstappen dominant</div>
+      <div class="mob-rp-sec-row-val">Max Verstappen · Red Bull</div>
+      <div class="mob-rp-sec-row-sub">Verstappen at the peak of his dominance. Won from pole by nearly 5 seconds in a race that was never in doubt. Red Bull were untouchable in 2023.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">2022 — The first Miami GP</div>
+      <div class="mob-rp-sec-row-val">Max Verstappen · Red Bull</div>
+      <div class="mob-rp-sec-row-sub">Miami joined the calendar to massive fanfare. Verstappen won again, but the race was chaotic — safety car, incidents at the bridge chicane, and a memorable backdrop of the Hard Rock Stadium. The circuit proved it could deliver drama.</div>
+    </div>
+    <div class="mob-rp-sec-h">Key Records</div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">Safety car every single year</div>
+      <div class="mob-rp-sec-row-val">3 from 3</div>
+      <div class="mob-rp-sec-row-sub">No Miami GP has ever run without a safety car. The T14-T15 bridge chicane collects victims every year. This is the most reliable safety car circuit on the calendar.</div>
+    </div>
+    <div class="mob-rp-sec-row">
+      <div class="mob-rp-sec-row-lbl">US Audience Record</div>
+      <div class="mob-rp-sec-row-val">3.6 million viewers in 2024</div>
+      <div class="mob-rp-sec-row-sub">The biggest F1 TV audience in US history. 2026 is the first season on Apple TV after years on ESPN — Miami is the showcase race for the new broadcast deal.</div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════
@@ -9588,6 +10029,65 @@ function _tickMobCountdown() {
   if (dEl) dEl.textContent = d;
   if (hEl) hEl.textContent = pad(h);
   if (mEl) mEl.textContent = pad(m);
+  // Also sync the RP hub countdown
+  const rpD = document.getElementById('mrp-d');
+  const rpH = document.getElementById('mrp-h');
+  const rpM = document.getElementById('mrp-m');
+  if (rpD) rpD.textContent = d;
+  if (rpH) rpH.textContent = pad(h);
+  if (rpM) rpM.textContent = pad(m);
+}
+
+/* ─────────────────────────────────────────────
+   RACE PREVIEW SECTION PAGES (mobile)
+───────────────────────────────────────────── */
+function mobOpenRpSection(name) {
+  document.querySelectorAll('.mob-rp-section').forEach(p => p.classList.remove('open'));
+  const page = document.getElementById(`mob-rp-${name}`);
+  if (page) page.classList.add('open');
+}
+
+function mobCloseRpSection(name) {
+  const page = document.getElementById(`mob-rp-${name}`);
+  if (page) page.classList.remove('open');
+}
+
+function mobRpChipAsk(q) {
+  const inp = document.getElementById('mobRpAiInput');
+  if (inp) inp.value = q;
+  mobRpAskAI();
+}
+
+let _mobRpBusy = false;
+async function mobRpAskAI() {
+  if (_mobRpBusy) return;
+  const inp  = document.getElementById('mobRpAiInput');
+  const resp = document.getElementById('mobRpAiResp');
+  if (!inp || !resp) return;
+  const q = inp.value.trim();
+  if (!q) return;
+  _mobRpBusy = true;
+  inp.value = '';
+  resp.style.display = '';
+  resp.textContent = 'Thinking\u2026';
+  const styleInst = STYLE_INSTRUCTIONS[getExplainStyle()] || STYLE_INSTRUCTIONS.beginner;
+  const system = _RP_SYSTEM + '\n\n' + styleInst;
+  try {
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ system, messages: [{ role: 'user', content: q }] }),
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await _readTokenStream(res, txt => {
+      resp.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+    });
+  } catch(e) {
+    resp.textContent = '\u26a0 Could not connect to AI.';
+  } finally {
+    _mobRpBusy = false;
+  }
 }
 
 // ── Hook into existing liveData render cycle ─────
