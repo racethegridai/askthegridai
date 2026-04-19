@@ -1844,6 +1844,7 @@
       text-transform: uppercase;
       pointer-events: none;
       display: none;
+      transition: opacity 0.4s ease;
     }
 
     /* ── STRATEGY TAB ───────────────────────────────── */
@@ -3556,8 +3557,7 @@ const FREE_LIMIT = 3;
 const FREE_LIMIT_KEY = 'pitwall_free_questions';
 
 function isOwnerMode() {
-  return new URLSearchParams(window.location.search).has('owner') &&
-    new URLSearchParams(window.location.search).get('owner') === 'true';
+  return localStorage.getItem('ownerMode') === 'true';
 }
 
 function getFreeCount() {
@@ -3569,9 +3569,7 @@ function setFreeCount(n) {
 }
 
 function isLimitBypassed() {
-  if (isOwnerMode()) return true;
-  if (window._ownerBypass) return true;
-  return false;
+  return isOwnerMode();
 }
 
 function updateFreeLimitUI() {
@@ -3611,19 +3609,6 @@ function handleUpgradeClick() {
   alert('Upgrade flow coming soon!');
 }
 
-// Ctrl+Shift+A bypass
-document.addEventListener('keydown', function(e) {
-  if (e.ctrlKey && e.shiftKey && e.key === 'A') {
-    window._ownerBypass = true;
-    const input   = document.getElementById('chatInput');
-    const sendBtn = document.getElementById('sendBtn');
-    document.getElementById('upgradePanel').classList.remove('visible');
-    document.getElementById('freeLimitBar').classList.add('hidden');
-    input.disabled   = false;
-    sendBtn.disabled = false;
-    input.placeholder = 'Confused? Ask what just happened…';
-  }
-});
 /* ──────────────────────────────────────────────────
    TAB SWITCHING
 ────────────────────────────────────────────────── */
@@ -4613,10 +4598,12 @@ function _startUpdateTimer() {
 /* ──────────────────────────────────────────────────
    OWNER MODE
 ────────────────────────────────────────────────── */
-let ownerMode = false;
-
 function _setOwnerMode(on) {
-  ownerMode = on;
+  if (on) {
+    localStorage.setItem('ownerMode', 'true');
+  } else {
+    localStorage.removeItem('ownerMode');
+  }
   document.getElementById('ownerBadge').style.display = on ? 'block' : 'none';
   document.querySelectorAll('.pro-gate').forEach(el => {
     el.style.display = on ? 'none' : '';
@@ -4630,16 +4617,31 @@ function _setOwnerMode(on) {
   });
 }
 
-function _toggleOwnerMode() {
-  _setOwnerMode(!ownerMode);
+function _showOwnerToast() {
+  const badge = document.getElementById('ownerBadge');
+  badge.textContent = 'Owner mode active';
+  badge.style.display = 'block';
+  badge.style.opacity = '1';
+  setTimeout(() => {
+    badge.style.opacity = '0';
+    setTimeout(() => { badge.style.display = 'none'; }, 400);
+  }, 2000);
 }
 
-document.addEventListener('keydown', e => {
-  if (e.ctrlKey && !e.shiftKey && e.key === 'i') {
-    e.preventDefault();
-    _toggleOwnerMode();
+(function _initOwnerMode() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('reset') === 'true') {
+    localStorage.removeItem('ownerMode');
+    window.history.replaceState({}, document.title, window.location.pathname);
+  } else if (params.get('owner') === 'atgaiimamw2026') {
+    localStorage.setItem('ownerMode', 'true');
+    window.history.replaceState({}, document.title, window.location.pathname);
+    document.addEventListener('DOMContentLoaded', _showOwnerToast);
   }
-});
+  if (isOwnerMode()) {
+    document.addEventListener('DOMContentLoaded', () => _setOwnerMode(true));
+  }
+}());
 
 /* ──────────────────────────────────────────────────
    DRIVER DATABASE  (hardcoded bio + career facts)
@@ -5240,7 +5242,7 @@ function init() {
   // Fix 3: keep Railway server warm — ping every 4 minutes so it never cold-starts
   setInterval(() => { fetch(`${BACKEND}/api/ping`).catch(() => {}); }, 4 * 60 * 1000);
 
-  if (new URLSearchParams(location.search).get('owner') === 'true') {
+  if (isOwnerMode()) {
     _setOwnerMode(true);
   }
 
