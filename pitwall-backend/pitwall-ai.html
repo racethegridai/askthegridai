@@ -1010,6 +1010,37 @@
     @media (min-width: 768px) {
       #style-selector button, .style-bar button { font-size: 10px; }
     }
+    /* ── INLINE STYLE SELECTOR (above AI inputs) ── */
+    .style-selector-row {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 4px;
+      padding: 6px 0;
+      margin-bottom: 6px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .style-selector-row::-webkit-scrollbar { display: none; }
+    .style-btn {
+      flex-shrink: 0;
+      font-size: 9px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: #0d0d0d;
+      border: 1px solid #1c1c1c;
+      color: #555;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: background .12s, color .12s, border-color .12s;
+    }
+    .style-btn:hover { border-color: #e10600; color: #aaa; }
+    .style-btn.active, .style-btn.selected {
+      background: #e10600;
+      color: #fff;
+      border-color: #e10600;
+    }
 
     /* ── MOBILE TRACK MAP — interactive ─────────────── */
     .mob-tm-toggle {
@@ -5312,6 +5343,13 @@
           <div class="rl-msgs" id="rl-msgs-mob" style="max-height:220px;">
             <div class="rl-bubble-ai">Ask me anything about F1 rules and regulations. I explain everything in plain English — no jargon, no assumptions. What do you want to understand?</div>
           </div>
+          <div class="style-selector-row">
+            <button class="style-btn" data-style="beginner"   onclick="setStyle('beginner')">Beginner</button>
+            <button class="style-btn" data-style="football"   onclick="setStyle('football')">Football terms</button>
+            <button class="style-btn" data-style="curious"    onclick="setStyle('curious')">F1 curious</button>
+            <button class="style-btn" data-style="enthusiast" onclick="setStyle('enthusiast')">Enthusiast</button>
+            <button class="style-btn" data-style="kid"        onclick="setStyle('kid')">Kid friendly</button>
+          </div>
           <div class="rl-input-row">
             <input class="rl-input" id="rl-input-mob" placeholder="Ask about any F1 rule…"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();rlAskMob(null);}"/>
@@ -5417,6 +5455,13 @@
             <button class="mob-rp-chip" onclick="mobRpChipAsk('How does rain affect strategy at Miami?')">Rain impact?</button>
             <button class="mob-rp-chip" onclick="mobRpChipAsk('Can Verstappen challenge at Miami with the engine upgrade?')">Verstappen threat?</button>
             <button class="mob-rp-chip" onclick="mobRpChipAsk('What makes the Miami circuit so unpredictable?')">Miami unique?</button>
+          </div>
+          <div class="style-selector-row" style="padding:0 0 4px;">
+            <button class="style-btn" data-style="beginner"   onclick="setStyle('beginner')">Beginner</button>
+            <button class="style-btn" data-style="football"   onclick="setStyle('football')">Football terms</button>
+            <button class="style-btn" data-style="curious"    onclick="setStyle('curious')">F1 curious</button>
+            <button class="style-btn" data-style="enthusiast" onclick="setStyle('enthusiast')">Enthusiast</button>
+            <button class="style-btn" data-style="kid"        onclick="setStyle('kid')">Kid friendly</button>
           </div>
           <div class="mob-rp-ai-row">
             <input class="mob-rp-ai-input" id="mobRpAiInput" placeholder="Ask about Miami GP…"
@@ -6330,6 +6375,13 @@
           </div>
           <div class="rl-msgs" id="rl-msgs">
             <div class="rl-bubble-ai">Ask me anything about F1 rules and regulations. I explain everything in plain English — no jargon, no assumptions. What do you want to understand?</div>
+          </div>
+          <div class="style-selector-row">
+            <button class="style-btn" data-style="beginner"   onclick="setStyle('beginner')">Beginner</button>
+            <button class="style-btn" data-style="football"   onclick="setStyle('football')">Football terms</button>
+            <button class="style-btn" data-style="curious"    onclick="setStyle('curious')">F1 curious</button>
+            <button class="style-btn" data-style="enthusiast" onclick="setStyle('enthusiast')">Enthusiast</button>
+            <button class="style-btn" data-style="kid"        onclick="setStyle('kid')">Kid friendly</button>
           </div>
           <div class="rl-input-row">
             <input class="rl-input" id="rl-input" placeholder="Ask about any F1 rule…"
@@ -7676,6 +7728,27 @@ function getExplainStyle() {
   return localStorage.getItem(STYLE_KEY) || 'beginner';
 }
 
+function getStyleInstruction() {
+  return STYLE_INSTRUCTIONS[getExplainStyle()] || STYLE_INSTRUCTIONS.beginner;
+}
+
+function renderStyleSelector() {
+  var styles = [
+    { key: 'beginner',   label: 'Beginner' },
+    { key: 'football',   label: 'Football terms' },
+    { key: 'curious',    label: 'F1 curious' },
+    { key: 'enthusiast', label: 'Enthusiast' },
+    { key: 'kid',        label: 'Kid friendly' }
+  ];
+  var current = getExplainStyle();
+  return '<div class="style-selector-row">' +
+    styles.map(function(s) {
+      return '<button class="style-btn' + (current === s.key ? ' active' : '') +
+        '" data-style="' + s.key + '" onclick="setStyle(\'' + s.key + '\')">' + s.label + '</button>';
+    }).join('') +
+  '</div>';
+}
+
 function setStyle(style) {
   localStorage.setItem(STYLE_KEY, style);
   // Sync all style-bar and #style-selector instances (including dynamically rendered ones)
@@ -7688,6 +7761,11 @@ function setStyle(style) {
     btn.style.background  = active ? 'var(--red)' : '#111';
     btn.style.color       = active ? '#fff'        : '#666';
     btn.style.borderColor = active ? 'var(--red)'  : '#2a2a2a';
+  });
+  // Sync .style-btn (inline style selectors above AI inputs)
+  document.querySelectorAll('.style-btn[data-style]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.style === style);
+    btn.classList.toggle('selected', btn.dataset.style === style);
   });
 }
 
@@ -11415,7 +11493,7 @@ async function _rlSend(text, msgsId, inputId, sendId, histRef, busyRef, setBusy)
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ system: _RL_SYSTEM, messages: histRef }),
+      body: JSON.stringify({ system: _RL_SYSTEM + '\n\n' + getStyleInstruction(), messages: histRef }),
       signal: AbortSignal.timeout(30000),
     });
     if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${res.status}`); }
@@ -11663,7 +11741,7 @@ async function rlDetailAsk(key, text) {
   chat.scrollTop = chat.scrollHeight;
 
   var bubble = aiDiv.querySelector('div');
-  var sys = 'You are an F1 rules expert explaining regulations in plain English to new fans. Topic: ' + (detail ? detail.title : key) + '. Keep answers 3 to 5 sentences. Be specific and clear. Today is April 2026.';
+  var sys = 'You are an F1 rules expert explaining regulations in plain English to new fans. Topic: ' + (detail ? detail.title : key) + '. Keep answers 3 to 5 sentences. Be specific and clear. Today is April 2026.\n\n' + getStyleInstruction();
 
   try {
     var res = await fetch(BACKEND + '/api/chat-stream', {
@@ -11848,7 +11926,7 @@ async function spDetailAsk(key, text) {
   chat.scrollTop = chat.scrollHeight;
 
   var bubble = aiDiv.querySelector('div');
-  var sys = 'You are answering questions about Miami GP 2026 race strategy and tyres. Topic: ' + (detail ? detail.title : key) + '. Keep answers 3 to 5 sentences. Be specific and practical. Today is April 2026.';
+  var sys = 'You are answering questions about Miami GP 2026 race strategy and tyres. Topic: ' + (detail ? detail.title : key) + '. Keep answers 3 to 5 sentences. Be specific and practical. Today is April 2026.\n\n' + getStyleInstruction();
 
   try {
     var res = await fetch(BACKEND + '/api/chat-stream', {
