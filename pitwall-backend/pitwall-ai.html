@@ -4844,7 +4844,7 @@
     <!-- HERO / AI INPUT SECTION -->
     <div class="mob-hero">
       <div class="mob-hero-title">Never feel lost during a race again</div>
-      <div class="mob-hero-sub">Ask anything in plain English</div>
+      <div class="mob-hero-sub">Ask anything simply</div>
 
       <!-- 2×2 chips -->
       <div class="mob-hero-chips">
@@ -5293,7 +5293,7 @@
             <div class="mob-rp-card-icon" style="background:rgba(59,130,246,.15);color:#3b82f6">🏁</div>
             <div class="mob-rp-card-body">
               <div class="mob-rp-card-title">Flags</div>
-              <div class="mob-rp-card-sub">Every flag explained in plain English</div>
+              <div class="mob-rp-card-sub">Every flag explained simply</div>
             </div>
             <div class="mob-rp-card-arrow">›</div>
           </div>
@@ -5341,7 +5341,7 @@
             <button onclick="rlAskMob('How do F1 penalties work and who decides them?')" style="font-size:9px;padding:5px 11px;border-radius:20px;background:#0d0d0d;border:1px solid #1c1c1c;color:#555;cursor:pointer;font-family:inherit;">How do penalties work?</button>
           </div>
           <div class="rl-msgs" id="rl-msgs-mob" style="max-height:220px;">
-            <div class="rl-bubble-ai">Ask me anything about F1 rules and regulations. I explain everything in plain English — no jargon, no assumptions. What do you want to understand?</div>
+            <div class="rl-bubble-ai">Ask me anything about F1 rules and regulations. I explain everything in the simplest terms — no jargon, no assumptions. What do you want to understand?</div>
           </div>
           <div class="style-selector-row">
             <button class="style-btn" data-style="beginner"   onclick="setStyle('beginner')">Beginner</button>
@@ -6374,7 +6374,7 @@
             <button class="rl-chip" onclick="rlAsk('Why is Max Verstappen so angry about the 2026 F1 rules and cars?')">Why is Verstappen angry?</button>
           </div>
           <div class="rl-msgs" id="rl-msgs">
-            <div class="rl-bubble-ai">Ask me anything about F1 rules and regulations. I explain everything in plain English — no jargon, no assumptions. What do you want to understand?</div>
+            <div class="rl-bubble-ai">Ask me anything about F1 rules and regulations. I explain everything in the simplest terms — no jargon, no assumptions. What do you want to understand?</div>
           </div>
           <div class="style-selector-row">
             <button class="style-btn" data-style="beginner"   onclick="setStyle('beginner')">Beginner</button>
@@ -9171,7 +9171,7 @@ function renderWelcomeState() {
 
   let html =
     '<div class="welcome-headline">Never be confused during a race again</div>' +
-    '<div class="welcome-tagline">Ask anything — I\'ll explain it in plain English. No F1 knowledge needed.</div>';
+    '<div class="welcome-tagline">Ask anything — I\'ll explain it in the simplest terms. No F1 knowledge needed.</div>';
 
   if (!isLive) {
     html +=
@@ -9698,7 +9698,7 @@ async function _loadWjhContent() {
 
   const system = `You are an F1 race commentator explaining the last 5 minutes to a brand new fan.
 Reply with EXACTLY 3 to 5 incident cards. Each card must be on its own line in this format:
-LAP [number] | [one paragraph plain English explanation of what happened and why it matters, conversational tone, no bullet points, 2-4 sentences]
+LAP [number] | [one paragraph simple explanation of what happened and why it matters, conversational tone, no bullet points, 2-4 sentences]
 If no incidents happened write: LAP ${lap} | The race is running cleanly right now — no major events in the last few laps.`;
 
   const userMsg = `Session: ${session}, Lap ${lap}.\nTop 5: ${top5}\nRecent incidents:\n${recentInc || 'None recorded yet.'}`;
@@ -11203,7 +11203,7 @@ KEY STORYLINES: Mercedes dominant, 19-year-old Antonelli leads championship repl
 
 MIAMI 2026 CONTEXT: Pirelli C2/C3/C4 compounds (high degradation expected). McLaren and Mercedes both have aero upgrades. Red Bull have engine upgrade. Safety car probability 45-50%. Rain probability 38%. Every Miami GP has had at least one safety car. T14-15 bridge chicane is highest incident zone.
 
-Answer questions about the Miami circuit layout, race history, weather impact, tyre strategy, safety car probability, and driver storylines. Use plain English. Keep answers concise — 3 to 5 sentences. Be specific and insightful. Never say you lack current data — you have this information. Give confident predictions using the standings above.`;
+Answer questions about the Miami circuit layout, race history, weather impact, tyre strategy, safety car probability, and driver storylines. Use simple terms. Keep answers concise — 3 to 5 sentences. Be specific and insightful. Never say you lack current data — you have this information. Give confident predictions using the standings above.`;
 
 async function rpChatSend(q) {
   if (_rpcBusy) return;
@@ -11444,7 +11444,7 @@ function _rpTypeText(el, text) {
 /* ──────────────────────────────────────────────────
    RULES TAB CHAT
 ────────────────────────────────────────────────── */
-const _RL_SYSTEM = `You are an F1 rules expert for 2026. Today is April 2026. Explain all F1 rules in plain English. Never use FIA article numbers. Always explain WHY a rule exists. Use the users explanation style.
+const _RL_SYSTEM = `You are an F1 rules expert for 2026. Today is April 2026. Explain all F1 rules in the simplest terms possible. Never use FIA article numbers. Always explain WHY a rule exists. Use the users explanation style.
 
 Key rules you know:
 - Minimum car weight 800kg with driver
@@ -11741,7 +11741,7 @@ async function rlDetailAsk(key, text) {
   chat.scrollTop = chat.scrollHeight;
 
   var bubble = aiDiv.querySelector('div');
-  var sys = 'You are an F1 rules expert explaining regulations in plain English to new fans. Topic: ' + (detail ? detail.title : key) + '. Keep answers 3 to 5 sentences. Be specific and clear. Today is April 2026.\n\n' + getStyleInstruction();
+  var sys = 'You are an F1 rules expert explaining regulations in simple terms to new fans. Topic: ' + (detail ? detail.title : key) + '. Keep answers 3 to 5 sentences. Be specific and clear. Today is April 2026.\n\n' + getStyleInstruction();
 
   try {
     var res = await fetch(BACKEND + '/api/chat-stream', {
@@ -11837,7 +11837,7 @@ var _SP_DETAILS = {
   'safety-car-prediction': {
     title: 'Safety Car Probability', badge: '47% BEFORE LAP 20', color: '#ffd700', sectionId: 'prediction',
     briefing: 'Nearly one in two Miami races has seen a safety car before lap 20. When it comes the entire strategic picture flips instantly. Teams who have not pitted get a free stop. The order reshuffles. In 2023 a safety car took Verstappen from ninth to first place. This is the moment that separates brave strategists from cautious ones.',
-    chips: ['What is a safety car in plain English?','How does safety car change race order?','Which teams are best at safety car strategy?']
+    chips: ['What is a safety car in simple terms?','How does safety car change race order?','Which teams are best at safety car strategy?']
   },
   'miami-2022': {
     title: '2022 — First Ever Miami GP', badge: 'VERSTAPPEN WINS', color: '#ffd700', sectionId: 'history',
@@ -11950,8 +11950,8 @@ var _INFO_CONTENT = {
   'how-it-works': {
     title: 'How Ask The Grid AI works',
     sections: [
-      { title: 'Live race companion', body: 'During live races the app pulls real-time data from official F1 timing systems. Our AI reads this data and answers your questions in plain English. Ask anything about what is happening on track.' },
-      { title: 'Team radio translations', body: 'We pull live team radio audio data and our AI translates the coded engineer language into plain English explanations anyone can understand.' },
+      { title: 'Live race companion', body: 'During live races the app pulls real-time data from official F1 timing systems. Our AI reads this data and answers your questions in simple terms. Ask anything about what is happening on track.' },
+      { title: 'Team radio translations', body: 'We pull live team radio audio data and our AI translates the coded engineer language into simple clear explanations anyone can understand.' },
       { title: 'Free vs Pro', body: 'Free users get 3 questions per race weekend. Pro subscribers get unlimited questions, full team radio translations, and access to all features for every race all season.' },
       { title: 'Data sources', body: 'Race data is sourced from OpenF1 which provides official F1 timing data. News is sourced from official F1 and Motorsport RSS feeds. AI is powered by Anthropic Claude.' }
     ]
