@@ -4518,6 +4518,138 @@
     .rl-wrap { grid-template-columns:1fr; overflow-y:auto; padding:12px; height:auto; min-height:100%; }
     .rl-msgs  { max-height:220px; }
   }
+
+  /* ── NAV ACTION BUTTONS ───────────────────────────── */
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .nav-upgrade-btn {
+    background: #e10600;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Titillium Web', sans-serif;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+    transition: background .15s;
+  }
+  .nav-upgrade-btn:hover { background: #c50500; }
+  .nav-info-wrap { position: relative; }
+  .nav-info-btn {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #aaa;
+    cursor: pointer;
+    font-family: 'Titillium Web', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    transition: background .15s, color .15s;
+  }
+  .nav-info-btn:hover { background: #1a1a1a; color: #fff; }
+  .nav-info-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: #111;
+    border: 1px solid #1c1c1c;
+    border-radius: 6px;
+    min-width: 190px;
+    z-index: 600;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,.6);
+  }
+  .nav-info-dropdown.open { display: block; }
+  .nav-info-row {
+    padding: 10px 16px;
+    font-size: 12px;
+    color: #aaa;
+    cursor: pointer;
+    border-bottom: 1px solid #1a1a1a;
+    transition: background .1s, color .1s;
+  }
+  .nav-info-row:last-child { border-bottom: none; }
+  .nav-info-row:hover { background: #1a1a1a; color: #fff; }
+
+  /* ── INFO MODALS ─────────────────────────────────── */
+  .info-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.82);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .info-modal-overlay.open { display: flex; }
+  .info-modal {
+    background: #111;
+    border: 1px solid #1c1c1c;
+    border-radius: 10px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 82vh;
+    overflow-y: auto;
+    padding: 24px;
+    position: relative;
+  }
+  .info-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: transparent;
+    border: none;
+    color: #e10600;
+    font-size: 18px;
+    cursor: pointer;
+    font-weight: 700;
+    line-height: 1;
+    font-family: inherit;
+  }
+  .info-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+    padding-right: 32px;
+    line-height: 1.3;
+  }
+  .info-modal-updated {
+    font-size: 10px;
+    color: #444;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+  .info-modal-section { margin-bottom: 18px; }
+  .info-modal-section:last-child { margin-bottom: 0; }
+  .info-modal-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #e10600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+  }
+  .info-modal-body {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.75;
+  }
   </style>
 </head>
 <body>
@@ -4532,7 +4664,16 @@
   <!-- MOB NAV -->
   <div class="mob-nav">
     <div class="mob-nav-logo">ATG<em>ai</em></div>
-    <div class="mob-live-pill" id="mobLivePill">● LIVE</div>
+    <div style="display:flex;align-items:center;gap:7px;">
+      <div class="nav-info-wrap">
+        <button class="nav-info-btn" style="font-size:10px;padding:5px 10px;" onclick="toggleInfoDropdown(event)">
+          Info
+          <svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,3 5,7 8,3"/></svg>
+        </button>
+      </div>
+      <button class="nav-upgrade-btn" style="font-size:10px;padding:5px 10px;" onclick="handleUpgradeClick()">Upgrade</button>
+      <div class="mob-live-pill" id="mobLivePill">● LIVE</div>
+    </div>
   </div>
 
   <!-- MOB TABS -->
@@ -5569,6 +5710,24 @@
     <button class="tab-btn"        data-tab="news"    onclick="switchTab('news')">News</button>
     <button class="tab-btn"        data-tab="drivers" onclick="switchTab('drivers')">Drivers</button>
   </nav>
+
+  <div class="nav-actions">
+    <div class="nav-info-wrap">
+      <button class="nav-info-btn" onclick="toggleInfoDropdown(event)">
+        Info
+        <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,3 5,7 8,3"/></svg>
+      </button>
+      <div class="nav-info-dropdown" id="navInfoDropdown">
+        <div class="nav-info-row" onclick="openInfoModal('how-it-works')">How it works</div>
+        <div class="nav-info-row" onclick="openInfoModal('terms')">Terms of service</div>
+        <div class="nav-info-row" onclick="openInfoModal('privacy')">Privacy policy</div>
+        <div class="nav-info-row" onclick="openInfoModal('about')">About Ask The Grid AI</div>
+        <div class="nav-info-row" onclick="openInfoModal('contact')">Contact us</div>
+        <div class="nav-info-row" onclick="openInfoModal('cookie')">Cookie policy</div>
+      </div>
+    </div>
+    <button class="nav-upgrade-btn" onclick="handleUpgradeClick()">Upgrade Now</button>
+  </div>
 
 </header>
 
@@ -11564,6 +11723,100 @@ async function spDetailAsk(key, text) {
     bubble.textContent = 'Could not connect. Try again.';
   }
 }
+
+/* ── INFO DROPDOWN & MODALS ──────────────────────── */
+var _INFO_CONTENT = {
+  'how-it-works': {
+    title: 'How Ask The Grid AI works',
+    sections: [
+      { title: 'Live race companion', body: 'During live races the app pulls real-time data from official F1 timing systems. Our AI reads this data and answers your questions in plain English. Ask anything about what is happening on track.' },
+      { title: 'Team radio translations', body: 'We pull live team radio audio data and our AI translates the coded engineer language into plain English explanations anyone can understand.' },
+      { title: 'Free vs Pro', body: 'Free users get 3 questions per race weekend. Pro subscribers get unlimited questions, full team radio translations, and access to all features for every race all season.' },
+      { title: 'Data sources', body: 'Race data is sourced from OpenF1 which provides official F1 timing data. News is sourced from official F1 and Motorsport RSS feeds. AI is powered by Anthropic Claude.' }
+    ]
+  },
+  'terms': {
+    title: 'Terms of Service',
+    updated: 'April 2026',
+    sections: [
+      { title: 'Acceptance of terms', body: 'By using Ask The Grid AI you agree to these terms. If you do not agree do not use the service.' },
+      { title: 'Description of service', body: 'Ask The Grid AI provides AI-powered Formula 1 race companion services. We are not affiliated with Formula 1, FIA, or any F1 team.' },
+      { title: 'Subscription and billing', body: 'Pro subscriptions are billed monthly. You can cancel at any time. Refunds are not provided for partial months.' },
+      { title: 'Acceptable use', body: 'You may not use the service to scrape data, attempt to reverse engineer the AI, or share your account with others.' },
+      { title: 'Disclaimer', body: 'AI responses are for entertainment and informational purposes only. Race predictions are not guaranteed. We are not responsible for decisions made based on AI responses.' },
+      { title: 'Changes to terms', body: 'We may update these terms at any time. Continued use of the service constitutes acceptance of new terms.' }
+    ]
+  },
+  'privacy': {
+    title: 'Privacy Policy',
+    updated: 'April 2026',
+    sections: [
+      { title: 'Data we collect', body: 'We collect your email address when you subscribe. We collect anonymous usage data including which features you use. We do not sell your data to third parties.' },
+      { title: 'How we use data', body: 'Your email is used for billing and service communications only. Usage data helps us improve the product.' },
+      { title: 'Cookies', body: 'We use localStorage to remember your preferences such as explanation style and language selection. We do not use third party tracking cookies.' },
+      { title: 'AI conversations', body: 'Questions you ask the AI are sent to Anthropic for processing. Anthropic\'s privacy policy applies to that data. We do not store your conversation history on our servers.' },
+      { title: 'Contact', body: 'For privacy questions email privacy@askthegridai.com' }
+    ]
+  },
+  'about': {
+    title: 'About Ask The Grid AI',
+    sections: [
+      { title: '', body: 'Ask The Grid AI was built for the millions of fans who start watching Formula 1 and immediately feel lost. We believe everyone deserves a knowledgeable friend sitting next to them explaining what is happening in plain English.\n\nBuilt by one person for the 2026 Miami Grand Prix. Powered by Anthropic Claude AI and official F1 timing data.\n\nThis is just the beginning. More series, more languages, and more features are coming throughout the 2026 season.' }
+    ]
+  },
+  'contact': {
+    title: 'Contact us',
+    sections: [
+      { title: 'Support', body: 'For support or questions:\nsupport@askthegridai.com' },
+      { title: 'Press and partnerships', body: 'For press and partnership inquiries:\nhello@askthegridai.com' },
+      { title: 'Response time', body: 'Within 48 hours' }
+    ]
+  },
+  'cookie': {
+    title: 'Cookie Policy',
+    sections: [
+      { title: '', body: 'Ask The Grid AI uses minimal local storage only.' },
+      { title: 'What we store locally', body: '· Your explanation style preference\n· Your selected language\n· Your subscription status\n· Owner mode if activated' },
+      { title: 'What we do not do', body: 'We do not use advertising cookies. We do not use third party trackers. We do not share any local data with external services.' }
+    ]
+  }
+};
+
+function toggleInfoDropdown(event) {
+  event.stopPropagation();
+  var dd = document.getElementById('navInfoDropdown');
+  dd.classList.toggle('open');
+}
+
+document.addEventListener('click', function() {
+  var dd = document.getElementById('navInfoDropdown');
+  if (dd) dd.classList.remove('open');
+});
+
+function openInfoModal(key) {
+  var info = _INFO_CONTENT[key];
+  if (!info) return;
+  var dd = document.getElementById('navInfoDropdown');
+  if (dd) dd.classList.remove('open');
+  var sectionsHtml = info.sections.map(function(s) {
+    var body = s.body.replace(/\n/g, '<br>');
+    return '<div class="info-modal-section">' +
+      (s.title ? '<div class="info-modal-section-title">' + s.title + '</div>' : '') +
+      '<div class="info-modal-body">' + body + '</div>' +
+      '</div>';
+  }).join('');
+  var box = document.getElementById('infoModalBox');
+  box.innerHTML =
+    '<button class="info-modal-close" onclick="closeInfoModal()">✕</button>' +
+    '<div class="info-modal-title">' + info.title + '</div>' +
+    (info.updated ? '<div class="info-modal-updated">Last updated: ' + info.updated + '</div>' : '<div style="margin-bottom:20px;"></div>') +
+    sectionsHtml;
+  document.getElementById('infoModalOverlay').classList.add('open');
+}
+
+function closeInfoModal() {
+  document.getElementById('infoModalOverlay').classList.remove('open');
+}
 </script>
 
 <!-- ── NEWS ARTICLE POPUP OVERLAY (desktop) ──────── -->
@@ -11575,6 +11828,11 @@ async function spDetailAsk(key, text) {
   <div class="mob-news-sheet" id="mobNewsSheet">
     <div id="mobNewsSheetInner"></div>
   </div>
+</div>
+
+<!-- ── INFO MODAL ──────────────────────────────────── -->
+<div class="info-modal-overlay" id="infoModalOverlay" onclick="if(event.target===this)closeInfoModal()">
+  <div class="info-modal" id="infoModalBox"></div>
 </div>
 
 </body>
