@@ -4782,12 +4782,10 @@
   <div class="mob-nav">
     <div class="mob-nav-logo">ATG<em>ai</em></div>
     <div style="display:flex;align-items:center;gap:7px;">
-      <div class="nav-info-wrap">
-        <button class="nav-info-btn" style="font-size:10px;padding:5px 10px;" onclick="toggleInfoDropdown(event)">
-          Info
-          <svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,3 5,7 8,3"/></svg>
-        </button>
-      </div>
+      <button class="nav-info-btn" style="font-size:10px;padding:5px 10px;" onclick="toggleInfoDropdown(event)">
+        Info
+        <svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,3 5,7 8,3"/></svg>
+      </button>
       <button class="nav-upgrade-btn" style="font-size:10px;padding:5px 10px;" onclick="handleUpgradeClick()">Upgrade</button>
       <div class="mob-live-pill" id="mobLivePill">● LIVE</div>
     </div>
@@ -5829,21 +5827,10 @@
   </nav>
 
   <div class="nav-actions">
-    <div class="nav-info-wrap">
-      <button class="nav-info-btn" onclick="toggleInfoDropdown(event)">
-        Info
-        <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,3 5,7 8,3"/></svg>
-      </button>
-      <div class="nav-info-dropdown" id="navInfoDropdown">
-        <div class="nav-info-row" onclick="openPromoModal()" style="color:#a855f7;border-bottom:1px solid #222;">🎟 Enter Promo Code</div>
-        <div class="nav-info-row" onclick="openInfoModal('how-it-works')">How it works</div>
-        <div class="nav-info-row" onclick="openInfoModal('terms')">Terms of service</div>
-        <div class="nav-info-row" onclick="openInfoModal('privacy')">Privacy policy</div>
-        <div class="nav-info-row" onclick="openInfoModal('about')">About Ask The Grid AI</div>
-        <div class="nav-info-row" onclick="openInfoModal('contact')">Contact us</div>
-        <div class="nav-info-row" onclick="openInfoModal('cookie')">Cookie policy</div>
-      </div>
-    </div>
+    <button class="nav-info-btn" onclick="toggleInfoDropdown(event)">
+      Info
+      <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,3 5,7 8,3"/></svg>
+    </button>
     <button class="nav-upgrade-btn" onclick="handleUpgradeClick()">Upgrade Now</button>
   </div>
 
@@ -11938,22 +11925,38 @@ var _INFO_CONTENT = {
   }
 };
 
-function toggleInfoDropdown(event) {
-  event.stopPropagation();
-  var dd = document.getElementById('navInfoDropdown');
-  dd.classList.toggle('open');
+function closeAllDropdowns() {
+  var dd = document.getElementById('info-dropdown');
+  if (dd) dd.style.display = 'none';
 }
 
-document.addEventListener('click', function() {
-  var dd = document.getElementById('navInfoDropdown');
-  if (dd) dd.classList.remove('open');
+function toggleInfoDropdown(e) {
+  e.stopPropagation();
+  var dd = document.getElementById('info-dropdown');
+  if (!dd) return;
+  var isOpen = dd.style.display === 'block';
+  closeAllDropdowns();
+  if (!isOpen) {
+    var btn = e.currentTarget;
+    var rect = btn.getBoundingClientRect();
+    dd.style.top = (rect.bottom + 5) + 'px';
+    dd.style.right = '10px';
+    dd.style.left = 'auto';
+    dd.style.display = 'block';
+  }
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#info-dropdown') &&
+      !e.target.closest('[onclick*="toggleInfoDropdown"]')) {
+    closeAllDropdowns();
+  }
 });
 
 function openInfoModal(key) {
   var info = _INFO_CONTENT[key];
   if (!info) return;
-  var dd = document.getElementById('navInfoDropdown');
-  if (dd) dd.classList.remove('open');
+  closeAllDropdowns();
   var sectionsHtml = info.sections.map(function(s) {
     var body = s.body.replace(/\n/g, '<br>');
     return '<div class="info-modal-section">' +
@@ -11976,8 +11979,7 @@ function closeInfoModal() {
 
 /* ── PROMO CODE MODAL ─────────────────────────────── */
 function openPromoModal() {
-  var dd = document.getElementById('navInfoDropdown');
-  if (dd) dd.classList.remove('open');
+  closeAllDropdowns();
   var input = document.getElementById('promoInput');
   var result = document.getElementById('promoResult');
   if (input) { input.value = ''; }
@@ -12039,6 +12041,17 @@ function applyPromoCode() {
   <div class="mob-news-sheet" id="mobNewsSheet">
     <div id="mobNewsSheetInner"></div>
   </div>
+</div>
+
+<!-- ── INFO DROPDOWN (body-level, position:fixed) ─── -->
+<div id="info-dropdown" style="display:none;position:fixed;z-index:99999;background:#111;border:1px solid #1c1c1c;border-radius:8px;min-width:200px;box-shadow:0 4px 20px rgba(0,0,0,.5);overflow:hidden;">
+  <div class="nav-info-row" onclick="openPromoModal()" style="color:#a855f7;border-bottom:1px solid #222;">🎟 Enter Promo Code</div>
+  <div class="nav-info-row" onclick="openInfoModal('how-it-works')">How it works</div>
+  <div class="nav-info-row" onclick="openInfoModal('terms')">Terms of service</div>
+  <div class="nav-info-row" onclick="openInfoModal('privacy')">Privacy policy</div>
+  <div class="nav-info-row" onclick="openInfoModal('about')">About Ask The Grid AI</div>
+  <div class="nav-info-row" onclick="openInfoModal('contact')">Contact us</div>
+  <div class="nav-info-row" onclick="openInfoModal('cookie')">Cookie policy</div>
 </div>
 
 <!-- ── INFO MODAL ──────────────────────────────────── -->
