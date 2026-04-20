@@ -2795,6 +2795,23 @@
       pointer-events: none;
       display: none;
     }
+    #influencerBadge {
+      position: fixed;
+      bottom: 10px;
+      right: 12px;
+      z-index: 9999;
+      padding: 4px 9px;
+      background: rgba(168,85,247,0.08);
+      border: 1px solid rgba(168,85,247,0.2);
+      color: rgba(168,85,247,0.55);
+      font-family: 'Titillium Web', sans-serif;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      pointer-events: none;
+      display: none;
+    }
 
     /* ── STRATEGY TAB ───────────────────────────────── */
     .strat-wrap {
@@ -4311,6 +4328,105 @@
       z-index: 9999;
       user-select: none;
     }
+    #influencerBadge {
+      display: none;
+      position: fixed;
+      bottom: 6px;
+      right: 8px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: rgba(168,85,247,0.45);
+      background: transparent;
+      pointer-events: none;
+      z-index: 9999;
+      user-select: none;
+    }
+    /* ── PROMO CODE MODAL ── */
+    .promo-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.82);
+      z-index: 1001;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .promo-modal-overlay.open { display: flex; }
+    .promo-modal {
+      background: #111;
+      border: 1px solid #1c1c1c;
+      border-radius: 10px;
+      max-width: 420px;
+      width: 100%;
+      padding: 28px 24px;
+      position: relative;
+      text-align: center;
+    }
+    .promo-modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: transparent;
+      border: none;
+      color: #e10600;
+      font-size: 18px;
+      cursor: pointer;
+      font-weight: 700;
+      font-family: inherit;
+    }
+    .promo-modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .promo-modal-sub {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .promo-input {
+      width: 100%;
+      background: #0d0d0d;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 15px;
+      color: #fff;
+      font-family: inherit;
+      text-align: center;
+      letter-spacing: 2px;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .promo-input:focus { border-color: #555; }
+    .promo-apply-btn {
+      background: #e10600;
+      border: none;
+      border-radius: 6px;
+      padding: 11px 28px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.5px;
+      transition: background .15s;
+      width: 100%;
+    }
+    .promo-apply-btn:hover { background: #c50500; }
+    .promo-result {
+      margin-top: 14px;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.5;
+      min-height: 18px;
+    }
 
     /* ─── RACE PREVIEW ─── */
     .rp-wrap { padding:14px; display:flex; flex-direction:column; gap:14px; overflow-y:auto; }
@@ -4655,6 +4771,7 @@
 <body>
 
 <div id="ownerBadge">OWNER</div>
+<div id="influencerBadge">CREATOR</div>
 
 <!-- ═══════════════════════════════════════════════════
      MOBILE HUB (< 768px only — completely replaces desktop layout)
@@ -5718,6 +5835,7 @@
         <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,3 5,7 8,3"/></svg>
       </button>
       <div class="nav-info-dropdown" id="navInfoDropdown">
+        <div class="nav-info-row" onclick="openPromoModal()" style="color:#a855f7;border-bottom:1px solid #222;">🎟 Enter Promo Code</div>
         <div class="nav-info-row" onclick="openInfoModal('how-it-works')">How it works</div>
         <div class="nav-info-row" onclick="openInfoModal('terms')">Terms of service</div>
         <div class="nav-info-row" onclick="openInfoModal('privacy')">Privacy policy</div>
@@ -7741,6 +7859,11 @@ const FREE_LIMIT = 3;
 const FREE_LIMIT_KEY = 'pitwall_free_questions';
 
 const OWNER_KEY = 'pitwall_owner_mode';
+const INFLUENCER_KEY = 'pitwall_influencer_mode';
+
+function isInfluencerMode() {
+  return localStorage.getItem(INFLUENCER_KEY) === '1';
+}
 
 function isOwnerMode() {
   if (localStorage.getItem(OWNER_KEY) === '1') return true;
@@ -7758,6 +7881,7 @@ function setFreeCount(n) {
 
 function isLimitBypassed() {
   if (isOwnerMode()) return true;
+  if (isInfluencerMode()) return true;
   if (window._ownerBypass) return true;
   return false;
 }
@@ -7809,6 +7933,23 @@ function deactivateOwnerMode() {
   if (badge) badge.style.display = 'none';
   updateFreeLimitUI();
   _showOwnerToast('Owner mode deactivated');
+}
+
+function activateInfluencerMode() {
+  localStorage.setItem(INFLUENCER_KEY, '1');
+  window._ownerBypass = true;
+  var upgradePanel = document.getElementById('upgradePanel');
+  var freeLimitBar = document.getElementById('freeLimitBar');
+  var chatInput    = document.getElementById('chatInput');
+  var sendBtn      = document.getElementById('sendBtn');
+  if (upgradePanel) upgradePanel.classList.remove('visible');
+  if (freeLimitBar) freeLimitBar.classList.add('hidden');
+  if (chatInput)    { chatInput.disabled = false; chatInput.placeholder = 'Confused? Ask what just happened…'; }
+  if (sendBtn)      sendBtn.disabled = false;
+  var ibadge = document.getElementById('influencerBadge');
+  if (ibadge) ibadge.style.display = 'block';
+  var obadge = document.getElementById('ownerBadge');
+  if (obadge) obadge.style.display = 'none';
 }
 
 // Check for secret codes in any input — returns true if a code was handled
@@ -10308,6 +10449,21 @@ function init() {
     if (sendBtn)      sendBtn.disabled = false;
   }
 
+  // Restore influencer mode if previously activated
+  if (isInfluencerMode()) {
+    window._ownerBypass = true;
+    var ibadge = document.getElementById('influencerBadge');
+    if (ibadge) ibadge.style.display = 'block';
+    var upgradePanel = document.getElementById('upgradePanel');
+    var freeLimitBar = document.getElementById('freeLimitBar');
+    var chatInput    = document.getElementById('chatInput');
+    var sendBtn      = document.getElementById('sendBtn');
+    if (upgradePanel) upgradePanel.classList.remove('visible');
+    if (freeLimitBar) freeLimitBar.classList.add('hidden');
+    if (chatInput)    { chatInput.disabled = false; chatInput.placeholder = 'Confused? Ask what just happened…'; }
+    if (sendBtn)      sendBtn.disabled = false;
+  }
+
   // Pre-load RSS news so it's ready when the user clicks the News tab
   loadRssNews();
 }
@@ -11817,6 +11973,61 @@ function openInfoModal(key) {
 function closeInfoModal() {
   document.getElementById('infoModalOverlay').classList.remove('open');
 }
+
+/* ── PROMO CODE MODAL ─────────────────────────────── */
+function openPromoModal() {
+  var dd = document.getElementById('navInfoDropdown');
+  if (dd) dd.classList.remove('open');
+  var input = document.getElementById('promoInput');
+  var result = document.getElementById('promoResult');
+  if (input) { input.value = ''; }
+  if (result) { result.textContent = ''; result.style.color = ''; }
+  document.getElementById('promoModalOverlay').classList.add('open');
+  setTimeout(function() { if (input) input.focus(); }, 50);
+}
+
+function closePromoModal() {
+  document.getElementById('promoModalOverlay').classList.remove('open');
+}
+
+function applyPromoCode() {
+  var input = document.getElementById('promoInput');
+  var result = document.getElementById('promoResult');
+  if (!input || !result) return;
+  var code = input.value.trim().toUpperCase();
+
+  // ADD NEW PROMO CODES HERE
+  var PROMO_CODES = {
+    // Owner codes — full owner mode
+    'ATGAIIMAMW2026': { type: 'owner', message: 'Owner mode activated. Unlimited access enabled.', color: '#22c55e' },
+    // Influencer codes — unlimited questions, creator badge
+    'ATGAIVIP2026':   { type: 'influencer', message: 'Influencer access activated. Unlimited questions enabled.', color: '#a855f7' },
+    'MIAMIVIP2026':   { type: 'influencer', message: 'Miami VIP access activated.', color: '#a855f7' },
+    'CREATORACCESS':  { type: 'influencer', message: 'Creator access activated.', color: '#a855f7' }
+  };
+
+  var match = PROMO_CODES[code];
+  if (!match) {
+    result.textContent = 'Invalid promo code. Please check and try again.';
+    result.style.color = '#e10600';
+    return;
+  }
+
+  if (match.type === 'owner') {
+    activateOwnerMode();
+  } else if (match.type === 'influencer') {
+    activateInfluencerMode();
+  }
+
+  result.textContent = match.message;
+  result.style.color = match.color;
+  input.value = '';
+
+  setTimeout(function() {
+    closePromoModal();
+    result.textContent = '';
+  }, 2000);
+}
 </script>
 
 <!-- ── NEWS ARTICLE POPUP OVERLAY (desktop) ──────── -->
@@ -11833,6 +12044,19 @@ function closeInfoModal() {
 <!-- ── INFO MODAL ──────────────────────────────────── -->
 <div class="info-modal-overlay" id="infoModalOverlay" onclick="if(event.target===this)closeInfoModal()">
   <div class="info-modal" id="infoModalBox"></div>
+</div>
+
+<!-- ── PROMO CODE MODAL ────────────────────────────── -->
+<div class="promo-modal-overlay" id="promoModalOverlay" onclick="if(event.target===this)closePromoModal()">
+  <div class="promo-modal">
+    <button class="promo-modal-close" onclick="closePromoModal()">✕</button>
+    <div class="promo-modal-title">Enter Promo Code</div>
+    <div class="promo-modal-sub">Have a promo code? Enter it below for special access.</div>
+    <input class="promo-input" id="promoInput" placeholder="Enter your code..." autocomplete="off"
+      onkeydown="if(event.key==='Enter')applyPromoCode()">
+    <button class="promo-apply-btn" onclick="applyPromoCode()">Apply</button>
+    <div class="promo-result" id="promoResult"></div>
+  </div>
 </div>
 
 </body>
