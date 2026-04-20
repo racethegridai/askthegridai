@@ -4903,20 +4903,155 @@
 
     <!-- Rules panel -->
     <div class="mob-news-panel" id="mob-news-rules">
-      <div class="rl-wrap" style="flex-direction:column;height:auto;overflow-y:visible;padding:12px;">
-        <div class="rl-hero">
-          <div class="rl-hero-label">2026 F1 Rules · Plain English</div>
-          <div class="rl-hero-title">Everything changed for 2026. Here is what you actually need to know.</div>
-          <div class="rl-hero-body">New hybrid power units. Active aero replacing DRS. Two new teams. If you are confused watching 2026 you are not alone — even the drivers are still figuring it out.</div>
+      <div class="mob-rp-hub" id="rl-hub-content">
+
+        <!-- Hero card -->
+        <div class="rp-hero">
+          <div class="rp-hero-label">2026 F1 Rules · Plain English</div>
+          <div class="rp-hero-headline">Everything changed for 2026</div>
+          <div class="rp-hero-text">New hybrid power. Active aero. Two new teams. All explained simply.</div>
         </div>
-        <div class="rl-chat-card" style="min-height:auto;">
-          <div class="rl-section-label">Ask AI about any F1 rule</div>
-          <div class="rl-chips">
-            <button class="rl-chip" onclick="rlAsk('What is active aero and how does it work in 2026 F1?')">What is active aero?</button>
-            <button class="rl-chip" onclick="rlAsk('Why do F1 cars suddenly lose power on straights in 2026?')">Why do cars lose power?</button>
-            <button class="rl-chip" onclick="rlAsk('Explain the sprint weekend format in F1 2026?')">Explain the sprint format</button>
-            <button class="rl-chip" onclick="rlAsk('Who are Audi and Cadillac and when did they join F1?')">Who are Audi and Cadillac?</button>
-            <button class="rl-chip" onclick="rlAsk('Why is Max Verstappen so angry about the 2026 F1 rules?')">Why is Verstappen angry?</button>
+
+        <!-- 2026 changes label -->
+        <div class="mob-section-label">The big 2026 changes</div>
+
+        <!-- 6 change cards in 2×3 grid -->
+        <div class="mob-rp-grid">
+          <div class="mob-rp-card" onclick="rlOpenDetail('yoyo-power')">
+            <div class="mob-rp-card-icon" style="background:rgba(225,6,0,.15);color:#e10600">⚡</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Yo-yo Power Effect</div>
+              <div class="mob-rp-card-sub">Cars lose power mid-straight</div>
+              <div style="margin-top:5px;font-size:8px;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(225,6,0,.12);color:#e10600;display:inline-block;">Why cars lose power</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="rlOpenDetail('active-aero')">
+            <div class="mob-rp-card-icon" style="background:rgba(59,130,246,.15);color:#3b82f6">🪂</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Active Aero</div>
+              <div class="mob-rp-card-sub">Wings adjust automatically</div>
+              <div style="margin-top:5px;font-size:8px;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(59,130,246,.12);color:#3b82f6;display:inline-block;">Replaced DRS</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="rlOpenDetail('weird-starts')">
+            <div class="mob-rp-card-icon" style="background:rgba(34,197,94,.15);color:#22c55e">🚦</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Weird Race Starts</div>
+              <div class="mob-rp-card-sub">10 second pre-launch rev</div>
+              <div style="margin-top:5px;font-size:8px;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(34,197,94,.12);color:#22c55e;display:inline-block;">Hybrid charging</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="rlOpenDetail('new-teams')">
+            <div class="mob-rp-card-icon" style="background:rgba(245,200,66,.15);color:#f5c842">🏎️</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Two New Teams</div>
+              <div class="mob-rp-card-sub">First American team since 1986</div>
+              <div style="margin-top:5px;font-size:8px;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(245,200,66,.12);color:#f5c842;display:inline-block;">Audi and Cadillac</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="rlOpenDetail('sprint-weekend')">
+            <div class="mob-rp-card-icon" style="background:rgba(168,85,247,.15);color:#a855f7">⏱️</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Sprint Weekend</div>
+              <div class="mob-rp-card-sub">Saturday race counts for points</div>
+              <div style="margin-top:5px;font-size:8px;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(168,85,247,.12);color:#a855f7;display:inline-block;">Miami format</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="rlOpenDetail('verstappen-angry')">
+            <div class="mob-rp-card-icon" style="background:rgba(225,6,0,.15);color:#e10600">😤</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Verstappen Angry</div>
+              <div class="mob-rp-card-sub">Four-time champ 9th in standings</div>
+              <div style="margin-top:5px;font-size:8px;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(225,6,0,.12);color:#e10600;display:inline-block;">Mario Kart rules</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+        </div>
+
+        <!-- Rulebook label -->
+        <div class="mob-section-label">F1 Rulebook</div>
+
+        <!-- 8 rulebook cards in 2×4 grid -->
+        <div class="mob-rp-grid">
+          <div class="mob-rp-card" onclick="rlOpenDetail('rl-the-cars')">
+            <div class="mob-rp-card-icon" style="background:rgba(225,6,0,.15);color:#e10600">🚗</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">The Cars</div>
+              <div class="mob-rp-card-sub">Weight limits and what teams can build</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="rlOpenDetail('rl-race-starts')">
+            <div class="mob-rp-card-icon" style="background:rgba(34,197,94,.15);color:#22c55e">🚦</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Race Starts</div>
+              <div class="mob-rp-card-sub">Formation lap and false start rules</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="rlOpenDetail('rl-pit-stops')">
+            <div class="mob-rp-card-icon" style="background:rgba(245,200,66,.15);color:#f5c842">🔧</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Pit Stops</div>
+              <div class="mob-rp-card-sub">Speed limits and what teams can change</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="rlOpenDetail('rl-flags')">
+            <div class="mob-rp-card-icon" style="background:rgba(59,130,246,.15);color:#3b82f6">🏁</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Flags</div>
+              <div class="mob-rp-card-sub">Every flag explained in plain English</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="rlOpenDetail('rl-penalties')">
+            <div class="mob-rp-card-icon" style="background:rgba(255,140,0,.15);color:#ff8c00">⚖️</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Penalties</div>
+              <div class="mob-rp-card-sub">How stewards decide punishments</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="rlOpenDetail('rl-safety-car')">
+            <div class="mob-rp-card-icon" style="background:rgba(168,85,247,.15);color:#a855f7">🚗</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Safety Car</div>
+              <div class="mob-rp-card-sub">SC and VSC rules for drivers</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="rlOpenDetail('rl-points')">
+            <div class="mob-rp-card-icon" style="background:rgba(245,200,66,.15);color:#f5c842">🏆</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Points System</div>
+              <div class="mob-rp-card-sub">How championship points work</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+          <div class="mob-rp-card" onclick="rlOpenDetail('rl-driver-conduct')">
+            <div class="mob-rp-card-icon" style="background:rgba(20,184,166,.15);color:#14b8a6">🪖</div>
+            <div class="mob-rp-card-body">
+              <div class="mob-rp-card-title">Driver Conduct</div>
+              <div class="mob-rp-card-sub">Overtaking and defending rules</div>
+            </div>
+            <div class="mob-rp-card-arrow">›</div>
+          </div>
+        </div>
+
+        <!-- AI ask section -->
+        <div style="background:#111;border:1px solid #1c1c1c;border-radius:10px;padding:14px;">
+          <div style="font-size:9px;color:#555;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:10px;">Ask AI about any rule</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+            <button onclick="rlAskMob('What is active aero and how does it work in 2026 F1?')" style="font-size:9px;padding:5px 11px;border-radius:20px;background:#0d0d0d;border:1px solid #1c1c1c;color:#555;cursor:pointer;font-family:inherit;">What is active aero?</button>
+            <button onclick="rlAskMob('How many engines can an F1 driver use per season in 2026?')" style="font-size:9px;padding:5px 11px;border-radius:20px;background:#0d0d0d;border:1px solid #1c1c1c;color:#555;cursor:pointer;font-family:inherit;">How many engines per season?</button>
+            <button onclick="rlAskMob('What is parc fermé in F1 and what does it prevent teams doing?')" style="font-size:9px;padding:5px 11px;border-radius:20px;background:#0d0d0d;border:1px solid #1c1c1c;color:#555;cursor:pointer;font-family:inherit;">What is parc fermé?</button>
+            <button onclick="rlAskMob('How do F1 penalties work and who decides them?')" style="font-size:9px;padding:5px 11px;border-radius:20px;background:#0d0d0d;border:1px solid #1c1c1c;color:#555;cursor:pointer;font-family:inherit;">How do penalties work?</button>
           </div>
           <div class="rl-msgs" id="rl-msgs-mob" style="max-height:220px;">
             <div class="rl-bubble-ai">Ask me anything about F1 rules and regulations. I explain everything in plain English — no jargon, no assumptions. What do you want to understand?</div>
@@ -4927,40 +5062,7 @@
             <button class="rl-send" id="rl-send-mob" onclick="rlAskMob(null)">Ask</button>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div class="rl-right-label">The big 2026 changes</div>
-          <div class="rl-change-card" style="border-left:2px solid #e10600"><div class="rl-change-cat" style="color:#e10600">Power Unit</div><div class="rl-change-title">The yo-yo power effect</div><div class="rl-change-body">Cars accelerate then suddenly lose power on straights. The new hybrid deployment rules cause this. Red Bull suffer most.</div><button class="rl-change-ask" style="color:#e10600" onclick="rlAskMob('Explain why F1 cars have the yo-yo power effect in 2026?')">Ask AI about this →</button></div>
-          <div class="rl-change-card" style="border-left:2px solid #3b82f6"><div class="rl-change-cat" style="color:#3b82f6">Aerodynamics</div><div class="rl-change-title">Active aero replaced DRS</div><div class="rl-change-body">DRS is gone. Active aero adjusts wings automatically. Some drivers love it. Most hate it.</div><button class="rl-change-ask" style="color:#3b82f6" onclick="rlAskMob('Explain how active aero replaced DRS in 2026 F1?')">Ask AI about this →</button></div>
-          <div class="rl-change-card" style="border-left:2px solid #22c55e"><div class="rl-change-cat" style="color:#22c55e">Race Starts</div><div class="rl-change-title">Why starts look so weird</div><div class="rl-change-body">Cars rev for 10 seconds before moving. The hybrid system needs time to charge before the clutch releases.</div><button class="rl-change-ask" style="color:#22c55e" onclick="rlAskMob('Why do 2026 F1 race starts look so weird?')">Ask AI about this →</button></div>
-          <div class="rl-change-card" style="border-left:2px solid #f5c842"><div class="rl-change-cat" style="color:#f5c842">Teams</div><div class="rl-change-title">Two brand new teams</div><div class="rl-change-body">Audi and Cadillac joined F1. Cadillac is the first American team in decades. Miami is their home race.</div><button class="rl-change-ask" style="color:#f5c842" onclick="rlAskMob('Tell me about Audi and Cadillac joining F1 in 2026?')">Ask AI about this →</button></div>
-          <div class="rl-change-card" style="border-left:2px solid #a855f7"><div class="rl-change-cat" style="color:#a855f7">Scoring</div><div class="rl-change-title">Sprint weekends score more</div><div class="rl-change-body">Miami is a sprint weekend. Saturday results now matter more for the championship than before.</div><button class="rl-change-ask" style="color:#a855f7" onclick="rlAskMob('Explain how sprint weekend scoring works in 2026 F1?')">Ask AI about this →</button></div>
-          <div class="rl-change-card" style="border-left:2px solid #e10600"><div class="rl-change-cat" style="color:#e10600">Controversy</div><div class="rl-change-title">Why Verstappen is so angry</div><div class="rl-change-body">He compared 2026 racing to Mario Kart. Red Bull engine loses power on straights. Genuinely furious.</div><button class="rl-change-ask" style="color:#e10600" onclick="rlAskMob('Why is Max Verstappen so angry about 2026 F1?')">Ask AI about this →</button></div>
-          <div class="rl-right-label">F1 Rulebook</div>
-          <div class="rl-rulebook-grid">
-            <div class="rl-rulebook-card" style="border-left:2px solid #e10600" onclick="rlAskMob('Explain all the main rules about what F1 cars can and cannot have in 2026')"><div class="rl-rulebook-name" style="color:#e10600">The Cars</div><div class="rl-rulebook-desc">Weight limits engine rules aerodynamic restrictions</div></div>
-            <div class="rl-rulebook-card" style="border-left:2px solid #22c55e" onclick="rlAskMob('Explain all the rules around F1 race starts including formation lap and false starts')"><div class="rl-rulebook-name" style="color:#22c55e">Race Starts</div><div class="rl-rulebook-desc">Formation lap false starts rain procedure</div></div>
-            <div class="rl-rulebook-card" style="border-left:2px solid #f5c842" onclick="rlAskMob('Explain all the pit stop rules in F1 including speed limits')"><div class="rl-rulebook-name" style="color:#f5c842">Pit Stops</div><div class="rl-rulebook-desc">Speed limits unsafe release what teams can change</div></div>
-            <div class="rl-rulebook-card" style="border-left:2px solid #3b82f6" onclick="rlAskMob('Explain every flag in F1 and what drivers must do for each one')"><div class="rl-rulebook-name" style="color:#3b82f6">Flags</div><div class="rl-rulebook-desc">Every flag explained yellow red blue black checkered</div></div>
-            <div class="rl-rulebook-card" style="border-left:2px solid #ff8c00" onclick="rlAskMob('Explain how F1 penalties work and how stewards decide them')"><div class="rl-rulebook-name" style="color:#ff8c00">Penalties</div><div class="rl-rulebook-desc">Time penalties grid drops disqualification</div></div>
-            <div class="rl-rulebook-card" style="border-left:2px solid #a855f7" onclick="rlAskMob('Explain all the safety car rules in F1 including VSC')"><div class="rl-rulebook-name" style="color:#a855f7">Safety Car</div><div class="rl-rulebook-desc">When deployed driver rules VSC rules</div></div>
-            <div class="rl-rulebook-card" style="border-left:2px solid #f5c842" onclick="rlAskMob('Explain exactly how the F1 points system works in 2026')"><div class="rl-rulebook-name" style="color:#f5c842">Points</div><div class="rl-rulebook-desc">Championship sprint fastest lap tie rules</div></div>
-            <div class="rl-rulebook-card" style="border-left:2px solid #14b8a6" onclick="rlAskMob('Explain the rules around overtaking and defending in F1')"><div class="rl-rulebook-name" style="color:#14b8a6">Driver Conduct</div><div class="rl-rulebook-desc">Track limits defending overtaking</div></div>
-          </div>
-          <div class="rl-miami-card">
-            <div class="rl-right-label" style="margin-bottom:8px">Miami Specific Rules</div>
-            <div class="rl-miami-row" onclick="rlAskMob('Explain the Miami GP sprint weekend format?')"><span class="rl-miami-label">Sprint weekend format</span><button class="rl-miami-ask">Ask AI →</button></div>
-            <div class="rl-miami-row" onclick="rlAskMob('What are the track limits rules at Miami GP?')"><span class="rl-miami-label">Track limits at Miami</span><button class="rl-miami-ask">Ask AI →</button></div>
-            <div class="rl-miami-row" onclick="rlAskMob('How does active aero work at Miami GP?')"><span class="rl-miami-label">Active aero zones at Miami</span><button class="rl-miami-ask">Ask AI →</button></div>
-          </div>
-          <div class="rl-glossary-card">
-            <div class="rl-section-label" style="margin-bottom:10px">F1 Basics Glossary</div>
-            <div class="rl-glossary-row" onclick="rlAskMob('Explain active aero in F1 2026 — what replaced DRS?')"><div class="rl-glossary-term">Active Aero</div><div class="rl-glossary-def">Replaced DRS — adjusts wings for overtaking</div></div>
-            <div class="rl-glossary-row" onclick="rlAskMob('Explain the undercut strategy in F1?')"><div class="rl-glossary-term">Undercut</div><div class="rl-glossary-def">Pitting before rivals to come out ahead on fresher tyres</div></div>
-            <div class="rl-glossary-row" onclick="rlAskMob('What does box box mean in F1?')"><div class="rl-glossary-term">Box Box</div><div class="rl-glossary-def">Radio code telling driver to pit immediately</div></div>
-            <div class="rl-glossary-row" onclick="rlAskMob('What is the Virtual Safety Car in F1?')"><div class="rl-glossary-term">VSC</div><div class="rl-glossary-def">Virtual Safety Car — cars slow without physical SC</div></div>
-            <div class="rl-glossary-row" onclick="rlAskMob('What is parc fermé in F1?')"><div class="rl-glossary-term">Parc Fermé</div><div class="rl-glossary-def">Rule preventing teams changing car setup after qualifying</div></div>
-          </div>
-        </div>
+
       </div>
     </div>
 
@@ -11032,6 +11134,251 @@ async function _rlSend(text, msgsId, inputId, sendId, histRef, busyRef, setBusy)
 
 function rlAsk(text)    { _rlSend(text, 'rl-msgs',     'rl-input',     'rl-send',     _rlHistory,    () => _rlBusy,    v => { _rlBusy    = v; }); }
 function rlAskMob(text) { _rlSend(text, 'rl-msgs-mob', 'rl-input-mob', 'rl-send-mob', _rlHistoryMob, () => _rlBusyMob, v => { _rlBusyMob = v; }); }
+
+var _RL_DETAILS = {
+  'yoyo-power': {
+    title: 'Yo-yo Power Effect', badge: 'WHY CARS LOSE POWER', color: '#e10600',
+    briefing: 'In 2026 the hybrid system provides 50% of total power. The rules control how the battery deploys energy. When battery runs low mid-straight the driver loses up to 350 horsepower instantly. Red Bull suffer most because their homemade engine manages the battery badly.',
+    rules: [
+      { title: 'What is the yo-yo effect?', body: 'Cars accelerate hard then suddenly lose power on the straight. It looks like the car is broken. It is not — the hybrid battery has simply run out of stored energy.' },
+      { title: 'Why does it happen?', body: 'The 2026 rules require 50% of total power to come from the electric motor. When the battery depletes the car loses half its power immediately. Teams cannot deploy more than the rules allow.' },
+      { title: 'Which teams suffer most?', body: "Red Bull's homemade RBPT engine manages battery deployment badly. Verstappen described it as Mario Kart — fast then slow then fast. Mercedes and Ferrari handle it better." },
+      { title: 'Does it affect race results?', body: 'Yes directly. In overtaking situations the driver with more battery wins the straight. Red Bull cannot defend against cars with better energy management even with equal speed.' }
+    ],
+    chips: ['Which team manages energy best?', "Why can't Red Bull fix it mid-season?", 'How much power does the hybrid add?']
+  },
+  'active-aero': {
+    title: 'Active Aero', badge: 'REPLACED DRS', color: '#3b82f6',
+    briefing: "DRS was a flap drivers opened on straights for extra speed. In 2026 it was replaced by active aerodynamics — the car's wings adjust automatically based on speed and sensors. No button. No zone. Just physics.",
+    rules: [
+      { title: 'What replaced DRS?', body: 'Active aerodynamic wings replace DRS in 2026. The rear and front wings adjust their angle automatically based on car speed. No driver button, no activation zone.' },
+      { title: 'How does it work?', body: "At high speed the wings flatten automatically to reduce drag. In corners they stiffen for downforce. The transition is controlled by the car's control unit — drivers cannot override it." },
+      { title: 'Is it better than DRS?', body: 'For racing yes. DRS created boring highways. Active aero means the overtake advantage is smaller but more consistent. Drivers can attack earlier and in more places.' },
+      { title: 'What do drivers say?', body: 'Mixed opinions. Hamilton likes it. Verstappen says it feels less controllable. Some say it reduces their ability to manage the car in dirty air.' }
+    ],
+    chips: ['How does active aero compare to DRS?', 'Can drivers control active aero?', 'Which tracks benefit most from active aero?']
+  },
+  'weird-starts': {
+    title: 'Weird Race Starts', badge: 'HYBRID CHARGING', color: '#22c55e',
+    briefing: 'Every 2026 race start looks strange. Cars sit revving on the grid for 10 seconds before moving. The hybrid system needs time to charge. If the clutch releases before the battery is ready the car bogs down and loses 5 to 8 positions.',
+    rules: [
+      { title: 'Why do starts look so different?', body: 'The 2026 hybrid requires 10 seconds of engine revving on the grid to charge the battery before launch. If the driver releases the clutch too early the electric motor is not ready and the car launches slowly.' },
+      { title: 'What happens at the start?', body: 'Lights out triggers the battery release. The electric motor fires all power in 0.3 seconds. The wheelspin and launch feel is completely different to pre-2026 cars.' },
+      { title: 'Who is best at starts in 2026?', body: 'Mercedes have optimised their launch procedure better than anyone. Antonelli has had near-perfect starts in 2026. Red Bull have struggled with launch timing due to their battery issues.' },
+      { title: 'Can a bad start lose the race?', body: 'At Miami yes. Turn 1 is a bottleneck. Losing two positions at the start often means sitting in traffic for 10 laps. The hybrid start procedure adds a new skill layer beyond 2025.' }
+    ],
+    chips: ['Why does the 2026 start need 10 seconds?', 'Who has the best launch in 2026?', 'Has anyone stalled at a 2026 start?']
+  },
+  'new-teams': {
+    title: 'Two New Teams', badge: 'AUDI AND CADILLAC', color: '#f5c842',
+    briefing: "For the first time since 2016 two brand new teams joined Formula 1. Audi entered as a full constructor — building their own engine and chassis. Cadillac entered as the first American team since 1986. Miami is Cadillac's home race.",
+    rules: [
+      { title: 'Who are Audi in F1?', body: 'Audi joined F1 in 2026 as a full works team — building their own power unit and chassis. They bought the Sauber/Alfa Romeo team as their base. This is their first season and they are still learning.' },
+      { title: 'Who are Cadillac in F1?', body: 'Cadillac is the first American F1 team since 1986. General Motors backs them. Miami is their home race. They qualified for the grid through the FIA expansion process after a long fight with existing teams.' },
+      { title: 'How are they performing?', body: 'Both teams are in the lower half of the grid in their debut season. Audi have scored points twice. Cadillac are still searching for their first points finish but are improving each race.' },
+      { title: 'Why does Cadillac matter for Miami?', body: 'Cadillac racing at their home grand prix is the biggest American motorsport moment in decades. The crowd at Hard Rock Stadium gives them a reception usually reserved for a race leader.' }
+    ],
+    chips: ['Who drives for Cadillac in 2026?', 'Why did it take so long for Cadillac to join F1?', 'Who drives for Audi in 2026?']
+  },
+  'sprint-weekend': {
+    title: 'Sprint Weekend', badge: 'MIAMI FORMAT', color: '#a855f7',
+    briefing: 'Miami 2026 is a sprint weekend. There is a 100km sprint race on Saturday that awards championship points separately from the main race Sunday. The format completely changes strategy — teams cannot change car setup between qualifying and the race.',
+    rules: [
+      { title: 'What is a sprint weekend?', body: 'Sprint weekends have an extra 100km race on Saturday. It is about one third of race distance. The top 8 finishers score points. The main grand prix runs as normal on Sunday.' },
+      { title: 'How are sprint points different?', body: 'Sprint race winner gets 8 points. Second gets 7. Down to 1 point for eighth. It is fewer points than the main race but can change the championship picture — especially if a leader retires.' },
+      { title: 'What is sprint qualifying?', body: 'Friday has a dedicated sprint qualifying session separate from grand prix qualifying. Grid position for the sprint race is set by sprint qualifying, not grand prix qualifying.' },
+      { title: 'Does parc fermé apply?', body: 'Yes. Once sprint qualifying begins teams enter parc fermé. They cannot change car setup between sprint qualifying and the grand prix. This limits tyre strategy options for Sunday.' }
+    ],
+    chips: ['How many sprint races are in 2026?', 'Does sprint result affect main race grid?', 'Which drivers do best in sprints?']
+  },
+  'verstappen-angry': {
+    title: 'Verstappen Angry', badge: 'MARIO KART RULES', color: '#e10600',
+    briefing: 'Max Verstappen publicly compared 2026 F1 to Mario Kart. He said his Red Bull accelerates like a normal car then suddenly loses power. Red Bull\'s homemade RBPT engine cannot manage the new hybrid rules. Four time champion. Ninth in the standings.',
+    rules: [
+      { title: 'What did Verstappen actually say?', body: 'Verstappen said racing in 2026 feels like Mario Kart because the power comes and goes randomly. He said he cannot trust the car on straights. He has been openly critical in team meetings and press conferences.' },
+      { title: 'Why is Red Bull struggling?', body: 'Red Bull left Honda to build their own engine called RBPT. In 2026 the new hybrid rules require a specific energy deployment pattern. Red Bull cannot match it. The engine loses power on straights where others stay consistent.' },
+      { title: 'Can Red Bull fix it mid-season?', body: 'Difficult. Engine regulations are frozen for most of the year. Red Bull can make limited changes for reliability but not for performance. The Miami engine upgrade is their last major chance in the first half of 2026.' },
+      { title: 'How has this affected his championship?', body: 'Verstappen is ninth in the standings with 12 points. He has won four straight championships. In 2026 he cannot challenge for the title unless Red Bull solve the energy problem. He needs consistent top 5 results.' }
+    ],
+    chips: ['What is the Red Bull engine problem exactly?', 'Is Verstappen at risk of leaving Red Bull?', 'Can Red Bull still win the 2026 championship?']
+  },
+  'rl-the-cars': {
+    title: 'The Cars', badge: 'TECHNICAL RULES', color: '#e10600',
+    briefing: 'F1 cars in 2026 are more regulated than ever. The FIA controls weight, dimensions, aerodynamics, and engine specifications to ensure close racing and manufacturer equality.',
+    rules: [
+      { title: 'How heavy are F1 cars?', body: 'Minimum weight including driver is 800kg in 2026. Teams add ballast to reach this if the car is lighter. Every extra kilogram costs approximately 0.03 seconds per lap.' },
+      { title: 'What are the engine rules?', body: 'All 2026 engines must be 1.6 litre V6 turbos with a hybrid system providing 50% of total power. Engines are homologated — teams cannot make major performance changes during the season.' },
+      { title: 'Are wings regulated?', body: 'Yes. The FIA specifies maximum and minimum dimensions for front and rear wings. Teams design within these limits. Wing angles are set in parc fermé and cannot be changed before the race.' },
+      { title: 'What is the cost cap?', body: 'Teams must spend no more than $135 million on car development per season. This excludes driver salaries and marketing. Exceeding the cap results in grid penalties and fines.' },
+      { title: 'What are track limits?', body: 'Cars must stay within white lines. If all four wheels cross a white line on a timed lap the time is deleted. In races track limit violations result in black and white flag warnings then a time penalty.' }
+    ],
+    chips: ['What is the 2026 engine formula?', 'How does the cost cap work?', 'What can teams change between qualifying and race?']
+  },
+  'rl-race-starts': {
+    title: 'Race Starts', badge: 'FORMATION AND LAUNCH', color: '#22c55e',
+    briefing: 'Every grand prix starts with a formation lap. Drivers complete one lap behind the safety car then take their grid positions. Five red lights appear one by one then go out simultaneously — that is the signal to go.',
+    rules: [
+      { title: 'What happens on the formation lap?', body: 'Drivers leave the grid in race order, complete one lap warming tyres, then return to their grid position. They can weave to warm tyres. If a driver cannot start they must inform the team — a spare grid slot is prepared.' },
+      { title: 'What is a false start?', body: 'If a driver moves before the lights go out, sensors detect it and a drive-through penalty is issued. In 2026 the sensors are more sensitive than ever — even small movements trigger a review.' },
+      { title: 'What happens if it rains at the start?', body: 'If rain is heavy the start may begin behind the safety car. Drivers complete laps behind the SC until conditions are safe. The race distance remains the same — the clock starts when the SC enters the pits.' },
+      { title: 'Can teams change tyre choice before start?', body: 'If it rains after qualifying but before the race, teams can change from slicks to wets without penalty. This is the only exception to parc fermé rules on tyre selection.' }
+    ],
+    chips: ['What if someone stalls on the grid?', 'Can you change grid position after qualifying?', 'How does a behind-SC start work?']
+  },
+  'rl-pit-stops': {
+    title: 'Pit Stops', badge: 'SPEED LIMITS AND RULES', color: '#f5c842',
+    briefing: 'Pit stops in F1 take around 2.5 seconds for a tyre change. The pit lane speed limit is 80km/h in most circuits, 60km/h at some. Unsafe releases, missing equipment, and speeding all result in penalties.',
+    rules: [
+      { title: 'What is the pit lane speed limit?', body: 'Drivers must slow to 80km/h (60km/h at some circuits) in the pit lane. Exceeding this by any amount results in a fine. Exceeding by more than a small margin gives a drive-through penalty.' },
+      { title: 'What can teams change during a pit stop?', body: 'Tyres can always be changed. In dry conditions teams cannot add fuel — all fuel for the race must be loaded before the start. Wings can only be changed if damaged in an incident.' },
+      { title: 'What is an unsafe release?', body: 'If a car is released from its pit box before it is safe — still on the jack, mechanic in the way, another car coming — it is an unsafe release. This typically results in a 5 second time penalty.' },
+      { title: 'How fast are pit stops?', body: 'The fastest pit stops in F1 history are under 2 seconds. Average competitive stops are 2.3 to 2.8 seconds. Stops over 3.5 seconds usually indicate a stuck wheel or mechanical problem.' },
+      { title: 'Can you pit under a red flag?', body: 'Yes. When a race is red flagged all cars enter the pit lane and can change tyres freely. This is the only time teams can switch to any tyre compound without using their allocated compounds.' }
+    ],
+    chips: ['What causes a pit stop penalty?', 'How does red flag affect pit strategy?', 'What is the fastest ever pit stop?']
+  },
+  'rl-flags': {
+    title: 'Flags', badge: 'EVERY FLAG EXPLAINED', color: '#3b82f6',
+    briefing: 'Flags communicate race conditions to drivers instantly. Some are warning signals. Some require immediate action. Ignoring a flag results in penalties ranging from a time addition to disqualification.',
+    rules: [
+      { title: 'Yellow flag', body: 'Danger ahead. Drivers must reduce speed and be prepared to stop. No overtaking is allowed under yellow flags. Double yellows mean be prepared to stop completely. Violations result in time penalties.' },
+      { title: 'Red flag', body: 'Race stopped immediately. All drivers must slow down and return to the pit lane. On resumption the order is based on the lap before the red flag was shown. Teams can change tyres freely.' },
+      { title: 'Blue flag', body: 'A lapped car is being caught by the lead group. The lapped driver must move aside within three blue flag showings. Failing to yield is a penalty. Lead cars are not penalised for passing lapped cars.' },
+      { title: 'Black and white flag', body: "Warning for unsporting behaviour or track limit violations. Next offence results in a penalty. The flag is shown with the driver's car number so they know it is directed at them." },
+      { title: 'Black flag', body: 'The driver must immediately return to the pit lane and retire from the race. Used for serious safety breaches. Extremely rare in modern F1 but cannot be ignored.' },
+      { title: 'Checkered flag', body: 'Race over. Shown to the leader when they complete the final lap. All other drivers must complete the lap they are currently on. Times and positions are recorded at the moment the leader crosses the line.' }
+    ],
+    chips: ['What happens if you ignore a blue flag?', 'When is a red flag used?', 'Can a black flag be appealed?']
+  },
+  'rl-penalties': {
+    title: 'Penalties', badge: 'HOW STEWARDS DECIDE', color: '#ff8c00',
+    briefing: 'Stewards are former drivers and officials who investigate incidents during and after races. They can issue time penalties, grid drops, drive-throughs, or disqualifications. The process is transparent but often controversial.',
+    rules: [
+      { title: 'What is a 5 second penalty?', body: '5 seconds are added to the driver\'s race time at the end. If a driver pits after receiving a 5 second penalty they must wait 5 extra seconds in their pit box. Used for minor incidents and unsafe releases.' },
+      { title: 'What is a drive-through penalty?', body: 'Driver must enter the pit lane, drive through at pit lane speed limit, and exit without stopping. Takes approximately 20 to 25 seconds. Used for safety car infringements and speeding in pit lane.' },
+      { title: 'What is a grid drop penalty?', body: 'Applied to the next race. Driver starts 3, 5, or 10 places further back than their qualifying result. Used for engine changes, gearbox changes, or serious on-track infringements.' },
+      { title: 'What is a penalty point?', body: 'Stewards can add points to a driver\'s superlicence. 12 penalty points in 12 months results in a one race ban. Most drivers carry between 0 and 6 points. Think of it like driving licence penalty points.' },
+      { title: 'Can penalties be appealed?', body: 'Yes. Teams can appeal to the FIA International Court of Appeal within 96 hours. Appeals are expensive and rarely overturn the original decision. The stewards process is considered final in most cases.' }
+    ],
+    chips: ['What is the worst penalty in F1?', 'Has a driver ever been disqualified after winning?', 'How are stewards chosen?']
+  },
+  'rl-safety-car': {
+    title: 'Safety Car', badge: 'SC AND VSC RULES', color: '#a855f7',
+    briefing: 'The Safety Car controls race pace when there is danger on track. The Virtual Safety Car slows all cars without a physical SC. Both completely change race strategy. Miami has had a safety car in every single edition.',
+    rules: [
+      { title: 'When is the safety car deployed?', body: 'Race director deploys the SC when debris or incidents create danger. All cars must slow and form a line behind it. No overtaking except in the pit lane. The field bunches up.' },
+      { title: 'Can teams pit under the safety car?', body: 'Yes. Pitting under SC is a huge strategic opportunity. Drivers pit for free — losing minimal time because everyone is slowed. This is why teams watch the SC board so closely.' },
+      { title: 'What is the Virtual Safety Car?', body: 'VSC requires all cars to drive at a set delta time — approximately 40% slower than normal race pace. There is no physical safety car. Teams can still pit but the time loss is larger than a normal SC.' },
+      { title: 'How does SC restart work?', body: 'When the SC returns to the pits the lead car controls restart pace. No overtaking until the SC line is crossed. The leader can slow down to bunch up rivals — a legal tactic to control the restart.' },
+      { title: 'What happens if SC comes out late?', body: 'A late safety car benefits drivers who have not yet pitted. They can pit for free and come out on fresh tyres with minimal time lost. This is the classic safety car gamble that mid-field teams rely on.' }
+    ],
+    chips: ['Can the leader slow down at SC restart?', 'What is the SC line?', 'When is VSC used instead of SC?']
+  },
+  'rl-points': {
+    title: 'Points System', badge: 'HOW POINTS WORK', color: '#f5c842',
+    briefing: 'Championship points are awarded to the top 10 finishers in each race. The winner gets 25. Sprint races award separate points to the top 8. Fastest lap adds one point if scored in the top 10.',
+    rules: [
+      { title: 'How many points for a race win?', body: 'Winner: 25. Second: 18. Third: 15. Fourth: 12. Fifth: 10. Sixth: 8. Seventh: 6. Eighth: 4. Ninth: 2. Tenth: 1. Points count for both the drivers and constructors championship.' },
+      { title: 'How do sprint race points work?', body: 'Sprint race: First: 8. Second: 7. Third: 6. Fourth: 5. Fifth: 4. Sixth: 3. Seventh: 2. Eighth: 1. No points outside top 8. Sprint points count for both championships.' },
+      { title: 'What is the fastest lap point?', body: 'One bonus point is awarded for fastest lap of the race — but only if the driver who sets it finishes in the top 10. Used by teams to send a driver back out on fresh tyres when they have nothing else to gain.' },
+      { title: 'How are ties broken?', body: 'If drivers finish level on points at the end of the season, the tiebreaker is number of race wins. If still tied, number of second places, and so on. This has never decided a championship.' },
+      { title: 'How do constructors points work?', body: "Both drivers' points are added together for the constructor championship. Teams earn prize money based on final constructor standings. Finishing one place higher can mean tens of millions in income." }
+    ],
+    chips: ['What is the fastest lap bonus?', 'How are constructors points calculated?', 'How many points does Antonelli have?']
+  },
+  'rl-driver-conduct': {
+    title: 'Driver Conduct', badge: 'OVERTAKING AND DEFENDING', color: '#14b8a6',
+    briefing: "F1 has strict rules on how drivers can defend their position and how they must overtake. One move to defend. Stay on track. Leave a car's width. These rules separate racing incidents from dangerous driving.",
+    rules: [
+      { title: 'How many defensive moves are allowed?', body: 'One move. A driver can move once to defend their position on a straight. Moving back to the racing line after a defensive move is permitted. A second defensive move is a penalty for moving under braking.' },
+      { title: "What is the one-car-width rule?", body: 'When alongside another driver at a corner, the defending driver must leave at least one car\'s width of space on the inside. Squeezing another driver off track results in a time penalty or black and white flag.' },
+      { title: 'What is moving under braking?', body: 'Changing direction in the braking zone to block an overtake attempt. This is dangerous because the chasing driver has committed to braking. It results in a penalty and often a collision.' },
+      { title: 'What are track limits at corners?', body: 'Drivers must keep at least two wheels on the white lines throughout a corner. Going four wheels wide to gain a position results in stewards investigation. Cameras at every corner detect violations automatically.' },
+      { title: 'What is the active aero overtaking window?', body: 'Active aero activates automatically within one second of the car ahead. No driver input required. The overtaking car gains reduced drag. Unlike DRS there are no activation zones — it works anywhere on track.' }
+    ],
+    chips: ['What counts as moving under braking?', 'Can you push a driver off track to defend?', 'What is the penalty for cutting a corner to overtake?']
+  }
+};
+
+function rlOpenDetail(key) {
+  var detail = _RL_DETAILS[key];
+  if (!detail) return;
+  var hub = document.getElementById('rl-hub-content');
+  if (!hub) return;
+  window._rlPrevHub = hub.innerHTML;
+  var rulesHtml = detail.rules.map(function(r) {
+    return '<div style="background:#0d0d0d;border:1px solid #1c1c1c;border-radius:8px;padding:12px;"><div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:4px;">' + r.title + '</div><div style="font-size:10px;color:#666;line-height:1.6;">' + r.body + '</div></div>';
+  }).join('');
+  var chipsHtml = detail.chips.map(function(c) {
+    return '<button onclick="rlDetailAsk(\'' + key + '\',\'' + c.replace(/'/g, "\\'") + '\')" style="font-size:9px;padding:5px 11px;border-radius:20px;background:#111;border:1px solid #1c1c1c;color:#555;cursor:pointer;font-family:inherit;">' + c + '</button>';
+  }).join('');
+  hub.innerHTML =
+    '<div style="padding:4px 0 14px;">' +
+    '<button onclick="document.getElementById(\'rl-hub-content\').innerHTML=window._rlPrevHub" style="background:transparent;border:none;color:#555;font-size:11px;cursor:pointer;margin-bottom:14px;padding:0;font-family:inherit;">← Back</button>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">' +
+    '<div style="font-size:16px;font-weight:700;color:#fff;">' + detail.title + '</div>' +
+    '<div style="font-size:9px;font-weight:700;padding:3px 10px;border-radius:4px;background:' + detail.color + '22;color:' + detail.color + ';">' + detail.badge + '</div>' +
+    '</div>' +
+    '<div style="font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;font-weight:700;">BRIEFING</div>' +
+    '<div id="rl-detail-typed" style="font-size:11px;color:#888;line-height:1.7;margin-bottom:16px;border-left:2px solid ' + detail.color + ';padding-left:12px;"></div>' +
+    '<div style="font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;font-weight:700;">THE RULES</div>' +
+    '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">' + rulesHtml + '</div>' +
+    '<div style="font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;font-weight:700;">ASK AI</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">' + chipsHtml + '</div>' +
+    '<div id="rl-detail-chat" style="min-height:40px;max-height:200px;overflow-y:auto;margin-bottom:10px;"></div>' +
+    '<div style="display:flex;gap:6px;">' +
+    '<input id="rl-detail-input" placeholder="Ask about ' + detail.title + '..." style="flex:1;background:#111;border:1px solid #1c1c1c;border-radius:6px;padding:8px 10px;font-size:10px;color:#fff;font-family:inherit;" onkeydown="if(event.key===\'Enter\'){rlDetailAsk(\'' + key + '\',null);}">' +
+    '<button onclick="rlDetailAsk(\'' + key + '\',null)" style="background:' + detail.color + ';border:none;border-radius:6px;padding:8px 14px;font-size:10px;font-weight:700;color:#000;cursor:pointer;">Ask</button>' +
+    '</div></div>';
+  var typed = document.getElementById('rl-detail-typed');
+  var text = detail.briefing;
+  var i = 0;
+  var t = setInterval(function() {
+    if (i < text.length) { typed.textContent += text[i]; i++; } else { clearInterval(t); }
+  }, 15);
+}
+
+var _rlDetailHistory = {};
+async function rlDetailAsk(key, text) {
+  var input = document.getElementById('rl-detail-input');
+  var chat  = document.getElementById('rl-detail-chat');
+  var q = (typeof text === 'string' && text) ? text : (input ? input.value.trim() : '');
+  if (!q || !chat) return;
+  if (input) input.value = '';
+  var detail = _RL_DETAILS[key];
+  if (!_rlDetailHistory[key]) _rlDetailHistory[key] = [];
+
+  var userDiv = document.createElement('div');
+  userDiv.style.cssText = 'text-align:right;margin-bottom:6px;';
+  userDiv.innerHTML = '<span style="background:#1a1a1a;border-radius:8px 8px 2px 8px;padding:6px 10px;font-size:9px;color:#aaa;display:inline-block;">' + q + '</span>';
+  chat.appendChild(userDiv);
+  _rlDetailHistory[key].push({ role: 'user', content: q });
+
+  var aiDiv = document.createElement('div');
+  aiDiv.style.cssText = 'margin-bottom:8px;';
+  aiDiv.innerHTML = '<div style="background:#111;border-radius:8px 8px 8px 2px;padding:8px 10px;font-size:9px;color:#666;border-left:2px solid ' + (detail ? detail.color : '#e10600') + ';line-height:1.6;"><div class=\'typing-dots\'><div class=\'typing-dot\'></div><div class=\'typing-dot\'></div><div class=\'typing-dot\'></div></div></div>';
+  chat.appendChild(aiDiv);
+  chat.scrollTop = chat.scrollHeight;
+
+  var bubble = aiDiv.querySelector('div');
+  var sys = 'You are an F1 rules expert explaining regulations in plain English to new fans. Topic: ' + (detail ? detail.title : key) + '. Keep answers 3 to 5 sentences. Be specific and clear. Today is April 2026.';
+
+  try {
+    var res = await fetch(BACKEND + '/api/chat-stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: sys, messages: _rlDetailHistory[key] }),
+      signal: AbortSignal.timeout(30000)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var fullText = '';
+    await _readTokenStream(res, function(txt) { fullText = txt; bubble.textContent = txt; chat.scrollTop = chat.scrollHeight; });
+    bubble.innerHTML = escapeHtml(fullText || '(No response)').replace(/\n/g,'<br>');
+    _rlDetailHistory[key].push({ role: 'assistant', content: fullText || '(No response)' });
+  } catch(e) {
+    bubble.textContent = 'Could not connect. Try again.';
+  }
+}
 
 /* ──────────────────────────────────────────────────
    STRATEGY SECTION — TYRE/STRATEGY DETAIL VIEWS
