@@ -828,13 +828,34 @@ async def fetch_f1_news() -> list[dict]:
     return result
 
 
+_REDDIT_FALLBACK: list[dict] = [
+    {"title": "Miami GP preview — what to watch this weekend", "score": 2400, "url": "https://reddit.com/r/formula1", "num_comments": 340, "created": 0},
+    {"title": "Antonelli championship lead analysis", "score": 1800, "url": "https://reddit.com/r/formula1", "num_comments": 210, "created": 0},
+    {"title": "Italian tax investigation explained", "score": 3200, "url": "https://reddit.com/r/formula1", "num_comments": 450, "created": 0},
+]
+
+# ── UPDATE EVERY THURSDAY before a race weekend ───────
+_TRENDS_FALLBACK: list[dict] = [
+    {"title": "Miami GP 2026",             "source": "F1 Trending"},
+    {"title": "Antonelli championship",    "source": "F1 Trending"},
+    {"title": "F1 Italy investigation",    "source": "F1 Trending"},
+    {"title": "Hamilton Ferrari Miami",    "source": "F1 Trending"},
+    {"title": "Verstappen engine upgrade", "source": "F1 Trending"},
+]
+
+
 async def fetch_reddit_trending():
+    global cached_reddit
     url = "https://www.reddit.com/r/formula1/hot.json?limit=10"
-    headers = {"User-Agent": "AskTheGridAI/1.0"}
+    headers = {"User-Agent": "AskTheGridAI:v1.0 (by /u/askthegridai)"}
     try:
         async with httpx.AsyncClient() as client:
             r = await client.get(url, headers=headers, timeout=10)
-            data = r.json()
+        if r.status_code != 200:
+            print(f"Reddit returned {r.status_code} — using fallback")
+            cached_reddit = _REDDIT_FALLBACK
+            return
+        data = r.json()
         posts = []
         for post in data['data']['children']:
             p = post['data']
@@ -843,35 +864,20 @@ async def fetch_reddit_trending():
                     'title': p['title'],
                     'score': p['score'],
                     'url': 'https://reddit.com' + p['permalink'],
-                    'thumbnail': p.get('thumbnail', ''),
+                    'num_comments': p['num_comments'],
                     'created': p['created_utc'],
-                    'num_comments': p['num_comments']
                 })
-        global cached_reddit
-        cached_reddit = posts[:8]
+        cached_reddit = posts[:8] if posts else _REDDIT_FALLBACK
     except Exception as e:
-        print(f"Reddit fetch failed: {e}")
+        print(f"Reddit fetch failed: {e} — using fallback")
+        cached_reddit = _REDDIT_FALLBACK
 
 
 async def fetch_google_trends():
-    url = "https://trends.google.com/trends/trendingsearches/daily/rss?geo=US"
-    f1_keywords = ['f1', 'formula', 'hamilton', 'verstappen', 'antonelli',
-                   'ferrari', 'mclaren', 'mercedes', 'racing', 'grand prix',
-                   'motorsport', 'norris', 'leclerc', 'russell']
-    try:
-        async with httpx.AsyncClient() as client:
-            r = await client.get(url, timeout=10)
-        import xml.etree.ElementTree as ET
-        root = ET.fromstring(r.text)
-        trends = []
-        for item in root.findall('.//item'):
-            title = item.find('title').text or ''
-            if any(k in title.lower() for k in f1_keywords):
-                trends.append({'title': title, 'source': 'Google Trends'})
-        global cached_trends
-        cached_trends = trends[:5]
-    except Exception as e:
-        print(f"Trends fetch failed: {e}")
+    global cached_trends
+    # Google Trends RSS blocks server IPs reliably — use curated fallback list.
+    # Update _TRENDS_FALLBACK manually every Thursday before each race weekend.
+    cached_trends = _TRENDS_FALLBACK
 
 
 async def _news_poller():
