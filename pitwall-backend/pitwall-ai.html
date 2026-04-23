@@ -8212,7 +8212,7 @@ function _renderRedditCards(posts) {
         <span class="reddit-upvotes">&#9650; ${(p.score||0).toLocaleString()}</span>
         <span class="reddit-comments">${(p.num_comments||0).toLocaleString()} comments</span>
         ${p.created ? `<span class="reddit-time">${_timeAgoJs(p.created)}</span>` : ''}
-        <button class="reddit-ask-btn" onclick="event.stopPropagation();newsAsk('${escapeHtml(p.title).replace(/'/g,"\\'")}')">Ask AI</button>
+        <button class="reddit-ask-btn" onclick="event.stopPropagation();newsAsk('Search the web and read articles about this F1 story: ${escapeHtml(p.title).replace(/'/g,"\\'")}. Summarize what actually happened, why it matters for F1, and what it means for the championship. Explain simply.')">Ask AI</button>
       </div>
     </div>`).join('');
   if (el)    el.innerHTML = html;
@@ -8224,7 +8224,7 @@ function _renderTrendsPills(trends) {
   const mobEl = document.getElementById('mobTrendsPills');
   const list  = (trends && trends.length ? trends : _TRENDS_JS_FALLBACK);
   const html  = list.map(t =>
-    `<button class="trend-pill" onclick="newsAsk('Tell me about ${escapeHtml(t.title).replace(/'/g,"\\'")} in F1')">${escapeHtml(t.title)}</button>`
+    `<button class="trend-pill" onclick="newsAsk('Search the web and read current articles about ${escapeHtml(t.title).replace(/'/g,"\\'")} in F1. Read multiple sources and give me a complete picture of what is happening and why fans care about it.')">${escapeHtml(t.title)}</button>`
   ).join('');
   if (el)    el.innerHTML = html;
   if (mobEl) mobEl.innerHTML = html;
@@ -8621,26 +8621,28 @@ async function sendNewsAI() {
   _newsBusy = true;
   inp.value = '';
   resp.style.display = '';
-  resp.textContent   = 'Thinking\u2026';
+  resp.textContent   = 'Searching\u2026';
 
   const styleInst = STYLE_INSTRUCTIONS[getExplainStyle()] || STYLE_INSTRUCTIONS.beginner;
   const system = `You are an F1 expert explaining today's Formula 1 news.
-Keep answers to 3-4 sentences maximum.
 Focus on why this matters for a fan watching the 2026 season.
-Never quote articles or reproduce headlines. Write only original explanations.
+Never just repeat headlines — synthesize what you find into one clear explanation.
+Connect stories to the championship and upcoming races.
+End every answer with what to watch for next.
 
 ${styleInst}`;
 
   try {
-    const res = await fetch(`${BACKEND}/api/chat`, {
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ system, messages: [{ role: 'user', content: q }] }),
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(45000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    resp.textContent = data.reply || '(No response)';
+    await _readTokenStream(res, txt => {
+      resp.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+    });
   } catch(e) {
     resp.textContent = '\u26a0 Could not connect to AI.';
   } finally {

@@ -996,6 +996,17 @@ async def _enforce_rate_limit(request: Request) -> None:
 
 # ── Chat proxy ────────────────────────────────────────
 
+_WEB_SEARCH_INSTRUCTIONS = """WEB SEARCH INSTRUCTIONS:
+When answering questions about current F1 news or events:
+1. Search for the topic first
+2. Read the full content of the top 2-3 results, not just headlines
+3. Synthesize everything you read into one clear explanation
+4. Always explain in the user's selected style
+5. Never just repeat headlines
+6. Connect the story to the championship and what it means for upcoming races
+7. End with what to watch for next"""
+
+
 _CRITICAL_CONTEXT = """CRITICAL CONTEXT — READ FIRST:
 Today's date is April 2026.
 The 2026 F1 season is currently underway with 4 races completed.
@@ -1242,6 +1253,7 @@ async def chat_stream(req: ChatRequest, request: Request):
     # Block 4 — optional: race-specific snapshot when message asks for live data.
     system_blocks: list[dict] = [
         {"type": "text", "text": _CRITICAL_CONTEXT},
+        {"type": "text", "text": _WEB_SEARCH_INSTRUCTIONS},
         {
             "type": "text",
             "text": req.system,
