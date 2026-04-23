@@ -115,11 +115,14 @@ _standings_cache: dict[str, Any] = {"data": None, "timestamp": 0.0}
 # ── News cache ────────────────────────────────────────
 _NEWS_CACHE_TTL = 3600  # 1 hour
 _NEWS_FEEDS = [
-    "https://www.formula1.com/en/latest/all.xml",
     "https://www.motorsport.com/rss/f1/news/",
 ]
 _news_cache: dict[str, Any] = {"items": [], "refreshed_at": None}
 _news_lock  = asyncio.Lock()
+
+# ── Reddit + Google Trends caches ─────────────────────
+cached_reddit: list[dict] = []
+cached_trends: list[dict] = []
 
 # ── News insights cache (keyed by article URL) ────────
 _insights_cache: dict[str, dict] = {}
@@ -825,8 +828,54 @@ async def fetch_f1_news() -> list[dict]:
     return result
 
 
+async def fetch_reddit_trending():
+    url = "https://www.reddit.com/r/formula1/hot.json?limit=10"
+    headers = {"User-Agent": "AskTheGridAI/1.0"}
+    try:
+        async with httpx.AsyncClient() as client:
+            r = await client.get(url, headers=headers, timeout=10)
+            data = r.json()
+        posts = []
+        for post in data['data']['children']:
+            p = post['data']
+            if not p.get('stickied'):
+                posts.append({
+                    'title': p['title'],
+                    'score': p['score'],
+                    'url': 'https://reddit.com' + p['permalink'],
+                    'thumbnail': p.get('thumbnail', ''),
+                    'created': p['created_utc'],
+                    'num_comments': p['num_comments']
+                })
+        global cached_reddit
+        cached_reddit = posts[:8]
+    except Exception as e:
+        print(f"Reddit fetch failed: {e}")
+
+
+async def fetch_google_trends():
+    url = "https://trends.google.com/trends/trendingsearches/daily/rss?geo=US"
+    f1_keywords = ['f1', 'formula', 'hamilton', 'verstappen', 'antonelli',
+                   'ferrari', 'mclaren', 'mercedes', 'racing', 'grand prix',
+                   'motorsport', 'norris', 'leclerc', 'russell']
+    try:
+        async with httpx.AsyncClient() as client:
+            r = await client.get(url, timeout=10)
+        import xml.etree.ElementTree as ET
+        root = ET.fromstring(r.text)
+        trends = []
+        for item in root.findall('.//item'):
+            title = item.find('title').text or ''
+            if any(k in title.lower() for k in f1_keywords):
+                trends.append({'title': title, 'source': 'Google Trends'})
+        global cached_trends
+        cached_trends = trends[:5]
+    except Exception as e:
+        print(f"Trends fetch failed: {e}")
+
+
 async def _news_poller():
-    """Background task: refresh news cache every _NEWS_CACHE_TTL seconds."""
+    """Background task: refresh news + reddit + trends cache every _NEWS_CACHE_TTL seconds."""
     while True:
         try:
             log.info("[NEWS] Refreshing RSS news cache…")
@@ -837,6 +886,16 @@ async def _news_poller():
             log.info("[NEWS] Cached %d items", len(items))
         except Exception as exc:
             log.warning("[NEWS] Poller error: %s", exc)
+        try:
+            await fetch_reddit_trending()
+            log.info("[NEWS] Cached %d Reddit posts", len(cached_reddit))
+        except Exception as exc:
+            log.warning("[NEWS] Reddit poller error: %s", exc)
+        try:
+            await fetch_google_trends()
+            log.info("[NEWS] Cached %d trend terms", len(cached_trends))
+        except Exception as exc:
+            log.warning("[NEWS] Trends poller error: %s", exc)
         await asyncio.sleep(_NEWS_CACHE_TTL)
 
 
@@ -984,6 +1043,19 @@ def _build_dynamic_context() -> str:
     if news_items:
         headlines = [f"- {item['title']}" for item in news_items[:5]]
         sections.append("LATEST F1 NEWS:\n" + "\n".join(headlines))
+
+    # Reddit trending
+    if cached_reddit:
+        lines = [
+            f"- {p['title']} ({p['score']} upvotes)"
+            for p in cached_reddit[:5]
+        ]
+        sections.append("TRENDING ON R/FORMULA1 NOW:\n" + "\n".join(lines))
+
+    # Google Trends
+    if cached_trends:
+        terms = ", ".join(t['title'] for t in cached_trends)
+        sections.append("TRENDING F1 SEARCHES TODAY:\n" + terms)
 
     # Current session + team radio from live race state
     state = _state
@@ -1246,6 +1318,18 @@ async def get_news():
             "items":        _news_cache["items"],
             "refreshed_at": _news_cache["refreshed_at"],
         }
+
+
+@app.get("/api/trending")
+async def get_trending():
+    """Return Reddit trending posts, Google Trends F1 terms, and latest news."""
+    async with _news_lock:
+        news = list(_news_cache["items"])
+    return {
+        "reddit": cached_reddit,
+        "trends": cached_trends,
+        "news":   news,
+    }
 
 
 @app.get("/api/news/insights")

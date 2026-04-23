@@ -3394,6 +3394,43 @@
     .news-card-source:hover { color: #888; }
     .news-rss-empty { padding: 24px 0; color: #555; font-size: 12px; text-align: center; }
     .news-rss-loading { padding: 24px 0; color: #444; font-size: 12px; text-align: center; }
+
+    /* ── Trending section labels ── */
+    .trending-section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: .6px;
+      text-transform: uppercase; color: #aaa;
+      margin-bottom: 10px; display: flex; align-items: center;
+    }
+
+    /* ── Reddit cards ── */
+    .reddit-cards-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
+    .reddit-card {
+      background: #111; border: 1px solid #1e1e1e; border-radius: 8px;
+      padding: 10px 12px; cursor: pointer; transition: border-color .15s;
+    }
+    .reddit-card:hover { border-color: #FF4500; }
+    .reddit-card-title { font-size: 13px; font-weight: 600; color: #eee; line-height: 1.35; margin-bottom: 6px; }
+    .reddit-card-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .reddit-upvotes   { font-size: 11px; color: #FF4500; font-weight: 700; }
+    .reddit-comments  { font-size: 11px; color: #666; }
+    .reddit-time      { font-size: 11px; color: #555; margin-left: auto; }
+    .reddit-ask-btn {
+      font-size: 10px; font-weight: 700; color: #fff; background: #FF4500;
+      border: none; border-radius: 4px; padding: 3px 8px; cursor: pointer;
+      font-family: 'Titillium Web', sans-serif; letter-spacing: .3px;
+      transition: background .15s;
+    }
+    .reddit-ask-btn:hover { background: #e03d00; }
+
+    /* ── Trend pills ── */
+    .trends-pills-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+    .trend-pill {
+      font-size: 11px; font-weight: 600; color: #4285f4; background: rgba(66,133,244,.1);
+      border: 1px solid rgba(66,133,244,.25); border-radius: 20px;
+      padding: 4px 12px; cursor: pointer; font-family: 'Titillium Web', sans-serif;
+      transition: background .15s, border-color .15s;
+    }
+    .trend-pill:hover { background: rgba(66,133,244,.2); border-color: #4285f4; }
     .news-card-ask   {
       font-size: 10px; font-weight: 700; color: var(--red); cursor: pointer;
       letter-spacing: .3px; background: none; border: none; font-family: 'Titillium Web', sans-serif;
@@ -5138,8 +5175,26 @@
         <span class="mob-news-breaking-time" id="mobNewsBreakingTime"></span>
       </div>
 
-      <!-- Section label -->
-      <div class="mob-news-sec-label">Today in F1 — AI Explained</div>
+      <!-- SECTION 1: Reddit -->
+      <div class="mob-news-sec-label" style="color:#FF4500">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="#FF4500" style="vertical-align:middle;margin-right:4px"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
+        Trending on r/formula1
+      </div>
+      <div id="mobRedditCards">
+        <div style="padding:16px 14px;text-align:center;color:#444;font-size:12px">Loading Reddit…</div>
+      </div>
+
+      <!-- SECTION 2: Google Trends -->
+      <div class="mob-news-sec-label mob-news-sec-gap" style="color:#4285f4">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="#4285f4" style="vertical-align:middle;margin-right:4px"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34a853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#fbbc05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#ea4335"/></svg>
+        Trending searches · F1
+      </div>
+      <div id="mobTrendsPills" class="trends-pills-row" style="padding:0 14px 4px">
+        <div style="padding:8px 0;color:#444;font-size:12px">Loading…</div>
+      </div>
+
+      <!-- SECTION 3: Latest news -->
+      <div class="mob-news-sec-label mob-news-sec-gap">Latest F1 news</div>
 
       <!-- Cards stacked single column -->
       <div id="mobNewsCards">
@@ -6325,9 +6380,33 @@
 
       </div><!-- /news-right (left sidebar) -->
 
-      <!-- RIGHT COLUMN — card grid, populated by loadRssNews() -->
+      <!-- RIGHT COLUMN — three trending sections -->
       <div class="news-left" id="rssNewsLeft">
-        <div class="news-rss-loading">Loading latest F1 news…</div>
+
+        <!-- SECTION 1: Reddit trending -->
+        <div class="trending-section-label" style="color:#FF4500">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#FF4500" style="vertical-align:middle;margin-right:5px"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
+          Trending on r/formula1
+        </div>
+        <div id="redditTrendingCards" class="reddit-cards-list">
+          <div class="news-rss-loading">Loading Reddit…</div>
+        </div>
+
+        <!-- SECTION 2: Google Trends pills -->
+        <div class="trending-section-label" style="color:#4285f4;margin-top:20px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#4285f4" style="vertical-align:middle;margin-right:5px"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34a853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#fbbc05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#ea4335"/></svg>
+          Trending searches · F1
+        </div>
+        <div id="trendsPills" class="trends-pills-row">
+          <div class="news-rss-loading">Loading trends…</div>
+        </div>
+
+        <!-- SECTION 3: Latest news -->
+        <div class="trending-section-label" style="margin-top:20px">Latest F1 news</div>
+        <div id="rssNewsCards">
+          <div class="news-rss-loading">Loading latest F1 news…</div>
+        </div>
+
       </div><!-- /news-left -->
 
     </div><!-- /news-layout -->
@@ -8086,13 +8165,14 @@ function switchTab(tab) {
   });
   if (tab === 'strategy') renderStrategyTab();
   if (tab === 'drivers')  { renderDriversGrid(); }
-  if (tab === 'news')     { loadRssNews(); }
+  if (tab === 'news')     { loadTrendingData(); }
 }
 
-/* ── RSS News card grid ────────────────────────────── */
+/* ── Trending data (Reddit + Google Trends + News) ─── */
+let _trendingLoaded = false;
 let _rssLoaded = false;
 let _rssItems  = [];
-const _insightsCache = {};  // keyed by article source URL
+const _insightsCache = {};
 
 function _badgeClass(badge) {
   if (badge === 'F1 Official') return 'rss-badge-f1';
@@ -8100,8 +8180,55 @@ function _badgeClass(badge) {
   return 'rss-badge-fia';
 }
 
+function _timeAgoJs(utcSeconds) {
+  const diff = Math.floor(Date.now() / 1000) - utcSeconds;
+  if (diff < 120)    return 'just now';
+  if (diff < 3600)   return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400)  return `${Math.floor(diff/3600)}h ago`;
+  return `${Math.floor(diff/86400)}d ago`;
+}
+
+function _renderRedditCards(posts) {
+  const el = document.getElementById('redditTrendingCards');
+  const mobEl = document.getElementById('mobRedditCards');
+  const top5 = posts.slice(0, 5);
+  if (!top5.length) {
+    if (el) el.innerHTML = '<div style="color:#555;font-size:12px;padding:8px 0">No trending posts right now.</div>';
+    if (mobEl) mobEl.innerHTML = '<div style="padding:8px 14px;color:#555;font-size:12px">No trending posts right now.</div>';
+    return;
+  }
+  const html = top5.map(p => `
+    <div class="reddit-card" onclick="window.open('${escapeHtml(p.url)}','_blank')">
+      <div class="reddit-card-title">${escapeHtml(p.title)}</div>
+      <div class="reddit-card-meta">
+        <span class="reddit-upvotes">&#9650; ${p.score.toLocaleString()}</span>
+        <span class="reddit-comments">${p.num_comments.toLocaleString()} comments</span>
+        <span class="reddit-time">${_timeAgoJs(p.created)}</span>
+        <button class="reddit-ask-btn" onclick="event.stopPropagation();newsAsk('${escapeHtml(p.title).replace(/'/g,"\\'")}')">Ask AI</button>
+      </div>
+    </div>`).join('');
+  if (el)    el.innerHTML = html;
+  if (mobEl) mobEl.innerHTML = `<div style="padding:0 14px">${html}</div>`;
+}
+
+function _renderTrendsPills(trends) {
+  const el    = document.getElementById('trendsPills');
+  const mobEl = document.getElementById('mobTrendsPills');
+  if (!trends.length) {
+    const empty = '<div style="color:#555;font-size:12px;padding:8px 0">No F1 trends right now.</div>';
+    if (el)    el.innerHTML = empty;
+    if (mobEl) mobEl.innerHTML = empty;
+    return;
+  }
+  const html = trends.map(t =>
+    `<button class="trend-pill" onclick="newsAsk('Tell me about ${escapeHtml(t.title).replace(/'/g,"\\'")} in F1')">${escapeHtml(t.title)}</button>`
+  ).join('');
+  if (el)    el.innerHTML = html;
+  if (mobEl) mobEl.innerHTML = html;
+}
+
 function _renderRssGrid(items) {
-  const container = document.getElementById('rssNewsLeft');
+  const container = document.getElementById('rssNewsCards');
   if (!container) return;
 
   const cards = items.map((item, i) => {
@@ -8128,30 +8255,38 @@ function _renderRssGrid(items) {
   container.innerHTML = `<div class="rss-grid">${cards}</div>`;
 }
 
-async function loadRssNews(force) {
-  if (_rssLoaded && !force) return;
-  const container = document.getElementById('rssNewsLeft');
-  if (!container) return;
-
-  container.innerHTML = '<div class="news-rss-loading" style="padding:40px 20px;text-align:center">Loading latest F1 news…</div>';
-
+async function loadTrendingData(force) {
+  if (_trendingLoaded && !force) return;
   try {
-    const res = await fetch(`${BACKEND}/api/news`);
+    const res = await fetch(`${BACKEND}/api/trending`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    _rssItems = data.items || [];
 
-    if (!_rssItems.length) {
-      container.innerHTML = '<div class="news-rss-empty" style="padding:40px 20px;text-align:center">No F1 news in the last 24 hours.<br>Check back later.</div>';
-      return;
+    _renderRedditCards(data.reddit || []);
+    _renderTrendsPills(data.trends || []);
+
+    _rssItems = data.news || [];
+    if (_rssItems.length) {
+      _renderRssGrid(_rssItems);
+      _renderMobNewsCards(_rssItems);
+    } else {
+      const noNews = '<div style="padding:20px;text-align:center;color:#555;font-size:12px">No F1 news in the last 24 hours.</div>';
+      const c = document.getElementById('rssNewsCards');
+      if (c) c.innerHTML = noNews;
     }
-
-    _renderRssGrid(_rssItems);
-    _renderMobNewsCards(_rssItems);
+    _trendingLoaded = true;
     _rssLoaded = true;
   } catch(e) {
-    container.innerHTML = '<div class="news-rss-empty" style="padding:40px 20px;text-align:center">Could not load news. Try again later.</div>';
+    const err = '<div style="padding:20px;text-align:center;color:#555;font-size:12px">Could not load data. Try again later.</div>';
+    ['redditTrendingCards','trendsPills','rssNewsCards'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = err;
+    });
   }
+}
+
+async function loadRssNews(force) {
+  return loadTrendingData(force);
 }
 
 /* ── News popup overlay ────────────────────────────── */
@@ -10529,8 +10664,8 @@ function init() {
     if (sendBtn)      sendBtn.disabled = false;
   }
 
-  // Pre-load RSS news so it's ready when the user clicks the News tab
-  loadRssNews();
+  // Pre-load RSS news and trending so it's ready when the user clicks the News tab
+  loadTrendingData();
 }
 
 /* ══════════════════════════════════════════════════
@@ -10550,7 +10685,7 @@ function mobOpenPage(name) {
     if (name === 'incidents')    _mobSyncIncidents();
     if (name === 'drivers')      _mobSyncDrivers();
     if (name === 'championship') _mobSyncChampionship();
-    if (name === 'news')         loadRssNews();
+    if (name === 'news')         loadTrendingData();
   }
 }
 
