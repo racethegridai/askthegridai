@@ -8434,7 +8434,7 @@ function _renderMobNewsCards(items) {
         <div class="mob-news-earlier-row">
           <div class="mob-news-earlier-dot" style="background:${col}"></div>
           <div class="mob-news-earlier-title">${escapeHtml(item.title)}</div>
-          <button class="mob-news-earlier-ask" onclick="newsAsk('Tell me about: ${escapeHtml(item.title).replace(/'/g,"\\'")}')">Ask AI →</button>
+          <button class="mob-news-earlier-ask" onclick="mobNewsAsk('Tell me about: ${escapeHtml(item.title).replace(/'/g,"\\'")}')">Ask AI →</button>
         </div>`;
     }).join('');
     earlierEl.style.display = '';
