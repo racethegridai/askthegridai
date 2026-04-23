@@ -996,6 +996,18 @@ async def _enforce_rate_limit(request: Request) -> None:
 
 # ── Chat proxy ────────────────────────────────────────
 
+_FORMATTING_INSTRUCTIONS = """FORMATTING RULES — ALWAYS FOLLOW:
+Never use markdown formatting in your responses. No bold text with asterisks. No bullet points with dashes. No headers with hashes.
+
+Write in flowing conversational paragraphs only. Like a knowledgeable friend talking, not a report being written.
+
+If you need to list things write them naturally: 'Mercedes lead with 576hp, Red Bull are just behind at 565hp, then Ferrari at 547hp.'
+
+Never use ** for bold.
+Never use - for bullet points.
+Never use ## for headers."""
+
+
 _WEB_SEARCH_INSTRUCTIONS = """WEB SEARCH INSTRUCTIONS:
 When answering questions about current F1 news or events:
 1. Search for the topic first
@@ -1253,6 +1265,7 @@ async def chat_stream(req: ChatRequest, request: Request):
     # Block 4 — optional: race-specific snapshot when message asks for live data.
     system_blocks: list[dict] = [
         {"type": "text", "text": _CRITICAL_CONTEXT},
+        {"type": "text", "text": _FORMATTING_INSTRUCTIONS},
         {"type": "text", "text": _WEB_SEARCH_INSTRUCTIONS},
         {
             "type": "text",
