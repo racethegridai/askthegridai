@@ -5,6 +5,7 @@ Serves a /api/state REST endpoint and a /events SSE stream.
 """
 
 import asyncio
+import hashlib
 import json
 import logging
 import os
@@ -844,6 +845,70 @@ _TRENDS_FALLBACK: list[dict] = [
 ]
 
 
+# ── Question cache (System 1) ─────────────────────────
+
+_question_cache: dict[str, dict] = {}
+_CACHE_TTL = 3600  # 1 hour
+
+_STATIC_QUESTIONS = [
+    'what is drs', 'what is an undercut', 'what is a safety car',
+    'what is parc ferme', 'what is box box', 'what is vsc',
+    'what is the fastest lap', 'how does qualifying work',
+    'how do points work', 'what is a formation lap',
+    'what is a pit stop', 'who is antonelli', 'who is hamilton',
+    'who is verstappen', 'what is active aero',
+    'explain drs', 'explain the safety car',
+]
+
+
+def _is_cacheable(question: str) -> bool:
+    q = question.lower().strip()
+    return any(sq in q for sq in _STATIC_QUESTIONS)
+
+
+def _cache_key(question: str, style: str) -> str:
+    combined = f"{question.lower().strip()}_{style}"
+    return hashlib.md5(combined.encode()).hexdigest()
+
+
+def _get_cached(question: str, style: str) -> str | None:
+    key = _cache_key(question, style)
+    entry = _question_cache.get(key)
+    if entry and (time.time() - entry["ts"]) < _CACHE_TTL:
+        return entry["response"]
+    if entry:
+        del _question_cache[key]
+    return None
+
+
+def _set_cached(question: str, style: str, response: str) -> None:
+    key = _cache_key(question, style)
+    _question_cache[key] = {"response": response, "ts": time.time()}
+
+
+# ── Model routing (System 2) ──────────────────────────
+
+_SIMPLE_PATTERNS = [
+    'who is', 'what is', 'how many', 'what does', 'when did',
+    'who won', 'how old', 'what team', 'where is',
+    'what position', 'how do points',
+]
+_COMPLEX_PATTERNS = [
+    'explain', 'why does', 'how does', 'compare', 'predict',
+    'strategy', 'impact', 'affect', 'difference', 'should',
+    'would', 'could', 'analyse', 'breakdown', 'detail',
+]
+
+
+def _model_for_question(question: str) -> str:
+    q = question.lower()
+    if any(p in q for p in _COMPLEX_PATTERNS):
+        return "claude-sonnet-4-20250514"
+    if any(p in q for p in _SIMPLE_PATTERNS):
+        return "claude-haiku-4-5-20251001"
+    return "claude-sonnet-4-20250514"
+
+
 async def fetch_reddit_trending():
     global cached_reddit
     url = "https://www.reddit.com/r/formula1/hot.json?limit=10"
@@ -1247,7 +1312,6 @@ async def chat_stream(req: ChatRequest, request: Request):
     await _enforce_rate_limit(request)
     t0 = time.time()
     print(f"[ENDPOINT] /api/chat-stream called", flush=True)
-    print(f"[STREAM] Request received", flush=True)
 
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
@@ -1256,13 +1320,38 @@ async def chat_stream(req: ChatRequest, request: Request):
             detail="ANTHROPIC_API_KEY not found. Add it to pitwall-backend/.env"
         )
 
-    print(f"[STREAM] Auth done: {time.time()-t0:.2f}s", flush=True)
+    # ── Extract question + choose model ──────────────────
+    question = (req.messages[-1].get("content", "") if req.messages else "")
+    model    = _model_for_question(question)
+
+    # ── System 1: question cache (static F1 facts only) ──
+    if _is_cacheable(question):
+        cached_reply = _get_cached(question, req.system)
+        if cached_reply:
+            print(f"[STREAM] Cache hit for: {question[:60]}", flush=True)
+            async def stream_cached():
+                yield f"data: {json.dumps({'token': cached_reply})}\n\n"
+                yield "data: [DONE]\n\n"
+            return StreamingResponse(
+                stream_cached(),
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control":     "no-cache",
+                    "X-Accel-Buffering": "no",
+                    "Connection":        "keep-alive",
+                    "X-Model-Used":      "cache",
+                },
+            )
+
+    print(f"[STREAM] Model={model} question={question[:60]!r}", flush=True)
 
     # Block 0 — critical context: date + season facts (never cached, always first).
-    # Block 1 — static (prompt-cached): mode/style instructions from frontend.
-    # Block 2 — dynamic (never cached): live standings + news + session + radio.
-    # Block 3 — optional: driver profile stats when user is on a driver page.
-    # Block 4 — optional: race-specific snapshot when message asks for live data.
+    # Block 1 — formatting rules (no markdown).
+    # Block 2 — web search instructions.
+    # Block 3 — static (prompt-cached): mode/style instructions from frontend.
+    # Block 4 — dynamic (never cached): live standings + news + session + radio.
+    # Block 5 — optional: driver profile stats when user is on a driver page.
+    # Block 6 — optional: race-specific snapshot when message asks for live data.
     system_blocks: list[dict] = [
         {"type": "text", "text": _CRITICAL_CONTEXT},
         {"type": "text", "text": _FORMATTING_INSTRUCTIONS},
@@ -1274,18 +1363,15 @@ async def chat_stream(req: ChatRequest, request: Request):
         },
     ]
 
-    # Always inject live app data — standings, news, session, radio
     dynamic_ctx = _build_dynamic_context()
     if dynamic_ctx:
         system_blocks.append({"type": "text", "text": dynamic_ctx})
 
-    # Inject driver-specific stats when on a driver profile page
     if req.driver:
         driver_ctx = _build_driver_context(req.driver)
         if driver_ctx:
             system_blocks.append({"type": "text", "text": driver_ctx})
 
-    # Inject compact race telemetry snapshot when the question is about live data
     if _needs_live_context(req.messages):
         async with _lock:
             state_snap = dict(_state)
@@ -1293,36 +1379,42 @@ async def chat_stream(req: ChatRequest, request: Request):
         if race_ctx:
             system_blocks.append({"type": "text", "text": race_ctx})
 
-    print(f"[STREAM] Context built: {time.time()-t0:.2f}s  "
-          f"(system {len(req.system)} chars, live={_needs_live_context(req.messages)})", flush=True)
+    print(f"[STREAM] Context built: {time.time()-t0:.2f}s", flush=True)
+
+    # ── System 2: model routing ───────────────────────────
+    # Web search tool only supported on Sonnet; Haiku gets plain call.
+    use_web_search = "sonnet" in model
+    stream_kwargs: dict = dict(
+        model=model,
+        max_tokens=1500,
+        system=system_blocks,
+        messages=req.messages,
+    )
+    if use_web_search:
+        stream_kwargs["tools"] = [{"type": "web_search_20250305", "name": "web_search"}]
 
     async def generate():
         ai_client = anthropic.AsyncAnthropic(api_key=api_key)
+        collected: list[str] = []
         try:
-            print(f"[STREAM] Calling Claude: {time.time()-t0:.2f}s", flush=True)
+            print(f"[STREAM] Calling Claude ({model}): {time.time()-t0:.2f}s", flush=True)
             first_token = True
-            async with ai_client.messages.stream(
-                model="claude-sonnet-4-20250514",
-                max_tokens=1500,
-                system=system_blocks,
-                messages=req.messages,
-                tools=[{
-                    "type": "web_search_20250305",
-                    "name": "web_search",
-                }],
-            ) as stream:
+            async with ai_client.messages.stream(**stream_kwargs) as stream:
                 async for text in stream.text_stream:
                     if first_token:
                         print(f"[STREAM] First token: {time.time()-t0:.2f}s", flush=True)
                         first_token = False
+                    collected.append(text)
                     yield f"data: {json.dumps({'token': text})}\n\n"
-            print(f"[STREAM] Complete: {time.time()-t0:.2f}s", flush=True)
+            print(f"[STREAM] Complete ({model}): {time.time()-t0:.2f}s", flush=True)
             yield "data: [DONE]\n\n"
+            # Cache the full response if it's a static question
+            if collected and _is_cacheable(question):
+                _set_cached(question, req.system, "".join(collected))
+                print(f"[STREAM] Cached response for: {question[:60]}", flush=True)
         except anthropic.AuthenticationError:
-            print(f"[STREAM] Auth error: {time.time()-t0:.2f}s", flush=True)
             yield f"data: {json.dumps({'error': 'Invalid Anthropic API key'})}\n\n"
         except anthropic.RateLimitError:
-            print(f"[STREAM] Rate limit: {time.time()-t0:.2f}s", flush=True)
             yield f"data: {json.dumps({'error': 'Anthropic rate limit hit — try again shortly'})}\n\n"
         except Exception as exc:
             print(f"[STREAM] Error: {time.time()-t0:.2f}s — {exc}", flush=True)
@@ -1335,6 +1427,7 @@ async def chat_stream(req: ChatRequest, request: Request):
             "Cache-Control":     "no-cache",
             "X-Accel-Buffering": "no",
             "Connection":        "keep-alive",
+            "X-Model-Used":      model,
         },
     )
 
