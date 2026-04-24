@@ -8630,9 +8630,12 @@ ${styleInst}`;
       signal: AbortSignal.timeout(25000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    await _readTokenStream(res, txt => {
-      resp.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+    const _mn = await _readTokenStream(res, txt => {
+      resp.innerHTML = _renderBold(txt);
     });
+    const {text: _mnc, followups: _mnf} = parseFollowups(_mn || '');
+    resp.innerHTML = _renderBold(_mnc);
+    renderFollowups(_mnf, resp, function(q){ mobNewsAsk(q); });
   } catch(e) {
     resp.textContent = '\u26a0 Could not connect to AI. Try again.';
   } finally {
@@ -8689,9 +8692,12 @@ ${styleInst}`;
       signal: AbortSignal.timeout(45000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    await _readTokenStream(res, txt => {
-      resp.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+    const _sn = await _readTokenStream(res, txt => {
+      resp.innerHTML = _renderBold(txt);
     });
+    const {text: _snc, followups: _snf} = parseFollowups(_sn || '');
+    resp.innerHTML = _renderBold(_snc);
+    renderFollowups(_snf, resp, function(q){ newsAsk(q); });
   } catch(e) {
     resp.textContent = '\u26a0 Could not connect to AI.';
   } finally {
@@ -9475,6 +9481,42 @@ function _appendStreamingBubble(container) {
   return bubble;
 }
 
+/* ── Follow-up chip helpers ────────────────────────── */
+function parseFollowups(text) {
+  var lines = text.split('\n');
+  var fline = lines.find(function(l){ return l.startsWith('FOLLOWUPS:'); });
+  if (!fline) return { text: text, followups: [] };
+  var questions = fline.replace('FOLLOWUPS:','').split('|')
+    .map(function(q){ return q.trim(); }).filter(function(q){ return q.length > 0; });
+  var cleanText = lines.filter(function(l){ return !l.startsWith('FOLLOWUPS:'); })
+    .join('\n').trim();
+  return { text: cleanText, followups: questions };
+}
+
+function _renderBold(text) {
+  return escapeHtml(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;font-weight:700">$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
+function renderFollowups(questions, container, sendFn) {
+  if (!questions || !questions.length || !container) return;
+  var div = document.createElement('div');
+  div.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px;padding:6px 0;margin-top:4px;';
+  questions.forEach(function(q) {
+    var btn = document.createElement('button');
+    btn.textContent = q;
+    btn.style.cssText = 'font-size:9px;padding:5px 10px;border-radius:20px;background:#1a0000;' +
+      'border:1px solid #330000;color:#e10600;cursor:pointer;font-family:inherit;' +
+      'text-align:left;line-height:1.3;transition:background .15s;';
+    btn.onmouseenter = function(){ btn.style.background='#2a0000'; };
+    btn.onmouseleave = function(){ btn.style.background='#1a0000'; };
+    btn.onclick = function(){ if (typeof sendFn === 'function') sendFn(q); };
+    div.appendChild(btn);
+  });
+  container.appendChild(div);
+}
+
 async function _readTokenStream(res, onUpdate) {
   const reader  = res.body.getReader();
   const decoder = new TextDecoder();
@@ -9534,11 +9576,15 @@ async function sendMsg() {
     }
 
     const reply = await _readTokenStream(res, txt => {
-      bubble.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+      bubble.innerHTML = _renderBold(txt);
       chatBox.scrollTop = chatBox.scrollHeight;
     });
+    const {text: _ct, followups: _fu} = parseFollowups(reply || '');
+    bubble.innerHTML = _renderBold(_ct);
+    renderFollowups(_fu, bubble, function(q){ document.getElementById('chatInput').value = q; sendMsg(); });
+    chatBox.scrollTop = chatBox.scrollHeight;
 
-    history.push({ role: 'assistant', content: reply || '(No response)' });
+    history.push({ role: 'assistant', content: _ct || '(No response)' });
     incrementFreeCount();
 
   } catch (err) {
@@ -10638,10 +10684,15 @@ ${styleInst}`;
     }
 
     const reply = await _readTokenStream(res, txt => {
-      if (textEl) textEl.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+      if (textEl) textEl.innerHTML = _renderBold(txt);
     });
+    const {text: _dc, followups: _df} = parseFollowups(reply || '');
+    if (textEl) {
+      textEl.innerHTML = _renderBold(_dc);
+      renderFollowups(_df, textEl, function(q){ var i=document.getElementById('drvInput_'+id); if(i){i.value=q; sendDriverMsg(id);} });
+    }
 
-    _drvHistories[id].push({ role:'assistant', content: reply || '(No response)' });
+    _drvHistories[id].push({ role:'assistant', content: _dc || '(No response)' });
     _incDrvFree(id);
   } catch(err) {
     const msg = (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))
@@ -11099,9 +11150,14 @@ async function mobSendMsg() {
         messages: [{ role: 'user', content: q }],
       })
     });
-    await _readTokenStream(res, txt => {
-      if (resp) resp.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+    const _mm = await _readTokenStream(res, txt => {
+      if (resp) resp.innerHTML = _renderBold(txt);
     });
+    const {text: _mmc, followups: _mmf} = parseFollowups(_mm || '');
+    if (resp) {
+      resp.innerHTML = _renderBold(_mmc);
+      renderFollowups(_mmf, resp, function(q){ var i=document.getElementById('mobChatInput'); if(i){i.value=q; mobSendMsg();} });
+    }
     incrementFreeCount();
     updateFreeLimitUI();
     _mobUpdateFreeCount();
@@ -11192,9 +11248,12 @@ async function mobRpAskAI() {
       signal: AbortSignal.timeout(30000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    await _readTokenStream(res, txt => {
-      resp.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+    const _rp = await _readTokenStream(res, txt => {
+      resp.innerHTML = _renderBold(txt);
     });
+    const {text: _rpc, followups: _rpf} = parseFollowups(_rp || '');
+    resp.innerHTML = _renderBold(_rpc);
+    renderFollowups(_rpf, resp, function(q){ var i=document.getElementById('mobRpAiInput'); if(i){i.value=q; mobRpAskAI();} });
   } catch(e) {
     resp.textContent = '\u26a0 Could not connect to AI.';
   } finally {
@@ -11346,9 +11405,12 @@ async function mobTmAskAI() {
       signal: AbortSignal.timeout(30000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    await _readTokenStream(res, txt => {
-      resp.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+    const _tm = await _readTokenStream(res, txt => {
+      resp.innerHTML = _renderBold(txt);
     });
+    const {text: _tmc, followups: _tmf} = parseFollowups(_tm || '');
+    resp.innerHTML = _renderBold(_tmc);
+    renderFollowups(_tmf, resp, function(q){ var i=document.getElementById('mobTmAskInput'); if(i){i.value=q; mobTmAskAI();} });
   } catch(e) {
     resp.textContent = '\u26a0 Could not connect to AI.';
   } finally {
@@ -11457,10 +11519,14 @@ async function rpChatSend(q) {
       throw new Error(err.detail || `HTTP ${res.status}`);
     }
     const reply = await _readTokenStream(res, txt => {
-      aiBubble.innerHTML = escapeHtml(txt).replace(/\n/g, '<br>');
+      aiBubble.innerHTML = _renderBold(txt);
       msgsEl.scrollTop = msgsEl.scrollHeight;
     });
-    _rpcHistory.push({ role: 'assistant', content: reply || '(No response)' });
+    const {text: _rc, followups: _rf} = parseFollowups(reply || '');
+    aiBubble.innerHTML = _renderBold(_rc);
+    renderFollowups(_rf, aiBubble, function(q){ rpSend(q); });
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+    _rpcHistory.push({ role: 'assistant', content: _rc || '(No response)' });
   } catch (err) {
     const msg = (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))
       ? '⚠ Cannot reach the backend.'
@@ -11702,8 +11768,10 @@ async function _rlSend(text, msgsId, inputId, sendId, histRef, busyRef, setBusy)
     if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${res.status}`); }
     let fullText = '';
     await _readTokenStream(res, txt => { fullText = txt; });
-    aiBubble.innerHTML = escapeHtml(fullText || '(No response)').replace(/\n/g, '<br>');
-    histRef.push({ role: 'assistant', content: fullText || '(No response)' });
+    const {text: _rlc, followups: _rlf} = parseFollowups(fullText || '');
+    aiBubble.innerHTML = _renderBold(_rlc || '(No response)');
+    renderFollowups(_rlf, aiBubble, function(q){ var i=document.getElementById(inputId); if(i){i.value=q; document.getElementById(sendId).click();} });
+    histRef.push({ role: 'assistant', content: _rlc || '(No response)' });
   } catch (e) {
     const errMsg = (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) ? '⚠ Cannot reach the backend.' : `⚠ ${e.message}`;
     aiBubble.innerHTML = escapeHtml(errMsg);
@@ -11955,9 +12023,11 @@ async function rlDetailAsk(key, text) {
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     var fullText = '';
-    await _readTokenStream(res, function(txt) { fullText = txt; bubble.textContent = txt; chat.scrollTop = chat.scrollHeight; });
-    bubble.innerHTML = escapeHtml(fullText || '(No response)').replace(/\n/g,'<br>');
-    _rlDetailHistory[key].push({ role: 'assistant', content: fullText || '(No response)' });
+    await _readTokenStream(res, function(txt) { fullText = txt; bubble.innerHTML = _renderBold(txt); chat.scrollTop = chat.scrollHeight; });
+    var _rldc = parseFollowups(fullText || '');
+    bubble.innerHTML = _renderBold(_rldc.text || '(No response)');
+    renderFollowups(_rldc.followups, bubble, function(q){ rlDetailAsk(key, q); });
+    _rlDetailHistory[key].push({ role: 'assistant', content: _rldc.text || '(No response)' });
   } catch(e) {
     bubble.textContent = 'Could not connect. Try again.';
   }
@@ -12140,9 +12210,11 @@ async function spDetailAsk(key, text) {
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     var fullText = '';
-    await _readTokenStream(res, function(txt) { fullText = txt; bubble.textContent = txt; chat.scrollTop = chat.scrollHeight; });
-    bubble.innerHTML = escapeHtml(fullText || '(No response)').replace(/\n/g,'<br>');
-    _spDetailHistory[key].push({ role: 'assistant', content: fullText || '(No response)' });
+    await _readTokenStream(res, function(txt) { fullText = txt; bubble.innerHTML = _renderBold(txt); chat.scrollTop = chat.scrollHeight; });
+    var _spdc = parseFollowups(fullText || '');
+    bubble.innerHTML = _renderBold(_spdc.text || '(No response)');
+    renderFollowups(_spdc.followups, bubble, function(q){ spDetailAsk(key, q); });
+    _spDetailHistory[key].push({ role: 'assistant', content: _spdc.text || '(No response)' });
   } catch(e) {
     bubble.textContent = 'Could not connect. Try again.';
   }

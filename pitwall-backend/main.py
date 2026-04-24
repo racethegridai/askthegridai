@@ -1064,15 +1064,27 @@ async def _enforce_rate_limit(request: Request) -> None:
 # ── Chat proxy ────────────────────────────────────────
 
 _FORMATTING_INSTRUCTIONS = """FORMATTING RULES — ALWAYS FOLLOW:
-Never use markdown formatting in your responses. No bold text with asterisks. No bullet points with dashes. No headers with hashes.
 
-Write in flowing conversational paragraphs only. Like a knowledgeable friend talking, not a report being written.
+Structure every response like this:
 
-If you need to list things write them naturally: 'Mercedes lead with 576hp, Red Bull are just behind at 565hp, then Ferrari at 547hp.'
+PART 1 — THE SHORT VERSION:
+One or two sentences maximum. Bold the single most important term using **term** syntax. This is what someone needs if they only read one thing.
+Example: The FIA just changed how battery energy deploys on straights. This directly affects **Verstappen** more than anyone else on the grid.
 
-Never use ** for bold.
+PART 2 — THE DETAIL:
+Two to three short paragraphs maximum. Each paragraph is three sentences max. Bold key terms the first time they appear like **undercut**, **safety car**, **active aero**. Never write walls of text. One idea per paragraph.
+
+PART 3 — FOLLOW UP QUESTIONS:
+Always end every response with exactly three suggested follow-up questions on a single line in this exact format:
+FOLLOWUPS: First question here? | Second question here? | Third question here?
+
+The word FOLLOWUPS: must appear at the start of that line. Questions separated by | pipe character.
+
+Additional rules:
 Never use - for bullet points.
-Never use ## for headers."""
+Never use ## for headers.
+Write in flowing conversational paragraphs only.
+If you need to list things write them naturally in a sentence."""
 
 
 _WEB_SEARCH_INSTRUCTIONS = """WEB SEARCH INSTRUCTIONS:
@@ -1443,24 +1455,33 @@ async def ping():
 @app.post("/api/create-checkout")
 async def create_checkout(request: Request):
     """Create a Stripe Checkout session and return the redirect URL."""
-    body = await request.json()
-    print(f"[STRIPE] Stripe key present: {bool(stripe.api_key)}", flush=True)
-    print(f"[STRIPE] Price ID: {os.getenv('STRIPE_PRICE_ID')}", flush=True)
+    print("[STRIPE] 1 — endpoint hit", flush=True)
+    print(f"[STRIPE] 2 — key present: {bool(stripe.api_key)}", flush=True)
+
+    price_id = os.getenv("STRIPE_PRICE_ID")
+    print(f"[STRIPE] 3 — price_id: {price_id!r}", flush=True)
+
+    if not stripe.api_key:
+        print("[STRIPE] ERROR — STRIPE_SECRET_KEY not set", flush=True)
+        return {"error": "Stripe secret key not configured"}
+
+    if not price_id:
+        print("[STRIPE] ERROR — STRIPE_PRICE_ID not set", flush=True)
+        return {"error": "Stripe price ID not configured"}
+
+    print("[STRIPE] 4 — calling stripe.checkout.Session.create", flush=True)
     try:
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
-            line_items=[{
-                "price": os.getenv("STRIPE_PRICE_ID"),
-                "quantity": 1,
-            }],
+            line_items=[{"price": price_id, "quantity": 1}],
             mode="subscription",
             success_url="https://www.askthegridai.com?subscribed=true",
             cancel_url="https://www.askthegridai.com?cancelled=true",
         )
-        print(f"[STRIPE] Session created: {session.id}", flush=True)
+        print(f"[STRIPE] 5 — session created: {session.id}", flush=True)
         return {"url": session.url}
     except Exception as e:
-        print(f"[STRIPE] Error: {str(e)}", flush=True)
+        print(f"[STRIPE] ERROR — {type(e).__name__}: {e}", flush=True)
         return {"error": str(e)}
 
 
