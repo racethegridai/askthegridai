@@ -5921,6 +5921,7 @@
   </div>
 
   <nav class="tab-group">
+    <button class="tab-btn"        data-tab="home"    onclick="switchTab('home')">Home</button>
     <button class="tab-btn active" data-tab="live"    onclick="switchTab('live')">Live</button>
     <button class="tab-btn"        data-tab="news"    onclick="switchTab('news')">News</button>
     <button class="tab-btn"        data-tab="drivers" onclick="switchTab('drivers')">Drivers</button>
@@ -5978,6 +5979,11 @@
      TAB VIEW
 ═══════════════════════════════════════════════════ -->
 <div class="tab-view">
+
+<!-- ─── TAB: HOME ─────────────────────────────── -->
+<div class="tab-panel" id="tab-home">
+  <div id="atgai-home-root" style="padding:12px 16px;max-width:680px;margin:0 auto"></div>
+</div>
 
 <!-- ─── TAB: LIVE ──────────────────────────────── -->
 <div class="tab-panel active" id="tab-live">
@@ -8212,6 +8218,7 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-panel').forEach(p => {
     p.classList.toggle('active', p.id === `tab-${tab}`);
   });
+  if (tab === 'home')     { window.initATGAIHomepage('atgai-home-root'); }
   if (tab === 'strategy') renderStrategyTab();
   if (tab === 'drivers')  { renderDriversGrid(); }
   if (tab === 'news')     { loadTrendingData(); }
@@ -12424,6 +12431,332 @@ function applyPromoCode() {
     <div class="promo-result" id="promoResult"></div>
   </div>
 </div>
+
+<!-- ─── ATGAI HOMEPAGE MODULE (inlined) ────────── -->
+<script>
+// Bridge: route atgaiAsk chips into the main live chat
+window.spAsk = function(prompt) {
+  var inp = document.getElementById('chatInput');
+  if (inp) {
+    inp.value = prompt;
+    switchTab('live');
+    sendMsg();
+  }
+};
+
+(function () {
+  "use strict";
+
+  const OPENF1_BASE = "https://api.openf1.org/v1";
+
+  const TRIVIA = [
+    { fact: "Ayrton Senna won at Monaco 6 times. He once lapped the entire field — a feat never repeated.", chips: ["Tell me about Senna's Monaco record", "Who else dominated Monaco?"] },
+    { fact: "The Monaco Grand Prix is the only race where the safety car can lap faster than the maximum pit lane speed limit.", chips: ["How does the safety car work?", "What are pit lane speed limits?"] },
+    { fact: "Michael Schumacher holds the record for most F1 World Championships — 7 — tied only by Lewis Hamilton.", chips: ["Compare Schumacher vs Hamilton", "Who holds the most wins?"] },
+    { fact: "The first F1 World Championship race was the 1950 British Grand Prix at Silverstone. Giuseppe Farina won.", chips: ["History of the first F1 race", "Who is Giuseppe Farina?"] },
+    { fact: "A modern F1 car generates so much downforce it could theoretically drive upside down through a tunnel at 130 mph.", chips: ["How does F1 downforce work?", "What makes an F1 car so fast?"] },
+    { fact: "F1 tires reach temperatures of 100–120°C at the surface during a race — hotter than boiling water.", chips: ["Explain F1 tire compounds", "Why do tires overheat?"] },
+    { fact: "The fastest pit stop in F1 history was 1.80 seconds by Red Bull Racing at the 2023 São Paulo Grand Prix.", chips: ["How do pit stops work?", "What makes a fast pit stop?"] },
+  ];
+
+  const RACE_WEEKEND_THRESHOLD_MS = 90 * 60 * 1000;
+
+  async function detectRaceState() {
+    try {
+      const res = await fetch(`${OPENF1_BASE}/sessions?session_key=latest`);
+      if (!res.ok) throw new Error("OpenF1 unavailable");
+      const sessions = await res.json();
+      const latest = sessions[0];
+      if (!latest) return { mode: "HYPE", session: null, nextRace: null };
+      const endTime = latest.date_end ? new Date(latest.date_end) : null;
+      const now = new Date();
+      const isLive = !endTime;
+      const isRecent = endTime && now - endTime < RACE_WEEKEND_THRESHOLD_MS;
+      if (isLive || isRecent) return { mode: "RACE_WEEKEND", session: latest, nextRace: null };
+      const nextRace = await fetchNextRace();
+      return { mode: "HYPE", session: null, nextRace };
+    } catch {
+      const nextRace = await fetchNextRace();
+      return { mode: "HYPE", session: null, nextRace };
+    }
+  }
+
+  async function fetchNextRace() {
+    try {
+      const year = new Date().getFullYear();
+      const res = await fetch(`${OPENF1_BASE}/meetings?year=${year}`);
+      if (!res.ok) throw null;
+      const meetings = await res.json();
+      const now = new Date();
+      const upcoming = meetings.filter(m => new Date(m.date_start) > now).sort((a, b) => new Date(a.date_start) - new Date(b.date_start));
+      return upcoming[0] || null;
+    } catch { return null; }
+  }
+
+  async function fetchStandings() {
+    try {
+      const res = await fetch("https://api.jolpi.ca/ergast/f1/current/driverStandings/1/");
+      if (!res.ok) throw null;
+      const data = await res.json();
+      const s = data?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings?.[0];
+      if (!s) throw null;
+      return { leader: `${s.Driver.givenName[0]}. ${s.Driver.familyName}`, points: s.points, constructor: s.Constructors?.[0]?.name || "—" };
+    } catch { return { leader: "K. Antonelli", points: "72", constructor: "Mercedes" }; }
+  }
+
+  async function fetchLastRace() {
+    try {
+      const res = await fetch("https://api.jolpi.ca/ergast/f1/current/last/results/");
+      if (!res.ok) throw null;
+      const data = await res.json();
+      const race = data?.MRData?.RaceTable?.Races?.[0];
+      if (!race) throw null;
+      const winner = race.Results?.[0]?.Driver;
+      return { winner: winner ? `${winner.givenName[0]}. ${winner.familyName}` : "—", raceName: race.raceName || "—" };
+    } catch { return { winner: "A. Kimi Antonelli", raceName: "Last Race" }; }
+  }
+
+  function formatCountdown(targetDate) {
+    const diff = new Date(targetDate) - new Date();
+    if (diff <= 0) return "LIGHTS OUT";
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    if (d > 0) return `${d}d ${h}h ${m}m`;
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    return `${m}m ${s}s`;
+  }
+
+  function getTrendingItems(nextRaceName) {
+    if (window.atgaiTrending && Array.isArray(window.atgaiTrending)) return window.atgaiTrending.slice(0, 5);
+    const city = (nextRaceName || "Monaco").replace(" Grand Prix","").replace(" GP","");
+    return [
+      { text: `${city} circuit breakdown — what AI thinks will happen`, source: "grid ai" },
+      { text: `Hamilton's latest comments on the ${city} weekend`, source: "news" },
+      { text: `Pit strategy calls that could decide ${city}`, source: "reddit" },
+      { text: `Tyre compound choices revealed for ${city}`, source: "news" },
+    ];
+  }
+
+  function getHypePrompts(nextRaceName) {
+    const city = (nextRaceName || "the next race").replace(" Grand Prix","").replace(" GP","");
+    return [`Who should I watch at ${city}?`, `Explain the ${city} circuit for a beginner`, `What's the drama this season so far?`, `Who's most likely to win the championship?`];
+  }
+
+  function getLivePrompts(sessionName) {
+    const s = sessionName || "this session";
+    return [`What's happening in ${s} right now?`, `Explain the current strategy battle`, `Who's fighting for position?`, `What should I watch for in the next few laps?`];
+  }
+
+  function getTodayTrivia() {
+    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    return TRIVIA[dayOfYear % TRIVIA.length];
+  }
+
+  function renderHypeMode(root, data) {
+    const { nextRace, standings, lastRace } = data;
+    const raceName = nextRace?.meeting_name || "Next Race";
+    const raceDate = nextRace?.date_start || null;
+    const circuit  = nextRace?.location || "TBC";
+    const country  = nextRace?.country_name || "";
+    const trivia   = getTodayTrivia();
+    const trending = getTrendingItems(raceName);
+    const prompts  = getHypePrompts(raceName);
+
+    root.innerHTML = `
+      <div class="atgai-home" id="atgai-home-inner">
+        <div class="atgai-card atgai-countdown-card">
+          <div class="atgai-countdown-left">
+            <span class="atgai-eyebrow">next race</span>
+            <h2 class="atgai-race-name">${raceName}</h2>
+            <span class="atgai-circuit">${circuit}${country ? " · " + country : ""}</span>
+          </div>
+          <div class="atgai-countdown-right">
+            <div class="atgai-countdown-timer" id="atgai-timer">${raceDate ? formatCountdown(raceDate) : "—"}</div>
+            <span class="atgai-eyebrow">until lights out</span>
+          </div>
+        </div>
+        <div class="atgai-stats-row">
+          <div class="atgai-stat-card"><span class="atgai-eyebrow">championship leader</span><span class="atgai-stat-main">${standings?.leader || "—"}</span><span class="atgai-stat-sub">${standings?.points || "—"} pts</span></div>
+          <div class="atgai-stat-card"><span class="atgai-eyebrow">last race winner</span><span class="atgai-stat-main">${lastRace?.winner || "—"}</span><span class="atgai-stat-sub">${lastRace?.raceName || "—"}</span></div>
+          <div class="atgai-stat-card"><span class="atgai-eyebrow">constructors lead</span><span class="atgai-stat-main">${standings?.constructor || "—"}</span><span class="atgai-stat-sub">leading team</span></div>
+        </div>
+        <div class="atgai-card">
+          <span class="atgai-section-label">ask the grid</span>
+          <div class="atgai-chip-row">${prompts.map(p => `<button class="atgai-chip" onclick="atgaiAsk(${JSON.stringify(p)})">${p}</button>`).join("")}</div>
+        </div>
+        <div class="atgai-card">
+          <span class="atgai-section-label">trending</span>
+          <div class="atgai-trending-list">${trending.map((item, i) => `<div class="atgai-trending-item${i < trending.length - 1 ? " atgai-trending-divider" : ""}"><span class="atgai-trending-text">${item.text}</span><span class="atgai-trending-source">${item.source}</span></div>`).join("")}</div>
+        </div>
+        <div class="atgai-card atgai-trivia-card">
+          <span class="atgai-section-label">did you know?</span>
+          <p class="atgai-trivia-text">${trivia.fact}</p>
+          <div class="atgai-chip-row atgai-chip-row--sm">${trivia.chips.map(c => `<button class="atgai-chip atgai-chip--sm" onclick="atgaiAsk(${JSON.stringify(c)})">${c}</button>`).join("")}</div>
+        </div>
+      </div>`;
+
+    if (raceDate) {
+      const timerEl = document.getElementById("atgai-timer");
+      if (timerEl) {
+        const tick = setInterval(() => {
+          if (!document.getElementById("atgai-timer")) { clearInterval(tick); return; }
+          timerEl.textContent = formatCountdown(raceDate);
+        }, 1000);
+        root._atgaiTimerInterval = tick;
+      }
+    }
+  }
+
+  function renderRaceWeekendMode(root, data) {
+    const { session } = data;
+    const sessionName = session?.session_name || "Live Session";
+    const meetingName = session?.meeting_name || "Race Weekend";
+    const prompts = getLivePrompts(sessionName);
+
+    root.innerHTML = `
+      <div class="atgai-home" id="atgai-home-inner">
+        <div class="atgai-card atgai-live-card">
+          <div class="atgai-live-left">
+            <div class="atgai-live-badge"><span class="atgai-live-dot"></span>LIVE</div>
+            <h2 class="atgai-race-name">${meetingName}</h2>
+            <span class="atgai-circuit">${sessionName}</span>
+          </div>
+          <div class="atgai-live-right">
+            <button class="atgai-live-cta" onclick="atgaiSwitchToLive()">Go Live →</button>
+          </div>
+        </div>
+        <div class="atgai-card">
+          <span class="atgai-section-label">ask about the session</span>
+          <div class="atgai-chip-row">${prompts.map(p => `<button class="atgai-chip" onclick="atgaiAsk(${JSON.stringify(p)})">${p}</button>`).join("")}</div>
+        </div>
+        <div class="atgai-card atgai-insights-card" id="atgai-insights-card">
+          <span class="atgai-section-label">grid ai insight</span>
+          <div id="atgai-insight-body" class="atgai-insight-loading">
+            <span class="atgai-insight-spinner"></span><span>Generating race insight…</span>
+          </div>
+        </div>
+      </div>`;
+
+    loadRaceInsight(sessionName, meetingName);
+  }
+
+  async function loadRaceInsight(sessionName, meetingName) {
+    const el = document.getElementById("atgai-insight-body");
+    if (!el) return;
+    const prompt = `You are an F1 expert writing for casual fans. In 3-4 short punchy sentences, give THE key storyline to watch in the ${sessionName} at ${meetingName}. Focus on drama, rivalries, or strategy — not lap times. No headers. Plain text only.`;
+    try {
+      const res = await fetch(`${BACKEND}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ system: "You are an F1 expert. Be concise and compelling.", messages: [{ role: "user", content: prompt }] }),
+      });
+      if (!res.ok) throw new Error("API error");
+      const data = await res.json();
+      const text = data.reply || data.response || data.message || "No insight available.";
+      el.classList.remove("atgai-insight-loading");
+      el.innerHTML = `<p class="atgai-insight-text">${text}</p><button class="atgai-chip atgai-chip--sm" onclick="atgaiAsk('Tell me more about the ${meetingName} storylines')">Tell me more →</button>`;
+    } catch {
+      el.classList.remove("atgai-insight-loading");
+      el.innerHTML = `<p class="atgai-insight-text" style="color:var(--atgai-muted)">Insight unavailable — tap "Go Live" to chat with the AI directly.</p>`;
+    }
+  }
+
+  function renderLoading(root) {
+    root.innerHTML = `<div class="atgai-home atgai-loading-state"><div class="atgai-loading-spinner"></div><p style="color:var(--atgai-muted);font-size:13px;margin-top:12px;">Loading race data…</p></div>`;
+  }
+
+  function injectStyles() {
+    if (document.getElementById("atgai-home-styles")) return;
+    const style = document.createElement("style");
+    style.id = "atgai-home-styles";
+    style.textContent = `
+      :root {
+        --atgai-text:     var(--white, #ffffff);
+        --atgai-muted:    var(--gray, #777777);
+        --atgai-bg-card:  var(--bg2, #0b0b0b);
+        --atgai-border:   var(--border, #1e1e1e);
+        --atgai-accent:   var(--red, #e10600);
+        --atgai-radius-sm: 8px;
+        --atgai-radius-md: 12px;
+      }
+      .atgai-home { display:flex; flex-direction:column; gap:10px; padding:12px 0; font-family:'Titillium Web',sans-serif; }
+      .atgai-loading-state { align-items:center; padding-top:40px; }
+      .atgai-card { background:var(--atgai-bg-card); border:0.5px solid var(--atgai-border); border-radius:var(--atgai-radius-md); padding:14px 16px; }
+      .atgai-countdown-card { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+      .atgai-countdown-left { flex:1; }
+      .atgai-countdown-right { text-align:right; }
+      .atgai-countdown-timer { font-size:26px; font-weight:600; color:var(--atgai-text); letter-spacing:-0.5px; font-variant-numeric:tabular-nums; }
+      .atgai-live-card { display:flex; align-items:center; justify-content:space-between; gap:12px; border-color:var(--atgai-accent); }
+      .atgai-live-left { flex:1; }
+      .atgai-live-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:var(--atgai-accent); letter-spacing:0.08em; margin-bottom:6px; }
+      .atgai-live-dot { width:7px; height:7px; border-radius:50%; background:var(--atgai-accent); animation:atgai-pulse 1.2s ease-in-out infinite; }
+      @keyframes atgai-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.75)} }
+      .atgai-live-cta { background:var(--atgai-accent); color:#fff; border:none; border-radius:var(--atgai-radius-sm); padding:9px 18px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; font-family:'Titillium Web',sans-serif; }
+      .atgai-live-cta:hover { opacity:0.88; }
+      .atgai-eyebrow { display:block; font-size:11px; color:var(--atgai-muted); letter-spacing:0.04em; margin-bottom:3px; }
+      .atgai-race-name { font-size:18px; font-weight:600; color:var(--atgai-text); margin:0 0 2px; line-height:1.2; }
+      .atgai-circuit { font-size:12px; color:var(--atgai-muted); }
+      .atgai-section-label { display:block; font-size:10px; color:var(--atgai-muted); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; }
+      .atgai-stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+      .atgai-stat-card { background:var(--atgai-bg-card); border:0.5px solid var(--atgai-border); border-radius:var(--atgai-radius-sm); padding:10px 12px; display:flex; flex-direction:column; gap:2px; }
+      .atgai-stat-main { font-size:14px; font-weight:600; color:var(--atgai-text); line-height:1.2; }
+      .atgai-stat-sub { font-size:11px; color:var(--atgai-muted); }
+      .atgai-chip-row { display:flex; flex-wrap:wrap; gap:6px; }
+      .atgai-chip-row--sm { margin-top:10px; }
+      .atgai-chip { background:transparent; border:0.5px solid var(--atgai-border); border-radius:20px; padding:6px 12px; font-size:12px; color:var(--atgai-text); cursor:pointer; text-align:left; transition:background 0.15s; font-family:'Titillium Web',sans-serif; }
+      .atgai-chip:hover { background:rgba(255,255,255,0.06); }
+      .atgai-chip--sm { font-size:11px; padding:5px 10px; }
+      .atgai-trending-list { display:flex; flex-direction:column; gap:0; }
+      .atgai-trending-item { display:flex; justify-content:space-between; align-items:center; padding:9px 0; gap:12px; }
+      .atgai-trending-divider { border-bottom:0.5px solid var(--atgai-border); }
+      .atgai-trending-text { font-size:13px; color:var(--atgai-text); line-height:1.4; flex:1; }
+      .atgai-trending-source { font-size:10px; color:var(--atgai-muted); white-space:nowrap; letter-spacing:0.04em; }
+      .atgai-trivia-text { font-size:13px; color:var(--atgai-text); line-height:1.6; margin:0; }
+      .atgai-insight-loading { display:flex; align-items:center; gap:8px; color:var(--atgai-muted); font-size:13px; }
+      .atgai-insight-spinner { width:14px; height:14px; border:2px solid var(--atgai-border); border-top-color:var(--atgai-accent); border-radius:50%; animation:atgai-spin 0.8s linear infinite; flex-shrink:0; }
+      .atgai-insight-text { font-size:13px; color:var(--atgai-text); line-height:1.6; margin:0 0 10px; }
+      .atgai-loading-spinner { width:28px; height:28px; border:3px solid var(--atgai-border); border-top-color:var(--atgai-accent); border-radius:50%; animation:atgai-spin 0.8s linear infinite; }
+      @keyframes atgai-spin { to{transform:rotate(360deg)} }
+      @media (max-width:480px) { .atgai-countdown-timer{font-size:20px} .atgai-race-name{font-size:16px} .atgai-stats-row{grid-template-columns:1fr 1fr} .atgai-stat-card:last-child{grid-column:1/-1} }
+    `;
+    document.head.appendChild(style);
+  }
+
+  window.atgaiAsk = function(prompt) {
+    if (typeof window.spAsk === "function") {
+      window.spAsk(prompt);
+    } else {
+      const input = document.getElementById("chatInput") || document.querySelector("input[type=text]");
+      if (input) { input.value = prompt; input.dispatchEvent(new Event("input", { bubbles: true })); input.focus(); }
+    }
+  };
+
+  window.atgaiSwitchToLive = function() {
+    const liveTab = document.querySelector('[data-tab="live"]');
+    if (liveTab) liveTab.click();
+  };
+
+  window.initATGAIHomepage = async function(rootId) {
+    const root = document.getElementById(rootId);
+    if (!root) { console.warn(`[ATGAI] No element with id="${rootId}" found.`); return; }
+    if (root._atgaiTimerInterval) { clearInterval(root._atgaiTimerInterval); root._atgaiTimerInterval = null; }
+    injectStyles();
+    renderLoading(root);
+    try {
+      const [stateResult, standings, lastRace] = await Promise.all([detectRaceState(), fetchStandings(), fetchLastRace()]);
+      const data = { ...stateResult, standings, lastRace };
+      if (stateResult.mode === "RACE_WEEKEND") { renderRaceWeekendMode(root, data); }
+      else { renderHypeMode(root, data); }
+    } catch (err) {
+      console.error("[ATGAI Homepage] Init error:", err);
+      renderHypeMode(root, { nextRace: null, standings: { leader: "—", points: "—", constructor: "—" }, lastRace: { winner: "—", raceName: "—" } });
+    }
+  };
+
+})();
+</script>
 
 </body>
 </html>
