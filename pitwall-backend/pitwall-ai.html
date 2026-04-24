@@ -8136,8 +8136,57 @@ function incrementFreeCount() {
 }
 
 function handleUpgradeClick() {
-  // Placeholder — wire to your billing flow
-  alert('Upgrade flow coming soon!');
+  startCheckout();
+}
+
+async function startCheckout() {
+  try {
+    const res = await fetch(`${BACKEND}/api/create-checkout`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert('Something went wrong. Please try again.');
+    }
+  } catch(e) {
+    alert('Could not connect to payment system.');
+  }
+}
+
+function showToast(msg, duration) {
+  duration = duration || 4000;
+  var t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = [
+    'position:fixed','bottom:24px','left:50%','transform:translateX(-50%)',
+    'background:#e10600','color:#fff','font-family:Titillium Web,sans-serif',
+    'font-size:13px','font-weight:700','padding:10px 20px','border-radius:6px',
+    'z-index:99999','opacity:0','transition:opacity .3s','pointer-events:none',
+  ].join(';');
+  document.body.appendChild(t);
+  requestAnimationFrame(function(){ t.style.opacity = '1'; });
+  setTimeout(function(){
+    t.style.opacity = '0';
+    setTimeout(function(){ t.remove(); }, 350);
+  }, duration);
+}
+
+function activateProMode() {
+  if (localStorage.getItem('isSubscribed') !== 'true') return;
+  window._ownerBypass = true;
+  var upgradePanel = document.getElementById('upgradePanel');
+  var freeLimitBar = document.getElementById('freeLimitBar');
+  var chatInput    = document.getElementById('chatInput');
+  var sendBtn      = document.getElementById('sendBtn');
+  if (upgradePanel) upgradePanel.classList.remove('visible');
+  if (freeLimitBar) freeLimitBar.classList.add('hidden');
+  if (chatInput)    { chatInput.disabled = false; chatInput.placeholder = 'Confused? Ask what just happened…'; }
+  if (sendBtn)      sendBtn.disabled = false;
+  document.querySelectorAll('.upgrade-prompt').forEach(function(el){ el.style.display = 'none'; });
 }
 
 // Ctrl+Shift+A bypass
@@ -10625,6 +10674,20 @@ function init() {
   if (new URLSearchParams(location.search).get('owner') === 'true') {
     _setOwnerMode(true);
   }
+
+  // Handle Stripe redirect back after successful checkout
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('subscribed') === 'true') {
+      localStorage.setItem('isSubscribed', 'true');
+      window.history.replaceState({}, document.title, window.location.pathname);
+      showToast('Welcome to Pro! Unlimited access enabled.');
+      activateProMode();
+    }
+  })();
+
+  // Restore Pro mode on every page load
+  activateProMode();
 
   // Show pit test button when ?test=true is in URL
   if (new URLSearchParams(location.search).get('test') === 'true') {

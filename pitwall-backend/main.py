@@ -19,6 +19,7 @@ import anthropic
 import fastf1
 import feedparser
 import httpx
+import stripe
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,6 +28,7 @@ from pydantic import BaseModel
 
 # ── Load .env (search from backend dir upward) ───────
 load_dotenv(Path(__file__).parent / ".env")
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 load_dotenv(Path(__file__).parent.parent / ".env", override=False)  # fallback to project root
 
 # ── Logging ─────────────────────────────────────────
@@ -1436,6 +1438,50 @@ async def chat_stream(req: ChatRequest, request: Request):
 async def ping():
     """Keep-alive endpoint — frontend pings every 4 minutes to prevent Railway cold starts."""
     return {"ok": True}
+
+
+@app.post("/api/create-checkout")
+async def create_checkout(request: Request):
+    """Create a Stripe Checkout session and return the redirect URL."""
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[{
+                "price": os.getenv("STRIPE_PRICE_ID"),
+                "quantity": 1,
+            }],
+            mode="subscription",
+            success_url="https://www.askthegridai.com?subscribed=true",
+            cancel_url="https://www.askthegridai.com?cancelled=true",
+        )
+        return {"url": session.url}
+    except Exception as e:
+        log.warning("[STRIPE] Checkout creation failed: %s", e)
+        return {"error": str(e)}
+
+
+@app.post("/api/webhook")
+async def stripe_webhook(request: Request):
+    """Stripe webhook — verifies signature and handles subscription events."""
+    payload       = await request.body()
+    sig_header    = request.headers.get("stripe-signature")
+    webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+    except Exception as e:
+        log.warning("[STRIPE] Webhook signature error: %s", e)
+        return {"error": str(e)}
+
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        email   = (session.get("customer_details") or {}).get("email")
+        log.info("[STRIPE] New subscriber: %s", email)
+
+    if event["type"] == "customer.subscription.deleted":
+        log.info("[STRIPE] Subscription cancelled")
+
+    return {"status": "ok"}
 
 
 @app.get("/api/news")
