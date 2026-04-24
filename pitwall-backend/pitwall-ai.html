@@ -5944,11 +5944,14 @@
       <div class="progress-fill" id="progressFill" style="width:81%"></div>
     </div>
   </div>
-  <div class="lap-display">
+  <div class="lap-display" id="lapDisplay">
     <span class="lap-label-sm">LAP&nbsp;</span>
     <span class="lap-current" id="lapCurrent">47</span>
     <span class="lap-slash">/</span>
     <span class="lap-total" id="lapTotal">58</span>
+  </div>
+  <div id="raceBarCountdown" style="display:none;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--white);white-space:nowrap">
+    MIAMI GP &nbsp;<span id="raceBarTimer" style="color:var(--red)">—</span>
   </div>
   <div class="sep"></div>
   <div class="race-bar-ai" id="raceBarAi" style="display:none">
@@ -6158,7 +6161,7 @@
   <!-- SIDE CARDS COLUMN -->
   <div class="side-cards">
 
-    <!-- 1. Team Radio Hero — red banner, latest call, tap to translate -->
+    <!-- 1. Team Radio Hero — red banner when live, PRE-RACE INSIGHT when idle -->
     <div class="radio-hero" id="rightRadioHero" onclick="openRadioView()">
       <div class="radio-hero-live">
         <span class="radio-hero-dot"></span>
@@ -6171,8 +6174,17 @@
       </div>
     </div>
 
+    <!-- PRE-RACE INSIGHT card — shown when no live session -->
+    <div class="right-radio-card" id="preRaceInsightCard" style="display:none">
+      <div class="card-title" style="color:var(--red)">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        PRE-RACE INSIGHT
+      </div>
+      <div id="preRaceInsightBody" style="font-size:12px;color:#aaa;line-height:1.6">Loading Miami insight…</div>
+    </div>
+
     <!-- 2. Last 3 radio calls with What This Means -->
-    <div class="right-radio-card">
+    <div class="right-radio-card" id="rightRadioCard">
       <div class="card-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.18 19.79 19.79 0 01.1 .55 2 2 0 012.07 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.43 7.43a16 16 0 006.14 6.14l.9-.9a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg>
         Team Radio
@@ -7114,8 +7126,17 @@ function applyState(data) {
 
   const lap   = data.lap   || 0;
   const total = data.total_laps || 0;
-  document.getElementById('lapCurrent').textContent = lap   || '—';
-  document.getElementById('lapTotal').textContent   = total || '—';
+
+  if (data.is_live) {
+    document.getElementById('lapCurrent').textContent = lap   || '—';
+    document.getElementById('lapTotal').textContent   = total || '—';
+    document.getElementById('lapDisplay').style.display = '';
+    document.getElementById('raceBarCountdown').style.display = 'none';
+  } else {
+    document.getElementById('lapDisplay').style.display = 'none';
+    document.getElementById('raceBarCountdown').style.display = '';
+    _tickRaceBarCountdown();
+  }
 
   const pct = total ? ((lap / total) * 100) : (data.lap_pct || 0);
   document.getElementById('progressFill').style.width =
@@ -7443,8 +7464,80 @@ let _raceReadFetching = false;
 let _raceReadLastMs  = 0;
 const RACE_READ_INTERVAL = 2 * 60 * 1000; // 2 minutes
 
+let _preRaceLoaded = false;
+
+async function _loadPreRaceMode() {
+  if (_preRaceLoaded) return;
+  _preRaceLoaded = true;
+
+  // (2) Race Read card → Pre-race preview
+  const labelEl = document.querySelector('#raceReadCard .race-read-label');
+  const quoteEl = document.getElementById('raceReadQuote');
+  const metaEl  = document.getElementById('raceReadMeta');
+  if (labelEl) labelEl.innerHTML = '<span class="race-read-dot" style="background:var(--red)"></span>Pre-Race Preview &middot; AI';
+  if (quoteEl) { quoteEl.className = 'race-read-quote loading'; quoteEl.textContent = 'Generating Miami preview…'; }
+
+  try {
+    const r = await fetch(`${BACKEND}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'You are an F1 expert. Write exactly 2 punchy sentences. No markdown. Present tense.',
+        messages: [{ role: 'user', content: 'In 2 sentences, give the key storyline to watch at the Miami Grand Prix 2026.' }],
+      }),
+      signal: AbortSignal.timeout(12000),
+    });
+    const data = await r.json();
+    const text = (data.reply || '').trim().replace(/^"+|"+$/g, '');
+    if (quoteEl) { quoteEl.className = 'race-read-quote'; quoteEl.textContent = text || 'Championship battle heats up at Miami.'; }
+    if (metaEl)  metaEl.textContent = 'Miami GP 2026 · AI preview';
+  } catch {
+    if (quoteEl) { quoteEl.className = 'race-read-quote'; quoteEl.textContent = 'Antonelli leads the championship as Mercedes look to extend their advantage at Miami.'; }
+  }
+
+  // (3) Chips → Miami-specific
+  const chipsBar = document.querySelector('.chips-bar');
+  if (chipsBar) {
+    chipsBar.innerHTML = [
+      'Who should I watch at Miami?',
+      'Explain the Miami circuit',
+      "What's the championship battle?",
+      'What is a DRS zone?',
+    ].map(q => `<button class="chip chip-race" onclick="chipClick(this)">${q}</button>`).join('');
+  }
+
+  // (4) Show PRE-RACE INSIGHT card, hide live radio card
+  const radioCard   = document.getElementById('rightRadioCard');
+  const insightCard = document.getElementById('preRaceInsightCard');
+  const insightBody = document.getElementById('preRaceInsightBody');
+  if (radioCard)   radioCard.style.display   = 'none';
+  if (insightCard) insightCard.style.display = '';
+
+  if (insightBody) {
+    try {
+      const ri = await fetch(`${BACKEND}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system: 'You are an F1 expert writing punchy pre-race insights for casual fans. 3 sentences max. No markdown. No headers.',
+          messages: [{ role: 'user', content: 'Give me a pre-race insight for the Miami Grand Prix 2026. Cover the key storyline, who to watch, and one thing that could shake up the result.' }],
+        }),
+        signal: AbortSignal.timeout(12000),
+      });
+      const rd = await ri.json();
+      insightBody.textContent = (rd.reply || '').trim() || 'Antonelli leads the 2026 championship into Miami, but McLaren upgrades could shake up the order.';
+    } catch {
+      insightBody.textContent = 'Antonelli leads the 2026 championship into Miami, but McLaren upgrades could shake up the order.';
+    }
+  }
+}
+
 async function updateRaceRead() {
   if (_raceReadFetching) return;
+
+  // Route to pre-race mode when no live session
+  if (!liveData.is_live) { _loadPreRaceMode(); return; }
+
   const quoteEl = document.getElementById('raceReadQuote');
   const metaEl  = document.getElementById('raceReadMeta');
   if (!quoteEl) return;
@@ -9391,6 +9484,19 @@ function renderWelcomeState() {
     _tickWelcomeCountdown();                                    // first tick immediately
     _welcomeCountdownIv = setInterval(_tickWelcomeCountdown, 1000); // update every second
   }
+}
+
+function _tickRaceBarCountdown() {
+  const el = document.getElementById('raceBarTimer');
+  if (!el) return;
+  const diff = new Date('2026-05-01T00:00:00') - new Date();
+  if (diff <= 0) { el.textContent = 'LIGHTS OUT'; return; }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  el.textContent = d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m ${s}s`;
+  setTimeout(_tickRaceBarCountdown, 1000);
 }
 
 function _tickWelcomeCountdown() {
