@@ -1443,6 +1443,9 @@ async def ping():
 @app.post("/api/create-checkout")
 async def create_checkout(request: Request):
     """Create a Stripe Checkout session and return the redirect URL."""
+    body = await request.json()
+    print(f"[STRIPE] Stripe key present: {bool(stripe.api_key)}", flush=True)
+    print(f"[STRIPE] Price ID: {os.getenv('STRIPE_PRICE_ID')}", flush=True)
     try:
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
@@ -1454,9 +1457,10 @@ async def create_checkout(request: Request):
             success_url="https://www.askthegridai.com?subscribed=true",
             cancel_url="https://www.askthegridai.com?cancelled=true",
         )
+        print(f"[STRIPE] Session created: {session.id}", flush=True)
         return {"url": session.url}
     except Exception as e:
-        log.warning("[STRIPE] Checkout creation failed: %s", e)
+        print(f"[STRIPE] Error: {str(e)}", flush=True)
         return {"error": str(e)}
 
 
