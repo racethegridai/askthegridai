@@ -8212,7 +8212,7 @@ function _renderRedditCards(posts) {
         <span class="reddit-upvotes">&#9650; ${(p.score||0).toLocaleString()}</span>
         <span class="reddit-comments">${(p.num_comments||0).toLocaleString()} comments</span>
         ${p.created ? `<span class="reddit-time">${_timeAgoJs(p.created)}</span>` : ''}
-        <button class="reddit-ask-btn" onclick="event.stopPropagation();newsAsk('Search the web and read articles about this F1 story: ${escapeHtml(p.title).replace(/'/g,"\\'")}. Summarize what actually happened, why it matters for F1, and what it means for the championship. Explain simply.')">Ask AI</button>
+        <button class="reddit-ask-btn" onclick="event.stopPropagation();mobNewsAsk('Search the web and read articles about this F1 story: ${escapeHtml(p.title).replace(/'/g,"\\'")}. Summarize what actually happened, why it matters for F1, and what it means for the championship. Explain simply.')">Ask AI</button>
       </div>
     </div>`).join('');
   if (el)    el.innerHTML = html;
@@ -8224,7 +8224,7 @@ function _renderTrendsPills(trends) {
   const mobEl = document.getElementById('mobTrendsPills');
   const list  = (trends && trends.length ? trends : _TRENDS_JS_FALLBACK);
   const html  = list.map(t =>
-    `<button class="trend-pill" onclick="newsAsk('Search the web and read current articles about ${escapeHtml(t.title).replace(/'/g,"\\'")} in F1. Read multiple sources and give me a complete picture of what is happening and why fans care about it.')">${escapeHtml(t.title)}</button>`
+    `<button class="trend-pill" onclick="mobNewsAsk('Search the web and read current articles about ${escapeHtml(t.title).replace(/'/g,"\\'")} in F1. Read multiple sources and give me a complete picture of what is happening and why fans care about it.')">${escapeHtml(t.title)}</button>`
   ).join('');
   if (el)    el.innerHTML = html;
   if (mobEl) mobEl.innerHTML = html;
