@@ -8527,10 +8527,14 @@ function _renderRssGrid(items) {
 
 async function loadTrendingData(force) {
   if (_trendingLoaded && !force) return;
+  console.log('[News] loadTrendingData() starting — force:', !!force);
   try {
-    const res = await fetch(`${BACKEND}/api/trending`);
+    console.log('[News] Reddit fetch starting:', BACKEND + '/api/trending');
+    const res = await fetch(`${BACKEND}/api/trending`, { signal: AbortSignal.timeout(15000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+    console.log('[News] Reddit fetch result — reddit:', (data.reddit||[]).length,
+      'trends:', (data.trends||[]).length, 'news:', (data.news||[]).length);
 
     _renderRedditCards(data.reddit || []);
     _renderTrendsPills(data.trends || []);
@@ -8547,11 +8551,14 @@ async function loadTrendingData(force) {
     _trendingLoaded = true;
     _rssLoaded = true;
   } catch(e) {
-    const err = '<div style="padding:20px;text-align:center;color:#555;font-size:12px">Could not load data. Try again later.</div>';
-    ['redditTrendingCards','trendsPills','rssNewsCards'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = err;
-    });
+    console.error('[News] loadTrendingData failed:', e.message);
+    const _setErr = (id, msg) => { const el = document.getElementById(id); if (el) el.innerHTML = '<div style="padding:12px;color:#555;font-size:12px">' + msg + '</div>'; };
+    _setErr('redditTrendingCards', 'Reddit unavailable — try refreshing');
+    _setErr('mobRedditCards',      'Reddit unavailable — try refreshing');
+    _setErr('trendsPills',         'Trends unavailable');
+    _setErr('mobTrendsPills',      'Trends unavailable');
+    _setErr('rssNewsCards',        'News feed unavailable — try refreshing');
+    _setErr('mobNewsCards',        'News feed unavailable — try refreshing');
   }
 }
 
@@ -8647,6 +8654,10 @@ async function _articleDeepDiveRender(title, summary) {
   const containerId = isMobile() ? 'mob-news-daily' : 'rssNewsLeft';
   const container   = document.getElementById(containerId);
   if (!container) { _articleDeepDiveBusy = false; return; }
+
+  // Yield one tick so any in-flight loadTrendingData() can finish writing
+  // to the DOM before we snapshot and replace the container.
+  await new Promise(r => setTimeout(r, 0));
 
   window._newsRedditPrevHtml    = container.innerHTML;
   window._newsRedditContainerId = containerId;
@@ -12508,6 +12519,12 @@ function _newsRedditBack() {
   const container = document.getElementById(window._newsRedditContainerId);
   if (container && window._newsRedditPrevHtml !== undefined) {
     container.innerHTML = window._newsRedditPrevHtml;
+    // Force a fresh data load — the article deep dive may have replaced the
+    // container before loadTrendingData() finished, leaving _trendingLoaded=true
+    // with stale/missing DOM nodes. Reset so the next tab visit reloads correctly.
+    _trendingLoaded = false;
+    _rssLoaded = false;
+    loadTrendingData();
   }
 }
 
