@@ -8555,6 +8555,7 @@ async function loadTrendingData(force) {
     }
     _trendingLoaded = true;
     _rssLoaded = true;
+    console.log('[News] render complete');
   } catch(e) {
     console.error('[News] loadTrendingData failed:', e.message);
     const _setErr = (id, msg) => { const el = document.getElementById(id); if (el) el.innerHTML = '<div style="padding:12px;color:#555;font-size:12px">' + msg + '</div>'; };
@@ -12578,7 +12579,7 @@ async function _newsRedditAsk(text) {
     });
     const parsed = parseFollowups(fullText || '');
     // Render response as section cards
-    bubble.outerHTML = _renderRedditCards(parsed.text || '(No response)', chat);
+    bubble.outerHTML = _renderAiSectionCards(parsed.text || '(No response)', chat);
     const newBubble = chat.lastElementChild;
     if (newBubble) {
       renderFollowups(parsed.followups, newBubble, function(fq) { _newsRedditAsk(fq); });
@@ -12598,7 +12599,7 @@ async function _newsRedditAsk(text) {
   }
 }
 
-function _renderRedditCards(text, chat) {
+function _renderAiSectionCards(text, chat) {
   // Split response on the PART labels injected by global formatting instructions
   const sectionDefs = [
     { pattern: /PART\s*1\s*[—–-]+\s*THE SHORT VERSION\s*:?/i, label: 'THE SHORT VERSION' },
