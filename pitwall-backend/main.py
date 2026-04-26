@@ -847,6 +847,39 @@ _TRENDS_FALLBACK: list[dict] = [
 ]
 
 
+# ── General response cache for /api/chat ─────────────
+_RESPONSE_CACHE_TTL = 4 * 3600  # 4 hours in seconds
+response_cache: dict[str, dict] = {}
+
+
+def _rc_key(message: str) -> str:
+    """MD5 hash of the lowercased, stripped user message."""
+    return hashlib.md5(message.lower().strip().encode()).hexdigest()
+
+
+def _purge_response_cache() -> None:
+    """Remove entries older than _RESPONSE_CACHE_TTL."""
+    cutoff = time.time() - _RESPONSE_CACHE_TTL
+    stale = [k for k, v in response_cache.items() if v["ts"] < cutoff]
+    for k in stale:
+        del response_cache[k]
+    if stale:
+        log.debug("[CACHE] Purged %d stale entries", len(stale))
+
+
+def _get_rc(key: str) -> str | None:
+    entry = response_cache.get(key)
+    if entry and (time.time() - entry["ts"]) < _RESPONSE_CACHE_TTL:
+        return entry["reply"]
+    if entry:
+        del response_cache[key]
+    return None
+
+
+def _set_rc(key: str, reply: str) -> None:
+    response_cache[key] = {"reply": reply, "ts": time.time()}
+
+
 # ── Question cache (System 1) ─────────────────────────
 
 _question_cache: dict[str, dict] = {}
@@ -1297,6 +1330,25 @@ async def chat(req: ChatRequest, request: Request):
     """Non-streaming chat used by background features (radio translation, strategy)."""
     await _enforce_rate_limit(request)
     print(f"[ENDPOINT] /api/chat called", flush=True)
+
+    # Purge stale cache entries on every request (cheap — dict iteration)
+    _purge_response_cache()
+
+    # Build cache key from the last user message
+    last_user_msg = ""
+    for m in reversed(req.messages):
+        if m.get("role") == "user":
+            last_user_msg = m.get("content", "")
+            break
+    cache_key = _rc_key(last_user_msg) if last_user_msg else ""
+
+    if cache_key:
+        cached_reply = _get_rc(cache_key)
+        if cached_reply:
+            print(f"[CACHE HIT]  key={cache_key[:8]}… msg={last_user_msg[:60]!r}", flush=True)
+            return {"reply": cached_reply}
+        print(f"[CACHE MISS] key={cache_key[:8]}… msg={last_user_msg[:60]!r}", flush=True)
+
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise HTTPException(
@@ -1312,7 +1364,10 @@ async def chat(req: ChatRequest, request: Request):
             system=_CRITICAL_CONTEXT + "\n\n" + req.system,
             messages=req.messages,
         )
-        return {"reply": response.content[0].text}
+        reply = response.content[0].text
+        if cache_key and reply:
+            _set_rc(cache_key, reply)
+        return {"reply": reply}
     except anthropic.AuthenticationError:
         raise HTTPException(status_code=401, detail="Invalid Anthropic API key in .env")
     except anthropic.RateLimitError:
