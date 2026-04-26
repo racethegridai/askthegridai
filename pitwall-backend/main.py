@@ -30,7 +30,8 @@ from pydantic import BaseModel
 # ── Questions log ────────────────────────────────────
 _QUESTIONS_LOG = Path(__file__).parent / "questions_log.csv"
 _LOG_HEADERS   = ["timestamp", "question", "length", "session_id"]
-_log_lock      = asyncio.Lock()  # created at import time; reused at runtime
+# Lock is initialised in _lifespan() so it's created inside the running event loop.
+_log_lock: asyncio.Lock | None = None
 
 def _ensure_log_headers() -> None:
     """Create questions_log.csv with headers if it doesn't exist yet."""
@@ -40,6 +41,8 @@ def _ensure_log_headers() -> None:
 
 async def _log_question(question: str, session_id: str) -> None:
     """Append one row to questions_log.csv (non-blocking, serialised by lock)."""
+    if _log_lock is None:
+        return   # lock not yet initialised (startup edge case)
     ts  = datetime.now(timezone.utc).isoformat(timespec="seconds")
     row = [ts, question, len(question), session_id]
     async with _log_lock:
@@ -1033,7 +1036,8 @@ async def _news_poller():
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
-    global _state
+    global _state, _log_lock
+    _log_lock = asyncio.Lock()   # must be created inside the running event loop
     _state = _blank_state()
     task_regular  = asyncio.create_task(_poller())
     task_critical = asyncio.create_task(_poll_critical())
