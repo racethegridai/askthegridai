@@ -8373,7 +8373,7 @@ function _renderTrendsPills(trends) {
   const mobEl = document.getElementById('mobTrendsPills');
   const list  = (trends && trends.length ? trends : _TRENDS_JS_FALLBACK);
   const html  = list.map(t =>
-    `<button class="trend-pill" onclick="mobNewsAsk('Search the web and read current articles about ${escapeHtml(t.title).replace(/'/g,"\\'")} in F1. Read multiple sources and give me a complete picture of what is happening and why fans care about it.')">${escapeHtml(t.title)}</button>`
+    `<button class="trend-pill" onclick="newsRedditOpen('${escapeHtml(t.title).replace(/'/g,"\\'")} — explain this F1 topic in plain English for a casual fan in 3-4 short paragraphs.')">${escapeHtml(t.title)}</button>`
   ).join('');
   if (el)    el.innerHTML = html;
   if (mobEl) mobEl.innerHTML = html;
