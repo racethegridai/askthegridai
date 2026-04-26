@@ -3616,6 +3616,15 @@
       transition: background .15s;
     }
     .news-popup-source-btn:hover { background: #c50500; }
+    .news-popup-btn-row { display:flex; gap:8px; margin-top:20px; }
+    .news-popup-btn-row .news-popup-source-btn { flex:1; margin-top:0; }
+    .news-popup-ask-ai-btn {
+      flex:1; padding:12px; background:transparent; color:var(--red);
+      border:1.5px solid var(--red); border-radius:3px;
+      font-family:'Titillium Web',sans-serif; font-size:12px; font-weight:900;
+      letter-spacing:1px; text-align:center; cursor:pointer; transition:all .15s;
+    }
+    .news-popup-ask-ai-btn:hover { background:var(--red-dim); }
 
     /* ── REDESIGNED DRIVER PROFILE ──────────────────── */
     .drp-header { flex-shrink:0; padding:16px 20px 0; border-bottom:1px solid var(--border); }
@@ -4363,10 +4372,17 @@
       animation: popupPulse 1s ease-in-out infinite;
     }
     .mob-news-sheet-source {
-      display: block; width: 100%; margin-top: 20px; padding: 13px;
+      display: block; flex:1; padding: 13px;
       background: var(--red); color: #fff; border: none; border-radius: 3px;
       font-family: 'Titillium Web', sans-serif; font-size: 12px; font-weight: 900;
       letter-spacing: 1px; text-align: center; text-decoration: none; cursor: pointer;
+    }
+    .mob-sheet-btn-row { display:flex; gap:8px; margin-top:20px; }
+    .mob-sheet-ask-ai-btn {
+      flex:1; padding:13px; background:transparent; color:var(--red);
+      border:1.5px solid var(--red); border-radius:3px;
+      font-family:'Titillium Web',sans-serif; font-size:12px; font-weight:900;
+      letter-spacing:1px; text-align:center; cursor:pointer;
     }
 
     /* ── On mobile: hide desktop chrome, show hub ── */
@@ -8456,9 +8472,10 @@ function openNewsPopup(idx) {
   const badgeHtml = item.source_badge
     ? `<div class="rss-card-badge ${badgeCls} news-popup-badge">${escapeHtml(item.source_badge)}</div>`
     : '';
-  const sourceBtn = item.source
-    ? `<a class="news-popup-source-btn" href="${escapeHtml(item.source)}" target="_blank" rel="noopener">READ SOURCE ARTICLE →</a>`
-    : '';
+  const btnRow = `<div class="news-popup-btn-row">
+    ${item.source ? `<a class="news-popup-source-btn" href="${escapeHtml(item.source)}" target="_blank" rel="noopener">READ SOURCE ARTICLE →</a>` : ''}
+    <button class="news-popup-ask-ai-btn" onclick="openNewsArticleAI(${JSON.stringify(item.title)},${JSON.stringify(item.summary || '')})">ASK AI MORE ✦</button>
+  </div>`;
 
   overlay.innerHTML = `
     <div class="news-popup" id="newsPopupInner">
@@ -8477,7 +8494,7 @@ function openNewsPopup(idx) {
             Generating insights…
           </div>
         </div>
-        ${sourceBtn}
+        ${btnRow}
       </div>
     </div>`;
 
@@ -8492,6 +8509,93 @@ function closeNewsPopup() {
   const overlay = document.getElementById('newsPopupOverlay');
   if (overlay) overlay.classList.remove('open');
   document.body.style.overflow = '';
+}
+
+/* ── News article AI detail view ───────────────────── */
+var _newsArticleHistory = [];
+var _newsArticleBusy    = false;
+
+function openNewsArticleAI(title, summary) {
+  // Replace the inner content of whichever popup is currently open
+  const desktopInner = document.getElementById('newsPopupInner');
+  const mobileInner  = document.getElementById('mobNewsSheetInner');
+  const inner = (mobileInner && document.getElementById('mobNewsSheetOverlay').classList.contains('open'))
+    ? mobileInner : desktopInner;
+  if (!inner) return;
+
+  window._newsArticlePrevHtml  = inner.innerHTML;
+  window._newsArticleInnerId   = inner.id;
+  _newsArticleHistory = [];
+  _newsArticleBusy    = false;
+
+  inner.innerHTML =
+    '<div style="padding:16px 18px;overflow-y:auto;max-height:80vh;">' +
+    '<button onclick="_newsArticleBack()" style="background:transparent;border:none;color:#555;font-size:11px;cursor:pointer;margin-bottom:14px;padding:0;font-family:inherit;">← Back to article</button>' +
+    '<div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:14px;line-height:1.35;">' + escapeHtml(title) + '</div>' +
+    '<div id="news-article-chat" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>' +
+    '<div style="display:flex;gap:6px;">' +
+    '<input id="news-article-input" placeholder="Ask a follow-up question…" ' +
+    'style="flex:1;background:#111;border:1px solid #1c1c1c;border-radius:6px;padding:8px 10px;font-size:10px;color:#fff;font-family:inherit;outline:none;" ' +
+    'onkeydown="if(event.key===\'Enter\'){_newsArticleAsk(null);}" />' +
+    '<button onclick="_newsArticleAsk(null)" ' +
+    'style="background:#e10600;border:none;border-radius:6px;padding:8px 14px;font-size:10px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Ask</button>' +
+    '</div></div>';
+
+  const openingPrompt = title + ' — ' + (summary ? 'Context: ' + summary + ' ' : '') +
+    'Explain what this story means for F1 and why a casual fan should care. Plain English, 3-4 short paragraphs.';
+  _newsArticleAsk(openingPrompt);
+}
+
+function _newsArticleBack() {
+  const inner = document.getElementById(window._newsArticleInnerId);
+  if (inner && window._newsArticlePrevHtml !== undefined) {
+    inner.innerHTML = window._newsArticlePrevHtml;
+  }
+}
+
+async function _newsArticleAsk(text) {
+  if (_newsArticleBusy) return;
+  const chat    = document.getElementById('news-article-chat');
+  const inputEl = document.getElementById('news-article-input');
+  if (!chat) return;
+  const q = (typeof text === 'string' && text) ? text : (inputEl ? inputEl.value.trim() : '');
+  if (!q) return;
+  if (inputEl) inputEl.value = '';
+  _newsArticleBusy = true;
+
+  _newsArticleHistory.push({ role: 'user', content: q });
+
+  const aiDiv = document.createElement('div');
+  aiDiv.style.cssText = 'margin-bottom:8px;';
+  aiDiv.innerHTML =
+    '<div style="background:#111;border-radius:8px 8px 8px 2px;padding:10px 12px;font-size:11px;color:#666;border-left:2px solid #e10600;line-height:1.6;">' +
+    '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
+  chat.appendChild(aiDiv);
+  chat.scrollTop = chat.scrollHeight;
+
+  const bubble = aiDiv.querySelector('div');
+  const sys = 'You are an F1 expert explaining Formula 1 news to a casual fan. Use simple plain English. No jargon. Be friendly. Keep answers concise and specific to the article context.\n\n' + getStyleInstruction();
+
+  try {
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: sys, messages: _newsArticleHistory }),
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    let fullText = '';
+    await _readTokenStream(res, txt => { fullText = txt; bubble.innerHTML = _renderBold(txt); chat.scrollTop = chat.scrollHeight; });
+    const parsed = parseFollowups(fullText || '');
+    bubble.innerHTML = _renderBold(parsed.text || '(No response)');
+    renderFollowups(parsed.followups, bubble, function(fq) { _newsArticleAsk(fq); });
+    _newsArticleHistory.push({ role: 'assistant', content: parsed.text || '(No response)' });
+  } catch(e) {
+    bubble.textContent = '⚠ Could not connect. Try again.';
+  } finally {
+    _newsArticleBusy = false;
+    if (chat) chat.scrollTop = chat.scrollHeight;
+  }
 }
 
 async function loadArticleInsights(item) {
@@ -8625,9 +8729,10 @@ function openMobNewsSheet(idx) {
   const badgeHtml = item.source_badge
     ? `<span class="rss-card-badge ${badgeCls}">${escapeHtml(item.source_badge)}</span>`
     : '';
-  const sourceBtn = item.source
-    ? `<a class="mob-news-sheet-source" href="${escapeHtml(item.source)}" target="_blank" rel="noopener">READ SOURCE ARTICLE →</a>`
-    : '';
+  const mobBtnRow = `<div class="mob-sheet-btn-row">
+    ${item.source ? `<a class="mob-news-sheet-source" href="${escapeHtml(item.source)}" target="_blank" rel="noopener">READ SOURCE →</a>` : ''}
+    <button class="mob-sheet-ask-ai-btn" onclick="openNewsArticleAI(${JSON.stringify(item.title)},${JSON.stringify(item.summary || '')})">ASK AI MORE ✦</button>
+  </div>`;
 
   inner.innerHTML = `
     <div style="position:relative">
@@ -8647,7 +8752,7 @@ function openMobNewsSheet(idx) {
           Generating insights…
         </div>
       </div>
-      ${sourceBtn}
+      ${mobBtnRow}
     </div>`;
 
   overlay.classList.add('open');
