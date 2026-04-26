@@ -1012,6 +1012,12 @@ async def serve_frontend():
     return FileResponse(_html_file, media_type="text/html")
 
 
+@app.get("/atg-logo.svg")
+async def serve_logo():
+    from fastapi.responses import FileResponse
+    return FileResponse(Path(__file__).parent / "atg-logo.svg", media_type="image/svg+xml")
+
+
 @app.get("/api/health")
 async def health():
     key_set = bool(os.getenv("ANTHROPIC_API_KEY"))
