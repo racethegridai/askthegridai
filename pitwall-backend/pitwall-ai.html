@@ -8516,34 +8516,33 @@ var _newsArticleHistory = [];
 var _newsArticleBusy    = false;
 
 function openNewsArticleAI(title, summary) {
-  // Replace the inner content of whichever popup is currently open
-  const desktopInner = document.getElementById('newsPopupInner');
-  const mobileInner  = document.getElementById('mobNewsSheetInner');
-  const inner = (mobileInner && document.getElementById('mobNewsSheetOverlay').classList.contains('open'))
-    ? mobileInner : desktopInner;
-  if (!inner) return;
+  // Close whichever popup/sheet is open
+  closeNewsPopup();
+  closeMobNewsSheet();
 
-  window._newsArticlePrevHtml  = inner.innerHTML;
-  window._newsArticleInnerId   = inner.id;
-  _newsArticleHistory = [];
-  _newsArticleBusy    = false;
+  // Switch to the News > Daily tab so the full-page view has a home
+  if (isMobile()) {
+    mobSwitchTab('news');
+    // Ensure mob-news-daily panel is shown
+    const dailyPanel = document.getElementById('mob-news-daily');
+    if (dailyPanel) {
+      document.querySelectorAll('.mob-news-panel').forEach(p => p.classList.remove('active'));
+      dailyPanel.classList.add('active');
+    }
+  } else {
+    switchTab('news');
+    switchNewsTab('daily');
+  }
 
-  inner.innerHTML =
-    '<div style="padding:16px 18px;overflow-y:auto;max-height:80vh;">' +
-    '<button onclick="_newsArticleBack()" style="background:transparent;border:none;color:#555;font-size:11px;cursor:pointer;margin-bottom:14px;padding:0;font-family:inherit;">← Back to article</button>' +
-    '<div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:14px;line-height:1.35;">' + escapeHtml(title) + '</div>' +
-    '<div id="news-article-chat" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>' +
-    '<div style="display:flex;gap:6px;">' +
-    '<input id="news-article-input" placeholder="Ask a follow-up question…" ' +
-    'style="flex:1;background:#111;border:1px solid #1c1c1c;border-radius:6px;padding:8px 10px;font-size:10px;color:#fff;font-family:inherit;outline:none;" ' +
-    'onkeydown="if(event.key===\'Enter\'){_newsArticleAsk(null);}" />' +
-    '<button onclick="_newsArticleAsk(null)" ' +
-    'style="background:#e10600;border:none;border-radius:6px;padding:8px 14px;font-size:10px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Ask</button>' +
-    '</div></div>';
+  // Build the 4-section deep-dive prompt
+  const deepDivePrompt =
+    'You are an F1 expert. The user is reading this article: "' + title + '".' +
+    (summary ? ' Summary: ' + summary : '') +
+    ' Give a deep dive analysis covering: (1) The full story, (2) Why it matters for the championship, (3) What happens next, (4) Casual fan verdict. Keep each section 2-3 sentences. Plain English. No jargon.' +
+    '\n\nFOLLOWUPS: Who does this affect most? | How does this change the championship? | What\'s the team\'s reaction? | Explain the technical side';
 
-  const openingPrompt = title + ' — ' + (summary ? 'Context: ' + summary + ' ' : '') +
-    'Explain what this story means for F1 and why a casual fan should care. Plain English, 3-4 short paragraphs.';
-  _newsArticleAsk(openingPrompt);
+  // Reuse the Reddit/Trends full-page renderer with article context
+  newsRedditOpen(title, summary || null, deepDivePrompt);
 }
 
 function _newsArticleBack() {
@@ -12232,34 +12231,60 @@ function rlOpenDetail(key) {
 }
 
 /* ── Reddit post AI detail view ────────────────────── */
-var _newsRedditHistory = [];
-var _newsRedditBusy    = false;
+var _newsRedditHistory        = [];
+var _newsRedditBusy           = false;
+var _newsRedditArticleContext = null; // set when opening from a news article
 
-function newsRedditOpen(title) {
+// articleContext: optional article summary string
+// initialPrompt:  optional override for the opening AI message
+function newsRedditOpen(title, articleContext, initialPrompt) {
   const containerId = isMobile() ? 'mob-news-daily' : 'rssNewsLeft';
   const container   = document.getElementById(containerId);
   if (!container) return;
 
   window._newsRedditPrevHtml      = container.innerHTML;
   window._newsRedditContainerId   = containerId;
-  _newsRedditHistory = [];
-  _newsRedditBusy    = false;
+  _newsRedditHistory        = [];
+  _newsRedditBusy           = false;
+  _newsRedditArticleContext = articleContext || null;
+
+  // Context strip — shown only when opened from a news article
+  const contextStrip = articleContext
+    ? '<details style="margin-bottom:12px;background:#0d0d0d;border:1px solid #1c1c1c;border-radius:6px;padding:8px 12px;">' +
+      '<summary style="font-size:10px;font-weight:700;color:#555;letter-spacing:.5px;cursor:pointer;list-style:none;">ARTICLE SUMMARY ▾</summary>' +
+      '<div style="font-size:11px;color:#888;line-height:1.6;margin-top:8px;">' + escapeHtml(articleContext) + '</div>' +
+      '</details>'
+    : '';
+
+  // Fallback chips for article mode
+  const articleChips = articleContext
+    ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">' +
+      ["Who does this affect most?","How does this change the championship?","What's the team's reaction?","Explain the technical side"].map(c =>
+        `<button onclick="_newsRedditAsk('${c.replace(/'/g,"\\'")}?')" style="font-size:9px;padding:5px 11px;border-radius:20px;background:#111;border:1px solid #1c1c1c;color:#aaa;cursor:pointer;font-family:inherit;">${c}</button>`
+      ).join('') + '</div>'
+    : '';
+
+  const accentColor = articleContext ? '#e10600' : '#FF4500';
+  const backLabel   = articleContext ? '← Back to article' : '← Back to news';
+  const placeholder = articleContext ? 'Ask anything about this article…' : 'Ask a follow-up…';
 
   container.innerHTML =
     '<div style="padding:16px 14px;">' +
     '<button onclick="_newsRedditBack()" style="background:transparent;border:none;color:#555;font-size:11px;cursor:pointer;margin-bottom:14px;padding:0;font-family:inherit;display:flex;align-items:center;gap:4px;">' +
-    '← Back to news</button>' +
-    '<div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:14px;line-height:1.4;">' + escapeHtml(title) + '</div>' +
+    backLabel + '</button>' +
+    '<div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:12px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + escapeHtml(title) + '</div>' +
+    contextStrip +
+    articleChips +
     '<div id="news-reddit-chat" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>' +
     '<div style="display:flex;gap:6px;">' +
-    '<input id="news-reddit-input" placeholder="Ask a follow-up…" ' +
+    '<input id="news-reddit-input" placeholder="' + escapeHtml(placeholder) + '" ' +
     'style="flex:1;background:#111;border:1px solid #1c1c1c;border-radius:6px;padding:8px 10px;font-size:10px;color:#fff;font-family:inherit;outline:none;" ' +
     'onkeydown="if(event.key===\'Enter\'){_newsRedditAsk(null);}" />' +
     '<button onclick="_newsRedditAsk(null)" ' +
-    'style="background:#FF4500;border:none;border-radius:6px;padding:8px 14px;font-size:10px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Ask</button>' +
+    'style="background:' + accentColor + ';border:none;border-radius:6px;padding:8px 14px;font-size:10px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Ask</button>' +
     '</div></div>';
 
-  _newsRedditAsk(title + '. Explain this F1 topic for a casual fan in plain English.');
+  _newsRedditAsk(initialPrompt || (title + '. Explain this F1 topic for a casual fan in plain English.'));
 }
 
 function _newsRedditBack() {
@@ -12290,14 +12315,18 @@ async function _newsRedditAsk(text) {
   chat.scrollTop = chat.scrollHeight;
 
   const bubble = aiDiv.querySelector('div');
-  const sys = 'You are an F1 expert explaining Formula 1 to a casual fan. Use simple plain English. No jargon. Be friendly and conversational. 3 to 5 sentences.\n\n' + getStyleInstruction();
+  const sys = _newsRedditArticleContext
+    ? 'You are an F1 expert. You are answering questions specifically about this article. ' +
+      'Article summary: ' + _newsRedditArticleContext + '\n\n' +
+      'Keep answers focused on this article and its context. Plain English, no jargon.\n\n' + getStyleInstruction()
+    : 'You are an F1 expert explaining Formula 1 to a casual fan. Use simple plain English. No jargon. Be friendly and conversational. 3 to 5 sentences.\n\n' + getStyleInstruction();
 
   try {
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ system: sys, messages: _newsRedditHistory }),
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(45000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     let fullText = '';
