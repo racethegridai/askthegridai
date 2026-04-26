@@ -8110,8 +8110,8 @@ function isInfluencerMode() {
 
 function isOwnerMode() {
   if (localStorage.getItem(OWNER_KEY) === '1') return true;
-  return new URLSearchParams(window.location.search).has('owner') &&
-    new URLSearchParams(window.location.search).get('owner') === 'true';
+  const ownerParam = new URLSearchParams(window.location.search).get('owner');
+  return ownerParam === 'atgaiimamw2026' || ownerParam === 'true';
 }
 
 function getFreeCount() {
@@ -10160,8 +10160,13 @@ function _setOwnerMode(on) {
     if (upgradePanel) upgradePanel.classList.remove('visible');
     if (chatInput)    { chatInput.disabled = false; chatInput.placeholder = 'Ask what just happened, who gained, or what to watch next\u2026'; }
     if (sendBtn)      sendBtn.disabled = false;
+    // Mobile: clear free-count display and re-enable Ask button
+    _mobUpdateFreeCount();
+    const mobBtn = document.getElementById('mobAskBtn');
+    if (mobBtn) mobBtn.disabled = false;
   } else {
-    updateFreeLimitUI(); // restore normal limit state when toggled off
+    updateFreeLimitUI();
+    _mobUpdateFreeCount();
   }
 }
 
@@ -10851,7 +10856,8 @@ function init() {
   fetchChampionshipStandings();
   setInterval(fetchChampionshipStandings, 30 * 60 * 1000);
 
-  if (new URLSearchParams(location.search).get('owner') === 'true') {
+  const _ownerParam = new URLSearchParams(location.search).get('owner');
+  if (_ownerParam === 'atgaiimamw2026' || _ownerParam === 'true') {
     _setOwnerMode(true);
   }
 
@@ -11246,6 +11252,7 @@ function _mobSyncChampionship() {
 // ── Mobile AI chat (hub hero input) ─────────────
 let _mobBusy = false;
 async function mobSendMsg() {
+  console.log('[mobSendMsg] called | busy:', _mobBusy, '| bypassed:', isLimitBypassed(), '| freeCount:', getFreeCount());
   if (_mobBusy) return;
   const input = document.getElementById('mobChatInput');
   const btn   = document.getElementById('mobAskBtn');
@@ -12641,11 +12648,24 @@ function applyPromoCode() {
 <script>
 // Bridge: route atgaiAsk chips into the main live chat
 window.spAsk = function(prompt) {
-  var inp = document.getElementById('chatInput');
-  if (inp) {
-    inp.value = prompt;
-    switchTab('live');
-    sendMsg();
+  console.log('[spAsk] called with:', prompt, '| mobile:', isMobile());
+  if (isMobile()) {
+    var mobInp = document.getElementById('mobChatInput');
+    if (mobInp) {
+      mobInp.value = prompt;
+      mobSendMsg();
+    } else {
+      console.warn('[spAsk] mobChatInput not found');
+    }
+  } else {
+    var inp = document.getElementById('chatInput');
+    if (inp) {
+      inp.value = prompt;
+      switchTab('live');
+      sendMsg();
+    } else {
+      console.warn('[spAsk] chatInput not found');
+    }
   }
 };
 
