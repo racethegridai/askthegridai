@@ -4742,6 +4742,28 @@
     transition: background .15s;
   }
   .nav-upgrade-btn:hover { background: #c50500; }
+  .nav-style-btn {
+    position: relative; display: flex; align-items: center; gap: 4px;
+    font-family: 'Titillium Web', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: .5px; color: #aaa; background: transparent;
+    border: 1px solid #222; border-radius: 3px; padding: 5px 9px;
+    cursor: pointer; white-space: nowrap; transition: color .15s, border-color .15s;
+  }
+  .nav-style-btn:hover { color: #fff; border-color: #444; }
+  .style-dropdown {
+    display: none; position: absolute; top: calc(100% + 6px); right: 0;
+    background: #0d0d0d; border: 1px solid #1e1e1e; border-radius: 6px;
+    min-width: 150px; z-index: 500; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,.6);
+  }
+  .style-dropdown.open { display: block; }
+  .style-dropdown-item {
+    display: block; width: 100%; padding: 9px 14px; text-align: left;
+    font-family: 'Titillium Web', sans-serif; font-size: 11px; font-weight: 700;
+    color: #666; background: transparent; border: none; cursor: pointer;
+    transition: color .12s, background .12s;
+  }
+  .style-dropdown-item:hover { background: #141414; color: #fff; }
+  .style-dropdown-item.active { color: var(--red); }
   .nav-info-wrap { position: relative; }
   .nav-info-btn {
     background: #111;
@@ -4870,6 +4892,19 @@
         Info
         <svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,3 5,7 8,3"/></svg>
       </button>
+      <div style="position:relative">
+        <button class="nav-style-btn" style="font-size:10px;padding:5px 9px;" onclick="toggleStyleDropdown(event)">
+          <span class="nav-style-label">Beginner</span>
+          <svg width="7" height="7" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,3 5,7 8,3"/></svg>
+        </button>
+        <div class="style-dropdown" id="mobNavStyleDropdown">
+          <button class="style-dropdown-item active" data-style="beginner"   onclick="setStyle('beginner')">Beginner</button>
+          <button class="style-dropdown-item"        data-style="football"   onclick="setStyle('football')">Football terms</button>
+          <button class="style-dropdown-item"        data-style="curious"    onclick="setStyle('curious')">F1 curious</button>
+          <button class="style-dropdown-item"        data-style="enthusiast" onclick="setStyle('enthusiast')">Enthusiast</button>
+          <button class="style-dropdown-item"        data-style="kid"        onclick="setStyle('kid')">Kid friendly</button>
+        </div>
+      </div>
       <button class="nav-upgrade-btn" style="font-size:10px;padding:5px 10px;" onclick="handleUpgradeClick()">Upgrade</button>
       <div class="mob-live-pill" id="mobLivePill">● LIVE</div>
     </div>
@@ -5948,6 +5983,19 @@
       Info
       <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,3 5,7 8,3"/></svg>
     </button>
+    <div style="position:relative">
+      <button class="nav-style-btn" onclick="toggleStyleDropdown(event)">
+        AI Style: <span class="nav-style-label">Beginner</span>
+        <svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,3 5,7 8,3"/></svg>
+      </button>
+      <div class="style-dropdown" id="navStyleDropdown">
+        <button class="style-dropdown-item active" data-style="beginner"   onclick="setStyle('beginner')">Beginner</button>
+        <button class="style-dropdown-item"        data-style="football"   onclick="setStyle('football')">Football terms</button>
+        <button class="style-dropdown-item"        data-style="curious"    onclick="setStyle('curious')">F1 curious</button>
+        <button class="style-dropdown-item"        data-style="enthusiast" onclick="setStyle('enthusiast')">Enthusiast</button>
+        <button class="style-dropdown-item"        data-style="kid"        onclick="setStyle('kid')">Kid friendly</button>
+      </div>
+    </div>
     <button class="nav-upgrade-btn" onclick="handleUpgradeClick()">Upgrade Now</button>
   </div>
 
@@ -7862,7 +7910,29 @@ function togglePitHistory() {
 /* ──────────────────────────────────────────────────
    EXPLANATION STYLE SELECTOR
 ────────────────────────────────────────────────── */
-const STYLE_KEY = 'pitwall_explain_style';
+const STYLE_KEY = 'atgai_style';
+
+// Migrate users who have the old key stored
+(function() {
+  const old = localStorage.getItem('pitwall_explain_style');
+  if (old && !localStorage.getItem('atgai_style')) {
+    localStorage.setItem('atgai_style', old);
+    localStorage.removeItem('pitwall_explain_style');
+  }
+})();
+
+// Short one-liner style prompts (used as getStylePrompt())
+const STYLE_PROMPTS = {
+  beginner:   'Explain everything simply. Assume the user knows nothing about F1. No jargon.',
+  football:   'Explain F1 using football analogies and comparisons wherever possible.',
+  curious:    'The user knows basic sports but is new to F1. Use some F1 terms but always explain them.',
+  enthusiast: 'The user is an F1 fan who knows the sport well. Use technical terms freely.',
+  kid:        'Explain everything like you are talking to a 10 year old. Use simple words, fun comparisons, and lots of enthusiasm.',
+};
+
+function getStylePrompt() {
+  return STYLE_PROMPTS[getExplainStyle()] || STYLE_PROMPTS.beginner;
+}
 
 const STYLE_LABELS = {
   beginner:   'Complete Beginner',
@@ -7923,7 +7993,7 @@ function getExplainStyle() {
 }
 
 function getStyleInstruction() {
-  return STYLE_INSTRUCTIONS[getExplainStyle()] || STYLE_INSTRUCTIONS.beginner;
+  return getStylePrompt() + '\n\n' + (STYLE_INSTRUCTIONS[getExplainStyle()] || STYLE_INSTRUCTIONS.beginner);
 }
 
 function renderStyleSelector() {
@@ -7961,6 +8031,14 @@ function setStyle(style) {
     btn.classList.toggle('active', btn.dataset.style === style);
     btn.classList.toggle('selected', btn.dataset.style === style);
   });
+  // Sync nav AI Style button labels + dropdown active state
+  const labels = { beginner:'Beginner', football:'Football terms', curious:'F1 curious', enthusiast:'Enthusiast', kid:'Kid friendly' };
+  document.querySelectorAll('.nav-style-label').forEach(el => { el.textContent = labels[style] || 'Beginner'; });
+  document.querySelectorAll('.style-dropdown-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.style === style);
+  });
+  // Close any open style dropdown
+  document.querySelectorAll('.style-dropdown').forEach(d => d.classList.remove('open'));
 }
 
 function _initStyleSelector() {
@@ -7987,8 +8065,7 @@ function buildSystem(mode) {
   const recentInc = (liveData.incidents || []).slice(0, 3)
     .map(i => `Lap ${i.lap}: ${i.msg}`).join('; ');
 
-  const styleKey  = getExplainStyle();
-  const styleInst = STYLE_INSTRUCTIONS[styleKey] || STYLE_INSTRUCTIONS.beginner;
+  const styleInst = getStyleInstruction();
 
   const base = `You are Ask The Grid AI, an F1 companion app for the 2026 season.
 
@@ -8819,7 +8896,7 @@ async function mobSendNewsAI() {
   input.value = '';
   resp.style.display = 'block';
   resp.textContent = 'Thinking\u2026';
-  const styleInst = STYLE_INSTRUCTIONS[getExplainStyle()] || STYLE_INSTRUCTIONS.beginner;
+  const styleInst = getStyleInstruction();
   const system = `You are an F1 expert explaining today's Formula 1 news.
 Keep answers to 3-4 sentences maximum.
 Focus on why this matters for a fan watching the 2026 season.
@@ -8879,7 +8956,7 @@ async function sendNewsAI() {
   resp.style.display = '';
   resp.textContent   = 'Searching\u2026';
 
-  const styleInst = STYLE_INSTRUCTIONS[getExplainStyle()] || STYLE_INSTRUCTIONS.beginner;
+  const styleInst = getStyleInstruction();
   const system = `You are an F1 expert explaining today's Formula 1 news.
 Focus on why this matters for a fan watching the 2026 season.
 Never just repeat headlines — synthesize what you find into one clear explanation.
@@ -10904,7 +10981,7 @@ async function sendDriverMsg(id) {
     textEl.innerHTML = '<span style="color:#444">Thinking\u2026</span>';
   }
 
-  const styleInst = STYLE_INSTRUCTIONS[getExplainStyle()] || STYLE_INSTRUCTIONS.beginner;
+  const styleInst = getStyleInstruction();
   const system = `You are an expert F1 analyst answering questions about ${driver.name}. Cover their career, personality, driving style, rivalries, and achievements. Be engaging and tell stories. Keep answers to 4–5 sentences max.
 
 ${styleInst}`;
@@ -11478,7 +11555,7 @@ async function mobRpAskAI() {
   inp.value = '';
   resp.style.display = '';
   resp.textContent = 'Thinking\u2026';
-  const styleInst = STYLE_INSTRUCTIONS[getExplainStyle()] || STYLE_INSTRUCTIONS.beginner;
+  const styleInst = getStyleInstruction();
   const system = _RP_SYSTEM + '\n\n' + styleInst;
   try {
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
@@ -12655,6 +12732,19 @@ function closeAllDropdowns() {
   var dd = document.getElementById('info-dropdown');
   if (dd) dd.style.display = 'none';
 }
+
+function toggleStyleDropdown(e) {
+  e.stopPropagation();
+  document.querySelectorAll('.style-dropdown').forEach(function(d) {
+    var isThis = d.contains(e.currentTarget) || d.previousElementSibling === e.currentTarget;
+    d.classList.toggle('open', isThis && !d.classList.contains('open'));
+  });
+}
+
+// Close style dropdowns when clicking elsewhere
+document.addEventListener('click', function() {
+  document.querySelectorAll('.style-dropdown.open').forEach(function(d) { d.classList.remove('open'); });
+});
 
 function toggleInfoDropdown(e) {
   e.stopPropagation();
