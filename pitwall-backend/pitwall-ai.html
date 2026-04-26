@@ -8361,7 +8361,7 @@ function _renderRedditCards(posts) {
         <span class="reddit-upvotes">&#9650; ${(p.score||0).toLocaleString()}</span>
         <span class="reddit-comments">${(p.num_comments||0).toLocaleString()} comments</span>
         ${p.created ? `<span class="reddit-time">${_timeAgoJs(p.created)}</span>` : ''}
-        <button class="reddit-ask-btn" onclick="event.stopPropagation();mobNewsAsk('Search the web and read articles about this F1 story: ${escapeHtml(p.title).replace(/'/g,"\\'")}. Summarize what actually happened, why it matters for F1, and what it means for the championship. Explain simply.')">Ask AI</button>
+        <button class="reddit-ask-btn" onclick="event.stopPropagation();newsRedditOpen('${escapeHtml(p.title).replace(/'/g,"\\'")}')">Ask AI</button>
       </div>
     </div>`).join('');
   if (el)    el.innerHTML = html;
@@ -12119,6 +12119,89 @@ function rlOpenDetail(key) {
   var t = setInterval(function() {
     if (i < text.length) { typed.textContent += text[i]; i++; } else { clearInterval(t); }
   }, 15);
+}
+
+/* ── Reddit post AI detail view ────────────────────── */
+var _newsRedditHistory = [];
+var _newsRedditBusy    = false;
+
+function newsRedditOpen(title) {
+  const containerId = isMobile() ? 'mob-news-daily' : 'rssNewsLeft';
+  const container   = document.getElementById(containerId);
+  if (!container) return;
+
+  window._newsRedditPrevHtml      = container.innerHTML;
+  window._newsRedditContainerId   = containerId;
+  _newsRedditHistory = [];
+  _newsRedditBusy    = false;
+
+  container.innerHTML =
+    '<div style="padding:16px 14px;">' +
+    '<button onclick="_newsRedditBack()" style="background:transparent;border:none;color:#555;font-size:11px;cursor:pointer;margin-bottom:14px;padding:0;font-family:inherit;display:flex;align-items:center;gap:4px;">' +
+    '← Back to news</button>' +
+    '<div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:14px;line-height:1.4;">' + escapeHtml(title) + '</div>' +
+    '<div id="news-reddit-chat" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>' +
+    '<div style="display:flex;gap:6px;">' +
+    '<input id="news-reddit-input" placeholder="Ask a follow-up…" ' +
+    'style="flex:1;background:#111;border:1px solid #1c1c1c;border-radius:6px;padding:8px 10px;font-size:10px;color:#fff;font-family:inherit;outline:none;" ' +
+    'onkeydown="if(event.key===\'Enter\'){_newsRedditAsk(null);}" />' +
+    '<button onclick="_newsRedditAsk(null)" ' +
+    'style="background:#FF4500;border:none;border-radius:6px;padding:8px 14px;font-size:10px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Ask</button>' +
+    '</div></div>';
+
+  _newsRedditAsk(title + '. Explain this F1 topic for a casual fan in plain English.');
+}
+
+function _newsRedditBack() {
+  const container = document.getElementById(window._newsRedditContainerId);
+  if (container && window._newsRedditPrevHtml !== undefined) {
+    container.innerHTML = window._newsRedditPrevHtml;
+  }
+}
+
+async function _newsRedditAsk(text) {
+  if (_newsRedditBusy) return;
+  const chat    = document.getElementById('news-reddit-chat');
+  const inputEl = document.getElementById('news-reddit-input');
+  if (!chat) return;
+  const q = (typeof text === 'string' && text) ? text : (inputEl ? inputEl.value.trim() : '');
+  if (!q) return;
+  if (inputEl) inputEl.value = '';
+  _newsRedditBusy = true;
+
+  _newsRedditHistory.push({ role: 'user', content: q });
+
+  const aiDiv = document.createElement('div');
+  aiDiv.style.cssText = 'margin-bottom:8px;';
+  aiDiv.innerHTML =
+    '<div style="background:#111;border-radius:8px 8px 8px 2px;padding:10px 12px;font-size:11px;color:#666;border-left:2px solid #FF4500;line-height:1.6;">' +
+    '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
+  chat.appendChild(aiDiv);
+  chat.scrollTop = chat.scrollHeight;
+
+  const bubble = aiDiv.querySelector('div');
+  const sys = 'You are an F1 expert explaining Formula 1 to a casual fan. Use simple plain English. No jargon. Be friendly and conversational. 3 to 5 sentences.\n\n' + getStyleInstruction();
+
+  try {
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: sys, messages: _newsRedditHistory }),
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    let fullText = '';
+    await _readTokenStream(res, txt => { fullText = txt; bubble.innerHTML = _renderBold(txt); chat.scrollTop = chat.scrollHeight; });
+    const parsed = parseFollowups(fullText || '');
+    bubble.innerHTML = _renderBold(parsed.text || '(No response)');
+    renderFollowups(parsed.followups, bubble, function(fq) { _newsRedditAsk(fq); });
+    _newsRedditHistory.push({ role: 'assistant', content: parsed.text || '(No response)' });
+  } catch(e) {
+    bubble.textContent = '⚠ Could not connect. Try again.';
+  } finally {
+    _newsRedditBusy = false;
+    if (chat) chat.scrollTop = chat.scrollHeight;
+  }
 }
 
 var _rlDetailHistory = {};
