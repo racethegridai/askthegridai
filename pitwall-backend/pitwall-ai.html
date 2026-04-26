@@ -12197,6 +12197,7 @@ function rlOpenDetail(key) {
   if (!detail) return;
   var hub = document.getElementById('rl-hub-content');
   if (!hub) return;
+  _rlDetailBusy[key] = false;   // reset lock when opening fresh
   window._rlPrevHub = hub.innerHTML;
   var rulesHtml = detail.rules.map(function(r) {
     return '<div style="background:#0d0d0d;border:1px solid #1c1c1c;border-radius:8px;padding:12px;"><div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:4px;">' + r.title + '</div><div style="font-size:10px;color:#666;line-height:1.6;">' + r.body + '</div></div>';
@@ -12314,12 +12315,18 @@ async function _newsRedditAsk(text) {
 }
 
 var _rlDetailHistory = {};
+var _rlDetailBusy = {};   // per-key lock
+
 async function rlDetailAsk(key, text) {
-  var input = document.getElementById('rl-detail-input');
-  var chat  = document.getElementById('rl-detail-chat');
+  if (_rlDetailBusy[key]) return;
+  var input  = document.getElementById('rl-detail-input');
+  var chat   = document.getElementById('rl-detail-chat');
+  var askBtn = document.querySelector('#rl-hub-content button[onclick*="rlDetailAsk(\'' + key + '\',null)"]');
   var q = (typeof text === 'string' && text) ? text : (input ? input.value.trim() : '');
   if (!q || !chat) return;
   if (input) input.value = '';
+  _rlDetailBusy[key] = true;
+  if (askBtn) { askBtn.disabled = true; askBtn.textContent = '…'; }
   var detail = _RL_DETAILS[key];
   if (!_rlDetailHistory[key]) _rlDetailHistory[key] = [];
 
@@ -12354,6 +12361,9 @@ async function rlDetailAsk(key, text) {
     _rlDetailHistory[key].push({ role: 'assistant', content: _rldc.text || '(No response)' });
   } catch(e) {
     bubble.textContent = 'Could not connect. Try again.';
+  } finally {
+    _rlDetailBusy[key] = false;
+    if (askBtn) { askBtn.disabled = false; askBtn.textContent = 'Ask'; }
   }
 }
 
@@ -12461,6 +12471,7 @@ var _SP_DETAILS = {
 function spOpenDetail(key) {
   var detail = _SP_DETAILS[key];
   if (!detail) return;
+  _spDetailBusy[key] = false;   // reset lock when opening fresh
   var sid = detail.sectionId || 'strategy';
   var bodyEl = document.querySelector('#mob-rp-' + sid + ' .mob-rp-section-body');
   if (!bodyEl) return;
@@ -12500,12 +12511,18 @@ function spOpenDetail(key) {
 }
 
 var _spDetailHistory = {};
+var _spDetailBusy    = {};   // per-key lock: prevents concurrent calls
+
 async function spDetailAsk(key, text) {
-  var input = document.getElementById('detail-input');
-  var chat  = document.getElementById('detail-chat');
+  if (_spDetailBusy[key]) return;
+  var input  = document.getElementById('detail-input');
+  var chat   = document.getElementById('detail-chat');
+  var askBtn = chat && chat.nextElementSibling && chat.nextElementSibling.querySelector('button');
   var q = (typeof text === 'string' && text) ? text : (input ? input.value.trim() : '');
   if (!q || !chat) return;
   if (input) input.value = '';
+  _spDetailBusy[key] = true;
+  if (askBtn) { askBtn.disabled = true; askBtn.textContent = '…'; }
   var detail = _SP_DETAILS[key];
   if (!_spDetailHistory[key]) _spDetailHistory[key] = [];
 
@@ -12541,6 +12558,9 @@ async function spDetailAsk(key, text) {
     _spDetailHistory[key].push({ role: 'assistant', content: _spdc.text || '(No response)' });
   } catch(e) {
     bubble.textContent = 'Could not connect. Try again.';
+  } finally {
+    _spDetailBusy[key] = false;
+    if (askBtn) { askBtn.disabled = false; askBtn.textContent = 'Ask'; }
   }
 }
 
