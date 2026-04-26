@@ -5,6 +5,7 @@ Serves a /api/state REST endpoint and a /events SSE stream.
 """
 
 import asyncio
+import csv
 import hashlib
 import json
 import logging
@@ -25,6 +26,29 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+
+# ── Questions log ────────────────────────────────────
+_QUESTIONS_LOG = Path(__file__).parent / "questions_log.csv"
+_LOG_HEADERS   = ["timestamp", "question", "length", "session_id"]
+_log_lock      = asyncio.Lock()  # created at import time; reused at runtime
+
+def _ensure_log_headers() -> None:
+    """Create questions_log.csv with headers if it doesn't exist yet."""
+    if not _QUESTIONS_LOG.exists():
+        with open(_QUESTIONS_LOG, "w", newline="", encoding="utf-8") as f:
+            csv.writer(f).writerow(_LOG_HEADERS)
+
+async def _log_question(question: str, session_id: str) -> None:
+    """Append one row to questions_log.csv (non-blocking, serialised by lock)."""
+    ts  = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    row = [ts, question, len(question), session_id]
+    async with _log_lock:
+        try:
+            _ensure_log_headers()
+            with open(_QUESTIONS_LOG, "a", newline="", encoding="utf-8") as f:
+                csv.writer(f).writerow(row)
+        except Exception as exc:
+            log.warning("[LOG] Failed to write question: %s", exc)
 
 # ── Load .env (search from backend dir upward) ───────
 load_dotenv(Path(__file__).parent / ".env")
@@ -1348,6 +1372,10 @@ async def chat(req: ChatRequest, request: Request):
             print(f"[CACHE HIT]  key={cache_key[:8]}… msg={last_user_msg[:60]!r}", flush=True)
             return {"reply": cached_reply}
         print(f"[CACHE MISS] key={cache_key[:8]}… msg={last_user_msg[:60]!r}", flush=True)
+        # Log only real user questions that will hit the API (not owner/system)
+        if last_user_msg and not last_user_msg.startswith("ATGAI"):
+            session_id = _get_client_ip(request)
+            asyncio.create_task(_log_question(last_user_msg, session_id))
 
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
@@ -1511,6 +1539,59 @@ async def chat_stream(req: ChatRequest, request: Request):
 async def ping():
     """Keep-alive endpoint — frontend pings every 4 minutes to prevent Railway cold starts."""
     return {"ok": True}
+
+
+@app.get("/api/export-questions")
+async def export_questions(key: str = ""):
+    """
+    Owner-only: read questions_log.csv, deduplicate by normalised text,
+    sort by frequency descending, return top 200 as a downloadable CSV.
+    Protected by ?key=atgaiimamw2026.
+    """
+    from fastapi.responses import StreamingResponse as _SR
+    import io
+
+    if key != "atgaiimamw2026":
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    if not _QUESTIONS_LOG.exists():
+        raise HTTPException(status_code=404, detail="No questions logged yet")
+
+    # Read all rows
+    freq: dict[str, dict] = {}   # normalised_q → {original, count, last_seen}
+    try:
+        with open(_QUESTIONS_LOG, "r", newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                q = row.get("question", "").strip()
+                if not q:
+                    continue
+                norm = q.lower().strip()
+                if norm not in freq:
+                    freq[norm] = {"question": q, "count": 0, "last_seen": row.get("timestamp", "")}
+                freq[norm]["count"] += 1
+                freq[norm]["last_seen"] = row.get("timestamp", freq[norm]["last_seen"])
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Could not read log: {exc}")
+
+    # Sort by frequency, take top 200
+    top = sorted(freq.values(), key=lambda x: x["count"], reverse=True)[:200]
+
+    # Build CSV in memory
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["rank", "question", "times_asked", "last_seen"])
+    for rank, item in enumerate(top, start=1):
+        writer.writerow([rank, item["question"], item["count"], item["last_seen"]])
+    buf.seek(0)
+
+    log.info("[EXPORT] %d unique questions exported (top 200 of %d)", min(200, len(freq)), len(freq))
+
+    return _SR(
+        iter([buf.getvalue().encode("utf-8")]),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="top_questions.csv"'},
+    )
 
 
 @app.post("/api/create-checkout")
