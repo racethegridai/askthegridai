@@ -9816,11 +9816,11 @@ function renderFollowups(questions, container, sendFn) {
   questions.forEach(function(q) {
     var btn = document.createElement('button');
     btn.textContent = q;
-    btn.style.cssText = 'font-size:9px;padding:5px 10px;border-radius:20px;background:#1a0000;' +
-      'border:1px solid #330000;color:#e10600;cursor:pointer;font-family:inherit;' +
+    btn.style.cssText = 'font-size:11px;padding:10px 16px;border-radius:20px;background:#111;' +
+      'border:1px solid #333;color:#e0ddd8;cursor:pointer;font-family:inherit;' +
       'text-align:left;line-height:1.3;transition:background .15s;';
-    btn.onmouseenter = function(){ btn.style.background='#2a0000'; };
-    btn.onmouseleave = function(){ btn.style.background='#1a0000'; };
+    btn.onmouseenter = function(){ btn.style.background='#1a1a1a'; };
+    btn.onmouseleave = function(){ btn.style.background='#111'; };
     btn.onclick = function(){ if (typeof sendFn === 'function') sendFn(q); };
     div.appendChild(btn);
   });
@@ -12345,20 +12345,27 @@ function newsRedditOpen(title, articleContext, initialPrompt) {
   const backLabel   = articleContext ? '← Back to article' : '← Back to news';
   const placeholder = articleContext ? 'Ask anything about this article…' : 'Ask a follow-up…';
 
+  // Strip trailing prompt instructions to show only the topic keyword as the page title
+  const displayTitle = title
+    .replace(/\s*[—–-]+\s*explain this F1 topic.*$/i, '')
+    .replace(/^Search the web and read (?:current )?articles about (?:this F1 story:\s*)?/i, '')
+    .replace(/\.\s*(Explain|Summarize|Give|Tell).*$/i, '')
+    .trim() || title;
+
   container.innerHTML =
     '<div style="padding:16px 14px;">' +
-    '<button onclick="_newsRedditBack()" style="background:transparent;border:none;color:#555;font-size:11px;cursor:pointer;margin-bottom:14px;padding:0;font-family:inherit;display:flex;align-items:center;gap:4px;">' +
+    '<button onclick="_newsRedditBack()" style="background:transparent;border:none;color:#555;font-size:11px;cursor:pointer;margin-bottom:16px;padding:0;font-family:inherit;display:flex;align-items:center;gap:4px;">' +
     backLabel + '</button>' +
-    '<div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:12px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + escapeHtml(title) + '</div>' +
+    '<div style="font-size:17px;font-weight:800;color:#fff;margin-bottom:16px;line-height:1.3;letter-spacing:-.2px;">' + escapeHtml(displayTitle) + '</div>' +
     contextStrip +
     articleChips +
-    '<div id="news-reddit-chat" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>' +
+    '<div id="news-reddit-chat" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>' +
     '<div style="display:flex;gap:6px;">' +
     '<input id="news-reddit-input" placeholder="' + escapeHtml(placeholder) + '" ' +
-    'style="flex:1;background:#111;border:1px solid #1c1c1c;border-radius:6px;padding:8px 10px;font-size:10px;color:#fff;font-family:inherit;outline:none;" ' +
+    'style="flex:1;background:#111;border:1px solid #1c1c1c;border-radius:6px;padding:9px 12px;font-size:11px;color:#e0ddd8;font-family:inherit;outline:none;" ' +
     'onkeydown="if(event.key===\'Enter\'){_newsRedditAsk(null);}" />' +
     '<button onclick="_newsRedditAsk(null)" ' +
-    'style="background:' + accentColor + ';border:none;border-radius:6px;padding:8px 14px;font-size:10px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Ask</button>' +
+    'style="background:' + accentColor + ';border:none;border-radius:6px;padding:9px 16px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Ask</button>' +
     '</div></div>';
 
   _newsRedditAsk(initialPrompt || (title + '. Explain this F1 topic for a casual fan in plain English.'));
@@ -12384,19 +12391,21 @@ async function _newsRedditAsk(text) {
   _newsRedditHistory.push({ role: 'user', content: q });
 
   const aiDiv = document.createElement('div');
-  aiDiv.style.cssText = 'margin-bottom:8px;';
+  aiDiv.style.cssText = 'margin-bottom:0;';
   aiDiv.innerHTML =
-    '<div style="background:#111;border-radius:8px 8px 8px 2px;padding:10px 12px;font-size:11px;color:#666;border-left:2px solid #FF4500;line-height:1.6;">' +
+    '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:14px 16px;font-size:15px;color:#e0ddd8;line-height:1.7;">' +
     '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
   chat.appendChild(aiDiv);
   chat.scrollTop = chat.scrollHeight;
 
   const bubble = aiDiv.querySelector('div');
+  const concise = 'Be concise. Maximum 2 sentences per paragraph. No more than 3 paragraphs total. Get to the point fast.';
   const sys = _newsRedditArticleContext
     ? 'You are an F1 expert. You are answering questions specifically about this article. ' +
       'Article summary: ' + _newsRedditArticleContext + '\n\n' +
-      'Keep answers focused on this article and its context. Plain English, no jargon.\n\n' + getStyleInstruction()
-    : 'You are an F1 expert explaining Formula 1 to a casual fan. Use simple plain English. No jargon. Be friendly and conversational. 3 to 5 sentences.\n\n' + getStyleInstruction();
+      concise + ' Plain English, no jargon.\n\n' + getStyleInstruction()
+    : 'You are an F1 expert explaining Formula 1 to a casual fan. Use simple plain English. No jargon. Be friendly and conversational.\n\n' +
+      concise + '\n\n' + getStyleInstruction();
 
   try {
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
@@ -12407,10 +12416,18 @@ async function _newsRedditAsk(text) {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     let fullText = '';
-    await _readTokenStream(res, txt => { fullText = txt; bubble.innerHTML = _renderBold(txt); chat.scrollTop = chat.scrollHeight; });
+    await _readTokenStream(res, txt => {
+      fullText = txt;
+      bubble.innerHTML = _renderBold(txt);
+      chat.scrollTop = chat.scrollHeight;
+    });
     const parsed = parseFollowups(fullText || '');
-    bubble.innerHTML = _renderBold(parsed.text || '(No response)');
-    renderFollowups(parsed.followups, bubble, function(fq) { _newsRedditAsk(fq); });
+    // Render response as section cards
+    bubble.outerHTML = _renderRedditCards(parsed.text || '(No response)', chat);
+    const newBubble = chat.lastElementChild;
+    if (newBubble) {
+      renderFollowups(parsed.followups, newBubble, function(fq) { _newsRedditAsk(fq); });
+    }
     _newsRedditHistory.push({ role: 'assistant', content: parsed.text || '(No response)' });
   } catch(e) {
     bubble.textContent = '⚠ Could not connect. Try again.';
@@ -12418,6 +12435,63 @@ async function _newsRedditAsk(text) {
     _newsRedditBusy = false;
     if (chat) chat.scrollTop = chat.scrollHeight;
   }
+}
+
+function _renderRedditCards(text, chat) {
+  // Split response on the PART labels injected by global formatting instructions
+  const sectionDefs = [
+    { pattern: /PART\s*1\s*[—–-]+\s*THE SHORT VERSION\s*:?/i, label: 'THE SHORT VERSION' },
+    { pattern: /PART\s*2\s*[—–-]+\s*THE DETAIL\s*:?/i,        label: "WHAT'S ACTUALLY HAPPENING" },
+    { pattern: /PART\s*3\s*[—–-]+[^:\n]*/i,                   label: 'WHY F1 FANS CARE' },
+  ];
+
+  let remainder = text;
+  const sections = [];
+
+  for (const def of sectionDefs) {
+    const m = remainder.search(def.pattern);
+    if (m === -1) continue;
+    // Everything before this section belongs to the previous one
+    const before = remainder.slice(0, m).trim();
+    if (before && sections.length) sections[sections.length - 1].body += '\n' + before;
+    // Remove the matched header
+    remainder = remainder.slice(m).replace(def.pattern, '').trim();
+    sections.push({ label: def.label, body: '' });
+    // Collect body up to the next section marker
+    const nextMatch = sectionDefs.slice(sectionDefs.indexOf(def) + 1).reduce((earliest, d) => {
+      const pos = remainder.search(d.pattern);
+      return (pos !== -1 && (earliest === -1 || pos < earliest)) ? pos : earliest;
+    }, -1);
+    if (nextMatch === -1) {
+      sections[sections.length - 1].body = remainder.trim();
+      remainder = '';
+    } else {
+      sections[sections.length - 1].body = remainder.slice(0, nextMatch).trim();
+      remainder = remainder.slice(nextMatch);
+    }
+  }
+
+  // If no section headers found, render as single card
+  if (!sections.length) {
+    sections.push({ label: null, body: text });
+  }
+
+  const labelStyle = 'display:block;font-size:11px;font-weight:700;color:#e10600;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;';
+  const cardStyle  = 'background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:14px 16px;font-size:15px;color:#e0ddd8;line-height:1.7;';
+
+  const html = sections.map(s =>
+    '<div style="' + cardStyle + '">' +
+    (s.label ? '<span style="' + labelStyle + '">' + s.label + '</span>' : '') +
+    _renderBold(s.body) +
+    '</div>'
+  ).join('');
+
+  // Append to chat and return the last element for follow-up chip attachment
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
+  wrapper.innerHTML = html;
+  chat.appendChild(wrapper);
+  return wrapper;
 }
 
 var _rlDetailHistory = {};
