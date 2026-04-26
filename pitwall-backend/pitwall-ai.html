@@ -8530,7 +8530,12 @@ async function loadTrendingData(force) {
   console.log('[News] loadTrendingData() starting — force:', !!force);
   try {
     console.log('[News] Reddit fetch starting:', BACKEND + '/api/trending');
-    const res = await fetch(`${BACKEND}/api/trending`, { signal: AbortSignal.timeout(15000) });
+    const _ctrl = new AbortController();
+    const _timer = setTimeout(() => _ctrl.abort(), 15000);
+    let res;
+    try { res = await fetch(`${BACKEND}/api/trending`, { signal: _ctrl.signal }); }
+    finally { clearTimeout(_timer); }
+    if (!res) throw new Error('Fetch aborted (timeout)');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     console.log('[News] Reddit fetch result — reddit:', (data.reddit||[]).length,
