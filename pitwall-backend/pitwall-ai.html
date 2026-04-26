@@ -8551,7 +8551,7 @@ function openNewsPopup(idx) {
     : '';
   const btnRow = `<div class="news-popup-btn-row">
     ${item.source ? `<a class="news-popup-source-btn" href="${escapeHtml(item.source)}" target="_blank" rel="noopener">READ SOURCE ARTICLE →</a>` : ''}
-    <button class="news-popup-ask-ai-btn" onclick="openNewsArticleAI(${JSON.stringify(item.title)},${JSON.stringify(item.summary || '')})">ASK AI MORE ✦</button>
+    <button class="news-popup-ask-ai-btn" data-article-idx="${idx}">ASK AI MORE ✦</button>
   </div>`;
 
   overlay.innerHTML = `
@@ -8807,7 +8807,7 @@ function openMobNewsSheet(idx) {
     : '';
   const mobBtnRow = `<div class="mob-sheet-btn-row">
     ${item.source ? `<a class="mob-news-sheet-source" href="${escapeHtml(item.source)}" target="_blank" rel="noopener">READ SOURCE →</a>` : ''}
-    <button class="mob-sheet-ask-ai-btn" onclick="openNewsArticleAI(${JSON.stringify(item.title)},${JSON.stringify(item.summary || '')})">ASK AI MORE ✦</button>
+    <button class="mob-sheet-ask-ai-btn" data-article-idx="${idx}">ASK AI MORE ✦</button>
   </div>`;
 
   inner.innerHTML = `
@@ -12732,6 +12732,19 @@ function closeAllDropdowns() {
   var dd = document.getElementById('info-dropdown');
   if (dd) dd.style.display = 'none';
 }
+
+// Delegated handler for ASK AI MORE buttons (dynamically rendered in popups/sheets)
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.news-popup-ask-ai-btn, .mob-sheet-ask-ai-btn');
+  if (!btn) return;
+  const idx = parseInt(btn.dataset.articleIdx, 10);
+  const item = _rssItems[idx];
+  if (!item) { console.warn('[ASK AI MORE] item not found at index', idx); return; }
+  const headline = item.title || '';
+  const summary  = item.summary || '';
+  console.log('ASK AI MORE tapped, article:', headline);
+  openNewsArticleAI(headline, summary);
+});
 
 function toggleStyleDropdown(e) {
   e.stopPropagation();
