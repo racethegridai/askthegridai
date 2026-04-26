@@ -1385,23 +1385,34 @@ async def chat(req: ChatRequest, request: Request):
         )
 
     client = anthropic.AsyncAnthropic(api_key=api_key)
-    try:
+
+    async def _call_anthropic() -> str:
         response = await client.messages.create(
             model="claude-sonnet-4-20250514",
             max_tokens=600,
             system=_CRITICAL_CONTEXT + "\n\n" + req.system,
             messages=req.messages,
         )
-        reply = response.content[0].text
-        if cache_key and reply:
-            _set_rc(cache_key, reply)
-        return {"reply": reply}
+        return response.content[0].text
+
+    try:
+        reply = await _call_anthropic()
     except anthropic.AuthenticationError:
         raise HTTPException(status_code=401, detail="Invalid Anthropic API key in .env")
     except anthropic.RateLimitError:
-        raise HTTPException(status_code=429, detail="Anthropic rate limit hit — try again shortly")
+        log.warning("[CHAT] Rate limit hit — waiting 2s and retrying once")
+        try:
+            await asyncio.sleep(2)
+            reply = await _call_anthropic()
+        except Exception:
+            return {"error": "Too many requests right now. Please try again in a moment."}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        log.warning("[CHAT] Unexpected error: %s", exc)
+        return {"error": "Something went wrong. Please try again in a moment."}
+
+    if cache_key and reply:
+        _set_rc(cache_key, reply)
+    return {"reply": reply}
 
 
 @app.post("/api/chat-stream")

@@ -7022,6 +7022,31 @@
    BACKEND CONFIG
 ────────────────────────────────────────────────── */
 const BACKEND  = 'https://web-production-86197.up.railway.app';
+
+/* ── Global AI request queue ─────────────────────────
+   Ensures only one /api/chat call fires at a time.
+   Concurrent requests wait 1 s between each other. */
+const _aiQueue   = [];
+let   _aiRunning = false;
+
+function _enqueueAi(fn) {
+  return new Promise(function(resolve, reject) {
+    _aiQueue.push({ fn, resolve, reject });
+    _drainAiQueue();
+  });
+}
+
+async function _drainAiQueue() {
+  if (_aiRunning || !_aiQueue.length) return;
+  _aiRunning = true;
+  const { fn, resolve, reject } = _aiQueue.shift();
+  try   { resolve(await fn()); }
+  catch (e) { reject(e); }
+  finally {
+    _aiRunning = false;
+    if (_aiQueue.length) setTimeout(_drainAiQueue, 1000);
+  }
+}
 const POLL_MS  = 15_000;  // fallback polling interval (ms)
 
 /* ──────────────────────────────────────────────────
@@ -8592,15 +8617,18 @@ function closeNewsPopup() {
 var _newsArticleHistory = [];
 var _newsArticleBusy    = false;
 
+var _articleDeepDiveBusy = false;
+
 function openNewsArticleAI(title, summary) {
+  if (_articleDeepDiveBusy) return;
+
   // Close whichever popup/sheet is open
   closeNewsPopup();
   closeMobNewsSheet();
 
-  // Switch to the News > Daily tab so the full-page view has a home
+  // Switch to the News > Daily tab
   if (isMobile()) {
     mobSwitchTab('news');
-    // Ensure mob-news-daily panel is shown
     const dailyPanel = document.getElementById('mob-news-daily');
     if (dailyPanel) {
       document.querySelectorAll('.mob-news-panel').forEach(p => p.classList.remove('active'));
@@ -8611,15 +8639,120 @@ function openNewsArticleAI(title, summary) {
     switchNewsTab('daily');
   }
 
-  // Build the 4-section deep-dive prompt
-  const deepDivePrompt =
-    'You are an F1 expert. The user is reading this article: "' + title + '".' +
-    (summary ? ' Summary: ' + summary : '') +
-    ' Give a deep dive analysis covering: (1) The full story, (2) Why it matters for the championship, (3) What happens next, (4) Casual fan verdict. Keep each section 2-3 sentences. Plain English. No jargon.' +
-    '\n\nFOLLOWUPS: Who does this affect most? | How does this change the championship? | What\'s the team\'s reaction? | Explain the technical side';
+  _articleDeepDiveBusy = true;
+  _articleDeepDiveRender(title, summary || '');
+}
 
-  // Reuse the Reddit/Trends full-page renderer with article context
-  newsRedditOpen(title, summary || null, deepDivePrompt);
+async function _articleDeepDiveRender(title, summary) {
+  const containerId = isMobile() ? 'mob-news-daily' : 'rssNewsLeft';
+  const container   = document.getElementById(containerId);
+  if (!container) { _articleDeepDiveBusy = false; return; }
+
+  window._newsRedditPrevHtml    = container.innerHTML;
+  window._newsRedditContainerId = containerId;
+  _newsRedditHistory        = [];
+  _newsRedditBusy           = false;
+  _newsRedditArticleContext = summary || null;
+
+  // Clean display title
+  const displayTitle = title
+    .replace(/\s*[—–-]+\s*explain this F1 topic.*$/i, '')
+    .replace(/^Search the web and read (?:current )?articles about (?:this F1 story:\s*)?/i, '')
+    .replace(/\.\s*(Explain|Summarize|Give|Tell).*$/i, '')
+    .trim() || title;
+
+  const cardStyle  = 'background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:14px 16px;font-size:15px;color:#e0ddd8;line-height:1.7;margin-bottom:10px;';
+  const labelStyle = 'display:block;font-size:11px;font-weight:700;color:#e10600;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;';
+
+  container.innerHTML =
+    '<div style="padding:16px 14px;" id="_articleDeepDiveRoot">' +
+    '<button onclick="_newsRedditBack()" style="background:transparent;border:none;color:#555;font-size:11px;cursor:pointer;margin-bottom:16px;padding:0;font-family:inherit;">← Back to news</button>' +
+    '<div style="font-size:17px;font-weight:800;color:#fff;margin-bottom:16px;line-height:1.3;">' + escapeHtml(displayTitle) + '</div>' +
+    '<div id="_articleSections"><div style="' + cardStyle + '"><div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>' +
+    '<div id="_articleChips" style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;"></div>' +
+    '<div id="news-reddit-chat" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>' +
+    '<div style="display:flex;gap:6px;">' +
+    '<input id="news-reddit-input" placeholder="Ask anything about this article…" ' +
+    'style="flex:1;background:#111;border:1px solid #1c1c1c;border-radius:6px;padding:9px 12px;font-size:11px;color:#e0ddd8;font-family:inherit;outline:none;" ' +
+    'onkeydown="if(event.key===\'Enter\'){_newsRedditAsk(null);}" />' +
+    '<button onclick="_newsRedditAsk(null)" style="background:#e10600;border:none;border-radius:6px;padding:9px 16px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Ask</button>' +
+    '</div></div>';
+
+  const jsonPrompt =
+    'Return ONLY a valid JSON object — no markdown, no code fences. Two keys:\n' +
+    '"sections": array of exactly 3 objects, each with "label" (string) and "content" (string, max 2 sentences).\n' +
+    'Labels must be: "The short version", "What\'s actually happening", "Why F1 fans care".\n' +
+    '"chips": array of exactly 4 short follow-up question strings (max 8 words each).\n' +
+    'Article: "' + title + '".' + (summary ? ' Summary: ' + summary : '');
+
+  const doFetch = async () => {
+    const r = await fetch(BACKEND + '/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'You are an F1 expert. ' + getStylePrompt() + ' Return only valid JSON.',
+        messages: [{ role: 'user', content: jsonPrompt }],
+      }),
+      signal: AbortSignal.timeout(30000),
+    });
+    return r.json();
+  };
+
+  let data;
+  try {
+    data = await _enqueueAi(doFetch);
+  } catch(e) {
+    _articleDeepDiveBusy = false;
+    _renderDeepDiveError(title, summary);
+    return;
+  }
+
+  _articleDeepDiveBusy = false;
+
+  // Handle backend soft error
+  if (data.error) { _renderDeepDiveError(title, summary); return; }
+
+  // Parse JSON from reply
+  let parsed;
+  try {
+    const raw = (data.reply || '').replace(/```json|```/g, '').trim();
+    parsed = JSON.parse(raw);
+  } catch(e) {
+    _renderDeepDiveError(title, summary);
+    return;
+  }
+
+  const sectionsEl = document.getElementById('_articleSections');
+  const chipsEl    = document.getElementById('_articleChips');
+  if (!sectionsEl || !chipsEl) return;
+
+  // Render 3 section cards
+  const sections = Array.isArray(parsed.sections) ? parsed.sections : [];
+  sectionsEl.innerHTML = sections.map(s =>
+    '<div style="' + cardStyle + '">' +
+    '<span style="' + labelStyle + '">' + escapeHtml(String(s.label || '')) + '</span>' +
+    _renderBold(String(s.content || '')) +
+    '</div>'
+  ).join('');
+
+  // Render 4 follow-up chips
+  const chips = Array.isArray(parsed.chips) ? parsed.chips : [];
+  chipsEl.innerHTML = chips.map(c =>
+    '<button onclick="_newsRedditAsk(' + JSON.stringify(String(c)) + ')" ' +
+    'style="font-size:11px;padding:10px 16px;border-radius:20px;background:#111;border:1px solid #333;color:#e0ddd8;cursor:pointer;font-family:inherit;">' +
+    escapeHtml(String(c)) + '</button>'
+  ).join('');
+}
+
+function _renderDeepDiveError(title, summary) {
+  const sectionsEl = document.getElementById('_articleSections');
+  if (!sectionsEl) return;
+  sectionsEl.innerHTML =
+    '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:18px 16px;text-align:center;">' +
+    '<div style="font-size:13px;color:#888;margin-bottom:12px;">Taking a moment…</div>' +
+    '<button onclick="_articleDeepDiveBusy=false;openNewsArticleAI(' + JSON.stringify(title) + ',' + JSON.stringify(summary) + ')" ' +
+    'style="background:#e10600;border:none;border-radius:6px;padding:9px 20px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Tap to retry</button>' +
+    '</div>';
 }
 
 function _newsArticleBack() {
@@ -12430,7 +12563,13 @@ async function _newsRedditAsk(text) {
     }
     _newsRedditHistory.push({ role: 'assistant', content: parsed.text || '(No response)' });
   } catch(e) {
-    bubble.textContent = '⚠ Could not connect. Try again.';
+    const retryQ = q;
+    bubble.innerHTML =
+      '<div style="text-align:center;padding:6px 0;">' +
+      '<div style="font-size:13px;color:#888;margin-bottom:10px;">Taking a moment…</div>' +
+      '<button onclick="_newsRedditAsk(' + JSON.stringify(retryQ) + ')" ' +
+      'style="background:#e10600;border:none;border-radius:6px;padding:8px 18px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Tap to retry</button>' +
+      '</div>';
   } finally {
     _newsRedditBusy = false;
     if (chat) chat.scrollTop = chat.scrollHeight;
