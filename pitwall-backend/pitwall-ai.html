@@ -2808,6 +2808,64 @@
       }
     }
 
+    /* ── OWNER MODE PANEL ───────────────────────────── */
+    #ownerPanel {
+      display: none;
+      background: #080808;
+      border-bottom: 1px solid #1a1a1a;
+      padding: 16px 20px;
+      font-family: 'Titillium Web', sans-serif;
+    }
+    #ownerPanel .op-card {
+      background: #0d0d0d;
+      border-top: 2px solid #e10600;
+      border-left: 1px solid #1e1e1e;
+      border-right: 1px solid #1e1e1e;
+      border-bottom: 1px solid #1e1e1e;
+      border-radius: 0 0 8px 8px;
+      padding: 14px 16px;
+      max-width: 680px;
+    }
+    #ownerPanel .op-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    #ownerPanel .op-title {
+      font-size: 9px; font-weight: 700; color: #e10600;
+      letter-spacing: 1.5px; text-transform: uppercase;
+    }
+    #ownerPanel .op-actions { display: flex; gap: 8px; }
+    #ownerPanel .op-btn {
+      font-family: 'Titillium Web', sans-serif; font-size: 9px; font-weight: 700;
+      letter-spacing: .5px; padding: 5px 10px; border-radius: 3px; cursor: pointer;
+      border: 1px solid #2a2a2a; background: #111; color: #888;
+      transition: color .15s, border-color .15s;
+    }
+    #ownerPanel .op-btn:hover { color: #fff; border-color: #444; }
+    #ownerPanel .op-btn.primary { background: #e10600; border-color: #e10600; color: #fff; }
+    #ownerPanel .op-btn.primary:hover { background: #c50500; }
+    #ownerPanel .op-stats { display: flex; gap: 24px; margin-bottom: 14px; }
+    #ownerPanel .op-stat-num {
+      font-size: 36px; font-weight: 900; color: #fff; line-height: 1;
+    }
+    #ownerPanel .op-stat-num.red { color: #e10600; }
+    #ownerPanel .op-stat-label {
+      font-size: 9px; color: #555; text-transform: uppercase; letter-spacing: .5px;
+      margin-top: 3px;
+    }
+    #ownerPanel .op-recent-title {
+      font-size: 9px; color: #444; text-transform: uppercase; letter-spacing: .5px;
+      margin-bottom: 6px;
+    }
+    #ownerPanel .op-recent-row {
+      display: flex; gap: 10px; padding: 5px 0;
+      border-bottom: 1px solid #111; font-size: 11px;
+    }
+    #ownerPanel .op-recent-row:last-child { border-bottom: none; }
+    #ownerPanel .op-name  { color: #ccc; font-weight: 700; min-width: 120px; }
+    #ownerPanel .op-email { color: #555; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #ownerPanel .op-ts    { color: #333; font-size: 9px; margin-left: auto; white-space: nowrap; }
+    #ownerPanel .op-updated { font-size: 9px; color: #333; margin-top: 10px; }
     /* ── OWNER MODE BADGE ───────────────────────────── */
     #ownerBadge {
       position: fixed;
@@ -5024,24 +5082,6 @@ async function wlSubmit(e) {
 <div id="ownerBadge">OWNER</div>
 <div id="influencerBadge">CREATOR</div>
 
-<!-- ── Owner waitlist dashboard (hidden until owner mode active) ── -->
-<div id="ownerWaitlistDash" style="display:none;position:fixed;bottom:16px;right:16px;z-index:8000;
-  background:#0d0d0d;border:1px solid #1e1e1e;border-radius:10px;padding:14px 16px;
-  min-width:220px;max-width:280px;font-family:'Titillium Web',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,.7);">
-  <div style="font-size:9px;font-weight:700;color:#e10600;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Waitlist</div>
-  <div style="display:flex;gap:16px;margin-bottom:10px;">
-    <div>
-      <div id="wlDashTotal" style="font-size:28px;font-weight:900;color:#fff;line-height:1;">—</div>
-      <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.5px;">Total</div>
-    </div>
-    <div>
-      <div id="wlDashToday" style="font-size:28px;font-weight:900;color:#e10600;line-height:1;">—</div>
-      <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.5px;">Today</div>
-    </div>
-  </div>
-  <div id="wlDashRecent" style="display:flex;flex-direction:column;gap:4px;"></div>
-  <div style="font-size:9px;color:#333;margin-top:10px;cursor:pointer;" onclick="_loadWaitlistDash(true)">↻ refresh</div>
-</div>
 
 <!-- ═══════════════════════════════════════════════════
      MOBILE HUB (< 768px only — completely replaces desktop layout)
@@ -6209,6 +6249,32 @@ async function wlSubmit(e) {
 <!-- ═══════════════════════════════════════════════════
      TAB VIEW
 ═══════════════════════════════════════════════════ -->
+<!-- ── Owner mode panel (visible only when ?owner= active) ── -->
+<div id="ownerPanel">
+  <div class="op-card">
+    <div class="op-header">
+      <div class="op-title">Waitlist · Owner View</div>
+      <div class="op-actions">
+        <button class="op-btn" onclick="_loadOwnerPanel(true)">↻ Refresh</button>
+        <a class="op-btn primary" href="https://askthegridai.com/api/waitlist-export?key=atgaiimamw2026" target="_blank" rel="noopener" style="text-decoration:none;">↓ Download CSV</a>
+      </div>
+    </div>
+    <div class="op-stats">
+      <div>
+        <div class="op-stat-num" id="opTotal">—</div>
+        <div class="op-stat-label">Total Signups</div>
+      </div>
+      <div>
+        <div class="op-stat-num red" id="opToday">—</div>
+        <div class="op-stat-label">Today</div>
+      </div>
+    </div>
+    <div class="op-recent-title">5 Most Recent</div>
+    <div id="opRecent"><div style="color:#333;font-size:11px">Loading…</div></div>
+    <div class="op-updated" id="opUpdated"></div>
+  </div>
+</div>
+
 <div class="tab-view">
 
 <!-- ─── TAB: HOME ─────────────────────────────── -->
@@ -10658,34 +10724,44 @@ function _setOwnerMode(on) {
     _mobUpdateFreeCount();
     const mobBtn = document.getElementById('mobAskBtn');
     if (mobBtn) mobBtn.disabled = false;
-    // Show waitlist dashboard
-    const dash = document.getElementById('ownerWaitlistDash');
-    if (dash) { dash.style.display = 'block'; _loadWaitlistDash(); }
+    // Show owner panel with waitlist stats
+    const panel = document.getElementById('ownerPanel');
+    if (panel) { panel.style.display = 'block'; _loadOwnerPanel(); }
   } else {
     updateFreeLimitUI();
     _mobUpdateFreeCount();
-    const dash = document.getElementById('ownerWaitlistDash');
-    if (dash) dash.style.display = 'none';
+    const panel = document.getElementById('ownerPanel');
+    if (panel) panel.style.display = 'none';
   }
 }
 
-async function _loadWaitlistDash(force) {
+async function _loadOwnerPanel(force) {
+  const totalEl  = document.getElementById('opTotal');
+  const todayEl  = document.getElementById('opToday');
+  const recentEl = document.getElementById('opRecent');
+  const updatedEl = document.getElementById('opUpdated');
+  if (recentEl) recentEl.innerHTML = '<div style="color:#333;font-size:11px">Loading\u2026</div>';
   try {
     const r = await fetch(`${BACKEND}/api/waitlist-count?key=atgaiimamw2026`,
       { signal: AbortSignal.timeout(8000) });
-    if (!r.ok) return;
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
-    const totalEl  = document.getElementById('wlDashTotal');
-    const todayEl  = document.getElementById('wlDashToday');
-    const recentEl = document.getElementById('wlDashRecent');
-    if (totalEl)  totalEl.textContent  = d.total ?? '\u2014';
-    if (todayEl)  todayEl.textContent  = d.today ?? '\u2014';
-    if (recentEl) recentEl.innerHTML = (d.recent || []).map(function(e) {
-      var label = (e.name || 'Anonymous') + ' \u00b7 ' + (e.email || '');
-      return '<div style="font-size:10px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' +
-        label + '">' + label + '</div>';
-    }).join('');
-  } catch(e) { /* silent \u2014 dashboard is informational only */ }
+    if (totalEl)  totalEl.textContent = d.total ?? '\u2014';
+    if (todayEl)  todayEl.textContent = d.today ?? '\u2014';
+    if (recentEl) recentEl.innerHTML = (d.recent || []).length
+      ? (d.recent || []).map(function(e) {
+          var ts = (e.timestamp || '').replace('T', ' ').slice(0, 16);
+          return '<div class="op-recent-row">' +
+            '<span class="op-name">'  + escapeHtml(e.name  || 'Anonymous') + '</span>' +
+            '<span class="op-email">' + escapeHtml(e.email || '') + '</span>' +
+            '<span class="op-ts">'   + escapeHtml(ts) + '</span>' +
+          '</div>';
+        }).join('')
+      : '<div style="color:#333;font-size:11px">No signups yet.</div>';
+    if (updatedEl) updatedEl.textContent = 'Updated ' + new Date().toLocaleTimeString();
+  } catch(e) {
+    if (recentEl) recentEl.innerHTML = '<div style="color:#555;font-size:11px">Could not load \u2014 check Railway logs.</div>';
+  }
 }
 
 function _toggleOwnerMode() {
