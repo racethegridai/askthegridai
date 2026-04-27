@@ -17,6 +17,51 @@
   })();
   </script>
   <style>
+    /* ── Text-only overrides — no layout/background/border changes ── */
+
+    /* AI response text — all tabs */
+    .sp-ai-response, .ai-answer-text, .ai-response-body,
+    .hub-response, .zone-response, .rules-response,
+    .news-ai-response, .driver-ai-response,
+    .rl-bubble-ai,
+    .mob-ai-response, .mob-news-ai-resp, .news-ai-resp,
+    .mob-rp-ai-resp, .watch-next-text, .watch-next-action {
+      color: #f0ede8 !important;
+      font-size: 15px !important;
+      line-height: 1.75 !important;
+    }
+
+    /* Section labels */
+    .sp-section-label, .ai-section-label, .hub-label, .eyebrow,
+    .mob-news-sec-label, .trending-section-label,
+    .card-title, .news-popup-section-label, .mob-news-sheet-sec,
+    .atgai-eyebrow, .atgai-section-label {
+      color: #e10600 !important;
+      font-size: 11px !important;
+      letter-spacing: 0.1em !important;
+      text-transform: uppercase !important;
+    }
+
+    /* Body / card text */
+    .sp-card-text, .news-summary-text, .article-body, .driver-bio,
+    .rss-card-preview, .mob-rss-card-preview,
+    .news-popup-summary, .mob-news-sheet-summary,
+    .news-popup-insight-val, .mob-news-sheet-insight-val,
+    .atgai-trending-text, .atgai-trivia-text {
+      color: #d4d0ca !important;
+      font-size: 14px !important;
+      line-height: 1.7 !important;
+    }
+
+    /* Muted metadata */
+    .sp-meta, .timestamp, .source-tag, .lap-info,
+    .rss-card-time, .mob-rss-card-time,
+    .news-popup-time, .mob-news-sheet-time,
+    .reddit-time, .atgai-stat-sub, .atgai-circuit {
+      color: #777 !important;
+      font-size: 12px !important;
+    }
+
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
