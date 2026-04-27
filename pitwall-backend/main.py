@@ -1552,7 +1552,9 @@ async def ping():
     return {"ok": True}
 
 
-_WAITLIST_LOG  = Path(os.getenv("DATA_DIR", str(Path(__file__).parent))) / "waitlist.csv"
+DATA_DIR      = os.environ.get("DATA_DIR", ".")
+WAITLIST_FILE = os.path.join(DATA_DIR, "waitlist.csv")
+_WAITLIST_LOG = Path(WAITLIST_FILE)
 _WAITLIST_LOCK: asyncio.Lock | None = None   # initialised in _lifespan
 
 @app.post("/api/waitlist")
