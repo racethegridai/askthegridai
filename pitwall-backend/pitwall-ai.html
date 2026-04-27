@@ -8250,6 +8250,8 @@ function setFreeCount(n) {
 }
 
 function isLimitBypassed() {
+  if (localStorage.getItem('atgai_access') === 'true') return true;
+  if (localStorage.getItem('isSubscribed')  === 'true') return true;
   if (isOwnerMode()) return true;
   if (isInfluencerMode()) return true;
   if (window._ownerBypass) return true;
@@ -10475,7 +10477,8 @@ function _setOwnerMode(on) {
   ownerMode = on;
   window._ownerBypass = on; // keep isLimitBypassed() in sync with keyboard toggle
 
-  document.getElementById('ownerBadge').style.display = on ? 'block' : 'none';
+  var _ob = document.getElementById('ownerBadge');
+  if (_ob) _ob.style.display = on ? 'block' : 'none';
 
   // Unlock pro-gated UI
   document.querySelectorAll('.pro-gate').forEach(el => {
