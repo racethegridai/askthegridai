@@ -4876,8 +4876,6 @@
 </head>
 <body>
 
-<div id="ownerBadge">OWNER</div>
-<div id="influencerBadge">CREATOR</div>
 
 <!-- ═══════════════════════════════════════════════════
      MOBILE HUB (< 768px only — completely replaces desktop layout)
@@ -13529,11 +13527,53 @@ window.spAsk = function(prompt) {
 
   window.wlCode = function(){
     var code = document.getElementById('wl-code').value.trim();
-    if(code === 'atgaiimamw2026'){
+    if(code === 'atgaiimamw2026' || code === 'miamivip2026atg' || code === 'creator.2026askthegrid'){
       localStorage.setItem('atgai_access','true');
+      window.atgaiSetMode(code);
+    }
+  };
+})();
+</script>
+
+<div id='atgai-mode-badge' style='display:none;position:fixed;bottom:12px;right:12px;z-index:9998;background:#111;border:1px solid;border-radius:4px;padding:3px 8px;font-size:10px;letter-spacing:.1em;font-weight:700;font-family:sans-serif'></div>
+
+<script>
+(function(){
+  var CODES = {
+    'atgaiimamw2026':           'owner',
+    'miamivip2026atg':          'vip',
+    'creator.2026askthegrid':   'creator'
+  };
+  var STYLES = {
+    'owner':   { label:'OWNER',   color:'#e10600' },
+    'creator': { label:'CREATOR', color:'#a855f7' },
+    'vip':     { label:'VIP',     color:'#f5a623' }
+  };
+  function applyBadge(){
+    var mode = localStorage.getItem('atgai_mode');
+    var badge = document.getElementById('atgai-mode-badge');
+    if(!badge) return;
+    if(mode && STYLES[mode]){
+      badge.textContent = STYLES[mode].label;
+      badge.style.color = STYLES[mode].color;
+      badge.style.borderColor = STYLES[mode].color;
+      badge.style.display = 'block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+  window.atgaiSetMode = function(code){
+    var mode = CODES[code.trim()];
+    if(mode){
+      localStorage.removeItem('atgai_mode');
+      localStorage.setItem('atgai_mode', mode);
       location.reload();
     }
   };
+  window.atgaiGetMode = function(){
+    return localStorage.getItem('atgai_mode');
+  };
+  applyBadge();
 })();
 </script>
 
