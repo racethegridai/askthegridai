@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ask The Grid AI — F1 Race Intelligence</title>
   <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,300;0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
+  <script>
+  // Mode system — defined in <head> so atgaiSetMode is available to all scripts
+  (function(){
+    var CODES = {'atgaiimamw2026':'owner','miamivip2026atg':'vip','creator.2026askthegrid':'creator'};
+    window.atgaiSetMode = function(code){
+      var mode = CODES[code.trim().toLowerCase()];
+      if(mode){ localStorage.removeItem('atgai_mode'); localStorage.setItem('atgai_mode',mode); location.reload(); }
+    };
+    window.atgaiGetMode = function(){ return localStorage.getItem('atgai_mode'); };
+  })();
+  </script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -13059,39 +13070,20 @@ function applyPromoCode() {
   var input = document.getElementById('promoInput');
   var result = document.getElementById('promoResult');
   if (!input || !result) return;
-  var code = input.value.trim().toUpperCase();
+  var code = input.value.trim();
 
-  // ADD NEW PROMO CODES HERE
-  var PROMO_CODES = {
-    // Owner codes — full owner mode
-    'ATGAIIMAMW2026': { type: 'owner', message: 'Owner mode activated. Unlimited access enabled.', color: '#22c55e' },
-    // Influencer codes — unlimited questions, creator badge
-    'ATGAIVIP2026':   { type: 'influencer', message: 'Influencer access activated. Unlimited questions enabled.', color: '#a855f7' },
-    'MIAMIVIP2026':   { type: 'influencer', message: 'Miami VIP access activated.', color: '#a855f7' },
-    'CREATORACCESS':  { type: 'influencer', message: 'Creator access activated.', color: '#a855f7' }
-  };
-
-  var match = PROMO_CODES[code];
-  if (!match) {
+  var validCodes = ['atgaiimamw2026', 'miamivip2026atg', 'creator.2026askthegrid'];
+  if (validCodes.indexOf(code.toLowerCase()) !== -1) {
+    localStorage.setItem('atgai_access', 'true');
+    if (typeof window.atgaiSetMode === 'function') {
+      window.atgaiSetMode(code.toLowerCase());
+    } else {
+      location.reload();
+    }
+  } else {
     result.textContent = 'Invalid promo code. Please check and try again.';
     result.style.color = '#e10600';
-    return;
   }
-
-  if (match.type === 'owner') {
-    activateOwnerMode();
-  } else if (match.type === 'influencer') {
-    activateInfluencerMode();
-  }
-
-  result.textContent = match.message;
-  result.style.color = match.color;
-  input.value = '';
-
-  setTimeout(function() {
-    closePromoModal();
-    result.textContent = '';
-  }, 2000);
 }
 </script>
 
