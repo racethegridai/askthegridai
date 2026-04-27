@@ -1036,8 +1036,9 @@ async def _news_poller():
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
-    global _state, _log_lock
-    _log_lock = asyncio.Lock()   # must be created inside the running event loop
+    global _state, _log_lock, _WAITLIST_LOCK
+    _log_lock      = asyncio.Lock()   # must be created inside the running event loop
+    _WAITLIST_LOCK = asyncio.Lock()
     _state = _blank_state()
     task_regular  = asyncio.create_task(_poller())
     task_critical = asyncio.create_task(_poll_critical())
@@ -1554,6 +1555,52 @@ async def chat_stream(req: ChatRequest, request: Request):
 async def ping():
     """Keep-alive endpoint — frontend pings every 4 minutes to prevent Railway cold starts."""
     return {"ok": True}
+
+
+_WAITLIST_LOG  = Path(__file__).parent / "waitlist.csv"
+_WAITLIST_LOCK: asyncio.Lock | None = None   # initialised in _lifespan
+
+@app.post("/api/waitlist")
+async def waitlist_signup(request: Request):
+    """Append a name + email to waitlist.csv."""
+    body = await request.json()
+    name  = str(body.get("name",  "")).strip()[:200]
+    email = str(body.get("email", "")).strip()[:200]
+    if not email:
+        return {"error": "Email required"}
+    ts  = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    row = [ts, name, email, _get_client_ip(request)]
+    if _WAITLIST_LOCK is None:
+        return {"ok": True}   # lock not ready (startup edge case)
+    async with _WAITLIST_LOCK:
+        try:
+            if not _WAITLIST_LOG.exists():
+                with open(_WAITLIST_LOG, "w", newline="", encoding="utf-8") as f:
+                    csv.writer(f).writerow(["timestamp", "name", "email", "ip"])
+            with open(_WAITLIST_LOG, "a", newline="", encoding="utf-8") as f:
+                csv.writer(f).writerow(row)
+            log.info("[WAITLIST] %s <%s>", name, email)
+        except Exception as exc:
+            log.warning("[WAITLIST] Write failed: %s", exc)
+    return {"ok": True}
+
+
+@app.get("/api/waitlist-export")
+async def export_waitlist(key: str = ""):
+    """Owner-only: download waitlist.csv."""
+    import io
+    from fastapi.responses import StreamingResponse as _SR
+    if key != "atgaiimamw2026":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    if not _WAITLIST_LOG.exists():
+        raise HTTPException(status_code=404, detail="No signups yet")
+    content = _WAITLIST_LOG.read_text(encoding="utf-8")
+    log.info("[WAITLIST] Export requested (%d bytes)", len(content))
+    return _SR(
+        iter([content.encode("utf-8")]),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="waitlist.csv"'},
+    )
 
 
 @app.get("/api/export-questions")

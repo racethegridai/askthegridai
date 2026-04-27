@@ -4872,9 +4872,154 @@
     color: #888;
     line-height: 1.75;
   }
+
+  /* ── Waitlist gate ─────────────────────────────── */
+  #atgai-waitlist { display:none; }
+  body.gate-active > *:not(#atgai-waitlist) { display:none !important; }
+  body.gate-active #atgai-waitlist {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    position:fixed; inset:0; background:#000; z-index:99999;
+    font-family:'Titillium Web',sans-serif; padding:24px; box-sizing:border-box;
+    overflow-y:auto;
+  }
+  .wl-logo { width:200px; margin-bottom:28px; }
+  .wl-headline {
+    font-size:clamp(24px,6vw,40px); font-weight:900; color:#fff;
+    text-align:center; line-height:1.15; margin-bottom:10px; letter-spacing:-.5px;
+  }
+  .wl-sub {
+    font-size:clamp(13px,3vw,17px); color:#888; text-align:center;
+    margin-bottom:32px; max-width:380px; line-height:1.5;
+  }
+  .wl-countdown {
+    display:flex; gap:20px; margin-bottom:36px; align-items:flex-end;
+  }
+  .wl-cd-unit { text-align:center; }
+  .wl-cd-num {
+    display:block; font-size:clamp(32px,8vw,52px); font-weight:900;
+    color:#e10600; line-height:1; font-variant-numeric:tabular-nums;
+  }
+  .wl-cd-label { font-size:10px; color:#555; letter-spacing:1px; text-transform:uppercase; }
+  .wl-cd-sep { font-size:36px; font-weight:900; color:#222; margin-bottom:16px; }
+  .wl-form { display:flex; flex-direction:column; gap:12px; width:100%; max-width:360px; }
+  .wl-input {
+    background:#0d0d0d; border:1px solid #222; border-radius:4px;
+    color:#fff; font-family:'Titillium Web',sans-serif; font-size:14px;
+    padding:13px 14px; outline:none; transition:border-color .15s;
+  }
+  .wl-input:focus { border-color:#e10600; }
+  .wl-input::placeholder { color:#444; }
+  .wl-submit {
+    background:#e10600; border:none; border-radius:4px; color:#fff;
+    font-family:'Titillium Web',sans-serif; font-size:14px; font-weight:900;
+    letter-spacing:.5px; padding:14px; cursor:pointer; transition:background .15s;
+    margin-top:4px;
+  }
+  .wl-submit:hover { background:#c50500; }
+  .wl-submit:disabled { background:#3a0000; color:#666; cursor:default; }
+  .wl-confirm {
+    display:none; text-align:center; color:#22c55e; font-size:14px;
+    font-weight:700; padding:14px; margin-top:4px;
+  }
+  .wl-promo-wrap {
+    margin-top:36px; text-align:center;
+    font-size:11px; color:#444; letter-spacing:.3px;
+  }
+  .wl-promo-wrap input {
+    display:block; margin:8px auto 0; background:transparent;
+    border:none; border-bottom:1px solid #222; color:#666;
+    font-family:'Titillium Web',sans-serif; font-size:11px;
+    padding:5px 0; outline:none; text-align:center; width:200px;
+    transition:border-color .15s;
+  }
+  .wl-promo-wrap input:focus { border-color:#555; color:#aaa; }
   </style>
 </head>
 <body>
+
+<!-- ── Waitlist gate (runs before app renders) ─────── -->
+<div id="atgai-waitlist" role="main">
+  <img src="/atg-logo.svg" alt="ATG" class="wl-logo">
+  <div class="wl-headline">F1's AI companion is almost here</div>
+  <div class="wl-sub">Launching for the Miami Grand Prix. Be first in.</div>
+  <div class="wl-countdown">
+    <div class="wl-cd-unit"><span class="wl-cd-num" id="wl-d">--</span><span class="wl-cd-label">Days</span></div>
+    <div class="wl-cd-sep">:</div>
+    <div class="wl-cd-unit"><span class="wl-cd-num" id="wl-h">--</span><span class="wl-cd-label">Hrs</span></div>
+    <div class="wl-cd-sep">:</div>
+    <div class="wl-cd-unit"><span class="wl-cd-num" id="wl-m">--</span><span class="wl-cd-label">Min</span></div>
+    <div class="wl-cd-sep">:</div>
+    <div class="wl-cd-unit"><span class="wl-cd-num" id="wl-s">--</span><span class="wl-cd-label">Sec</span></div>
+  </div>
+  <form class="wl-form" id="wlForm" onsubmit="wlSubmit(event)">
+    <input class="wl-input" id="wlName"  type="text"  placeholder="Your name"         autocomplete="name">
+    <input class="wl-input" id="wlEmail" type="email" placeholder="Email address"      autocomplete="email" required>
+    <button class="wl-submit" id="wlBtn" type="submit">Join the waitlist</button>
+    <div class="wl-confirm" id="wlConfirm">You're in. We'll message you before lights out. 🏁</div>
+  </form>
+  <div class="wl-promo-wrap">
+    Have a code? Enter it here
+    <input type="text" id="wlPromo" placeholder="promo code"
+      oninput="if(this.value.toLowerCase()==='atgaiimamw2026'){localStorage.setItem('atgai_access','true');location.reload();}">
+  </div>
+</div>
+
+<script>
+/* ── ONE LINE TO OPEN UP: change WAITLIST_ACTIVE to false ── */
+const WAITLIST_ACTIVE = true;
+
+(function() {
+  const p = new URLSearchParams(location.search);
+  const hasAccess = !WAITLIST_ACTIVE
+    || p.get('owner') === 'atgaiimamw2026'
+    || localStorage.getItem('atgai_access') === 'true';
+  if (hasAccess) return;
+  document.body.classList.add('gate-active');
+
+  // Countdown to Miami FP1 — May 1 2026 12:30 local (EDT = UTC-4 → 16:30 UTC)
+  const TARGET = new Date('2026-05-01T16:30:00Z');
+  function tick() {
+    const diff = TARGET - new Date();
+    if (diff <= 0) {
+      ['wl-d','wl-h','wl-m','wl-s'].forEach(function(id){
+        var el = document.getElementById(id); if (el) el.textContent = '0';
+      });
+      return;
+    }
+    var d = Math.floor(diff / 86400000);
+    var h = Math.floor((diff % 86400000) / 3600000);
+    var m = Math.floor((diff % 3600000) / 60000);
+    var s = Math.floor((diff % 60000) / 1000);
+    var pad = function(n){ return String(n).padStart(2,'0'); };
+    var dEl = document.getElementById('wl-d'); if (dEl) dEl.textContent = d;
+    var hEl = document.getElementById('wl-h'); if (hEl) hEl.textContent = pad(h);
+    var mEl = document.getElementById('wl-m'); if (mEl) mEl.textContent = pad(m);
+    var sEl = document.getElementById('wl-s'); if (sEl) sEl.textContent = pad(s);
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+
+async function wlSubmit(e) {
+  e.preventDefault();
+  var name  = (document.getElementById('wlName')  || {}).value || '';
+  var email = (document.getElementById('wlEmail') || {}).value || '';
+  if (!email) return;
+  var btn  = document.getElementById('wlBtn');
+  var conf = document.getElementById('wlConfirm');
+  if (btn) { btn.disabled = true; btn.textContent = 'Joining…'; }
+  try {
+    await fetch('/api/waitlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, email: email }),
+    });
+  } catch(err) { /* fail silently — still show confirmation */ }
+  var form = document.getElementById('wlForm');
+  if (form) form.style.display = 'none';
+  if (conf) conf.style.display = 'block';
+}
+</script>
 
 <div id="ownerBadge">OWNER</div>
 <div id="influencerBadge">CREATOR</div>
