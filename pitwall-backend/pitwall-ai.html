@@ -7275,8 +7275,10 @@ function applyState(data) {
     renderStandings(data.drivers);
     renderStratCard(data.drivers.slice(0, 5));
     _startOpenF1Poll();
+    _startTyrePoller();
   } else {
     _stopOpenF1Poll();
+    _stopTyrePoller();
     if (_liveRaceActive) {
       _liveRaceActive = false;
       if (_chmpData) renderChampionshipStandings(_chmpData.standings, _chmpData.source);
@@ -9191,9 +9193,10 @@ function renderChampionshipStandings(standings, source) {
     const posClass = s.position <= 3 ? 'p' + s.position : '';
     const colour   = _teamColor(s.team);
     const name     = s.first_name ? escapeHtml(s.first_name[0] + '. ' + s.driver) : escapeHtml(s.driver);
-    const winsBadge = s.wins > 0
-      ? '<span class="leader-badge">' + s.wins + 'W</span>'
-      : '<span style="color:#333">\u2014</span>';
+    const wins = (s.wins != null && s.wins !== '') ? Number(s.wins) : 0;
+    const winsBadge = wins > 0
+      ? '<span class="leader-badge">' + wins + 'W</span>'
+      : '<span style="color:#777;font-size:12px;font-weight:700">0</span>';
     return `
       <tr class="${isLeader ? 'p1' : ''}">
         <td class="td-pos ${posClass}">${s.position}</td>
@@ -9397,6 +9400,47 @@ function renderLeftIncidents(incidents) {
     const lapBadge = inc.lap ? `<span class="left-inc-lap">L${inc.lap}</span>` : '';
     return `<div class="left-inc-row">${lapBadge}<span class="left-inc-msg">${escapeHtml(inc.msg || inc.flag || '')}</span></div>`;
   }).join('');
+}
+
+/* ── Live tyre overlay from OpenF1 (refreshed every 30 s during races) ── */
+let _liveTyres    = {};   // driver_number (int) → { tyre: 'S'|'M'|'H'|'I'|'W', laps: number }
+let _liveTyresIv  = null;
+const _TYRE_INITIAL = { S:'S', SOFT:'S', M:'M', MEDIUM:'M', H:'H', HARD:'H',
+                         I:'I', INTERMEDIATE:'I', INTER:'I', W:'W', WET:'W' };
+
+async function _fetchLiveTyres() {
+  if (!liveData || !liveData.is_live) return;
+  try {
+    const res = await fetch('https://api.openf1.org/v1/stints?session_key=latest',
+      { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return;
+    const stints = await res.json();
+    const now = {};
+    stints.forEach(function(s) {
+      if (s.lap_end !== null && s.lap_end !== undefined) return; // already ended
+      const raw  = (s.compound || '').toUpperCase();
+      const code = _TYRE_INITIAL[raw] || raw.charAt(0) || '?';
+      now[s.driver_number] = { tyre: code, laps: s.lap_start ? 0 : 0 };
+    });
+    if (Object.keys(now).length) _liveTyres = now;
+    if (liveData.drivers) {
+      liveData.drivers.forEach(function(d) {
+        const t = _liveTyres[d.number];
+        if (t) d.tyre = t.tyre;
+      });
+    }
+  } catch(e) { /* silent — fall back to backend tyre data */ }
+}
+
+function _startTyrePoller() {
+  if (_liveTyresIv) return;
+  _fetchLiveTyres();
+  _liveTyresIv = setInterval(_fetchLiveTyres, 30000);
+}
+
+function _stopTyrePoller() {
+  if (_liveTyresIv) { clearInterval(_liveTyresIv); _liveTyresIv = null; }
+  _liveTyres = {};
 }
 
 function renderStandings(drivers) {
