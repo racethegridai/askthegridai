@@ -6187,9 +6187,6 @@ async function wlSubmit(e) {
       Info
       <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,3 5,7 8,3"/></svg>
     </button>
-    <button id="navWaitlistBtn" onclick="_loadOwnerPanel(true)" style="display:none;font-family:'Titillium Web',sans-serif;font-size:11px;font-weight:700;letter-spacing:.3px;color:#e10600;background:transparent;border:1px solid #2a0000;border-radius:3px;padding:5px 10px;cursor:pointer;transition:border-color .15s;" onmouseenter="this.style.borderColor='#e10600'" onmouseleave="this.style.borderColor='#2a0000'">
-      Waitlist: <span id="navWaitlistCount">—</span>
-    </button>
     <div style="position:relative">
       <button class="nav-style-btn" onclick="toggleStyleDropdown(event)">
         AI Style: <span class="nav-style-label">Beginner</span>
@@ -10730,16 +10727,16 @@ function _setOwnerMode(on) {
     // Show owner panel + nav waitlist button
     const panel = document.getElementById('ownerPanel');
     if (panel) { panel.style.display = 'block'; }
-    const navBtn = document.getElementById('navWaitlistBtn');
-    if (navBtn) navBtn.style.display = '';
+    const infoWl = document.getElementById('infoDropdownWaitlist');
+    if (infoWl) infoWl.style.display = 'block';
     _loadOwnerPanel();
   } else {
     updateFreeLimitUI();
     _mobUpdateFreeCount();
     const panel = document.getElementById('ownerPanel');
     if (panel) panel.style.display = 'none';
-    const navBtn = document.getElementById('navWaitlistBtn');
-    if (navBtn) navBtn.style.display = 'none';
+    const infoWl = document.getElementById('infoDropdownWaitlist');
+    if (infoWl) infoWl.style.display = 'none';
   }
 }
 
@@ -10756,8 +10753,10 @@ async function _loadOwnerPanel(force) {
     const d = await r.json();
     if (totalEl)  totalEl.textContent = d.total ?? '\u2014';
     if (todayEl)  todayEl.textContent = d.today ?? '\u2014';
-    const navCount = document.getElementById('navWaitlistCount');
-    if (navCount) navCount.textContent = d.total ?? '\u2014';
+    const infoTotal = document.getElementById('infoWlTotal');
+    const infoToday = document.getElementById('infoWlToday');
+    if (infoTotal) infoTotal.textContent = d.total ?? '\u2014';
+    if (infoToday) infoToday.textContent = d.today ?? '\u2014';
     if (recentEl) recentEl.innerHTML = (d.recent || []).length
       ? (d.recent || []).map(function(e) {
           var ts = (e.timestamp || '').replace('T', ' ').slice(0, 16);
@@ -13390,6 +13389,23 @@ function applyPromoCode() {
   <div class="nav-info-row" onclick="openInfoModal('about')">About Ask The Grid AI</div>
   <div class="nav-info-row" onclick="openInfoModal('contact')">Contact us</div>
   <div class="nav-info-row" onclick="openInfoModal('cookie')">Cookie policy</div>
+  <div id="infoDropdownWaitlist" style="display:none;border-top:1px solid #222;padding:10px 14px;">
+    <div style="font-size:9px;font-weight:700;color:#e10600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Waitlist</div>
+    <div style="display:flex;gap:16px;margin-bottom:8px;">
+      <div>
+        <div id="infoWlTotal" style="font-size:22px;font-weight:900;color:#fff;line-height:1;">—</div>
+        <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.4px;">Total</div>
+      </div>
+      <div>
+        <div id="infoWlToday" style="font-size:22px;font-weight:900;color:#e10600;line-height:1;">—</div>
+        <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.4px;">Today</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button onclick="_loadOwnerPanel(true)" style="font-family:'Titillium Web',sans-serif;font-size:9px;font-weight:700;color:#888;background:transparent;border:1px solid #222;border-radius:3px;padding:4px 8px;cursor:pointer;">↻ Refresh</button>
+      <a href="https://askthegridai.com/api/waitlist-export?key=atgaiimamw2026" target="_blank" rel="noopener" style="font-family:'Titillium Web',sans-serif;font-size:9px;font-weight:700;color:#fff;background:#e10600;border:none;border-radius:3px;padding:4px 8px;cursor:pointer;text-decoration:none;">↓ CSV</a>
+    </div>
+  </div>
 </div>
 
 <!-- ── INFO MODAL ──────────────────────────────────── -->
