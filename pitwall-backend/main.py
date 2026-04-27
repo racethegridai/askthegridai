@@ -91,8 +91,6 @@ _RATE_WINDOW   = 3600  # seconds (1 hour sliding window)
 _RATE_MAX      = 50    # max AI requests per IP per hour
 _rate_data: dict[str, list[float]] = {}
 _rate_lock     = asyncio.Lock()
-# Comma-separated IPs that bypass the rate limiter (set OWNER_IPS env var on Railway)
-OWNER_IPS: set[str] = set(filter(None, os.getenv("OWNER_IPS", "").split(",")))
 
 # Keep legacy names so nothing else in the file breaks
 POLL_INTERVAL_REGULAR  = POLL_INTERVAL_LIVE
@@ -1103,18 +1101,8 @@ def _get_client_ip(request: Request) -> str:
 
 
 async def _enforce_rate_limit(request: Request) -> None:
-    """
-    Sliding-window rate limiter: max _RATE_MAX requests per IP per _RATE_WINDOW seconds.
-    Raises HTTP 429 if the limit is exceeded.
-    IPs listed in OWNER_IPS env var are exempt.
-    Requests with X-Owner-Mode header matching the owner token are exempt.
-    """
-    owner_header = request.headers.get("X-Owner-Mode")
-    if owner_header == "atgaiimamw2026":
-        return
+    """Sliding-window rate limiter: max _RATE_MAX requests per IP per _RATE_WINDOW seconds."""
     ip = _get_client_ip(request)
-    if ip in OWNER_IPS:
-        return
     now = time.time()
     async with _rate_lock:
         timestamps = _rate_data.get(ip, [])
