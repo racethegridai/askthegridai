@@ -6187,6 +6187,9 @@ async function wlSubmit(e) {
       Info
       <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,3 5,7 8,3"/></svg>
     </button>
+    <button id="navWaitlistBtn" onclick="_loadOwnerPanel(true)" style="display:none;font-family:'Titillium Web',sans-serif;font-size:11px;font-weight:700;letter-spacing:.3px;color:#e10600;background:transparent;border:1px solid #2a0000;border-radius:3px;padding:5px 10px;cursor:pointer;transition:border-color .15s;" onmouseenter="this.style.borderColor='#e10600'" onmouseleave="this.style.borderColor='#2a0000'">
+      Waitlist: <span id="navWaitlistCount">—</span>
+    </button>
     <div style="position:relative">
       <button class="nav-style-btn" onclick="toggleStyleDropdown(event)">
         AI Style: <span class="nav-style-label">Beginner</span>
@@ -10724,14 +10727,19 @@ function _setOwnerMode(on) {
     _mobUpdateFreeCount();
     const mobBtn = document.getElementById('mobAskBtn');
     if (mobBtn) mobBtn.disabled = false;
-    // Show owner panel with waitlist stats
+    // Show owner panel + nav waitlist button
     const panel = document.getElementById('ownerPanel');
-    if (panel) { panel.style.display = 'block'; _loadOwnerPanel(); }
+    if (panel) { panel.style.display = 'block'; }
+    const navBtn = document.getElementById('navWaitlistBtn');
+    if (navBtn) navBtn.style.display = '';
+    _loadOwnerPanel();
   } else {
     updateFreeLimitUI();
     _mobUpdateFreeCount();
     const panel = document.getElementById('ownerPanel');
     if (panel) panel.style.display = 'none';
+    const navBtn = document.getElementById('navWaitlistBtn');
+    if (navBtn) navBtn.style.display = 'none';
   }
 }
 
@@ -10748,6 +10756,8 @@ async function _loadOwnerPanel(force) {
     const d = await r.json();
     if (totalEl)  totalEl.textContent = d.total ?? '\u2014';
     if (todayEl)  todayEl.textContent = d.today ?? '\u2014';
+    const navCount = document.getElementById('navWaitlistCount');
+    if (navCount) navCount.textContent = d.total ?? '\u2014';
     if (recentEl) recentEl.innerHTML = (d.recent || []).length
       ? (d.recent || []).map(function(e) {
           var ts = (e.timestamp || '').replace('T', ' ').slice(0, 16);
