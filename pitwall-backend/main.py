@@ -928,13 +928,13 @@ def _is_cacheable(question: str) -> bool:
     return any(sq in q for sq in _STATIC_QUESTIONS)
 
 
-def _cache_key(question: str, style: str) -> str:
-    combined = f"{question.lower().strip()}_{style}"
+def _cache_key(question: str, style: str, model: str = "") -> str:
+    combined = f"{question.lower().strip()}_{style}_{model}"
     return hashlib.md5(combined.encode()).hexdigest()
 
 
-def _get_cached(question: str, style: str) -> str | None:
-    key = _cache_key(question, style)
+def _get_cached(question: str, style: str, model: str = "") -> str | None:
+    key = _cache_key(question, style, model)
     entry = _question_cache.get(key)
     if entry and (time.time() - entry["ts"]) < _CACHE_TTL:
         return entry["response"]
@@ -943,8 +943,8 @@ def _get_cached(question: str, style: str) -> str | None:
     return None
 
 
-def _set_cached(question: str, style: str, response: str) -> None:
-    key = _cache_key(question, style)
+def _set_cached(question: str, style: str, response: str, model: str = "") -> None:
+    key = _cache_key(question, style, model)
     _question_cache[key] = {"response": response, "ts": time.time()}
 
 
@@ -1191,7 +1191,8 @@ The most recent completed races are from the 2026 season."""
 class ChatRequest(BaseModel):
     system: str
     messages: list[dict]
-    driver: str | None = None  # set when user is on a driver profile page
+    driver: str | None = None   # set when user is on a driver profile page
+    model:  str | None = None   # 'haiku' → force Haiku; None → auto-route
 
 
 def _build_dynamic_context() -> str:
@@ -1391,9 +1392,11 @@ async def chat(req: ChatRequest, request: Request):
 
     client = anthropic.AsyncAnthropic(api_key=api_key)
 
+    _chat_model = "claude-haiku-4-5-20251001" if req.model == "haiku" else "claude-sonnet-4-20250514"
+
     async def _call_anthropic() -> str:
         response = await client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model=_chat_model,
             max_tokens=600,
             system=_CRITICAL_CONTEXT + "\n\n" + req.system,
             messages=req.messages,
@@ -1441,11 +1444,15 @@ async def chat_stream(req: ChatRequest, request: Request):
 
     # ── Extract question + choose model ──────────────────
     question = (req.messages[-1].get("content", "") if req.messages else "")
-    model    = _model_for_question(question)
+    # req.model == 'haiku' forces Haiku; otherwise auto-route by question complexity
+    if req.model == "haiku":
+        model = "claude-haiku-4-5-20251001"
+    else:
+        model = _model_for_question(question)
 
     # ── System 1: question cache (static F1 facts only) ──
     if _is_cacheable(question):
-        cached_reply = _get_cached(question, req.system)
+        cached_reply = _get_cached(question, req.system, model)
         if cached_reply:
             print(f"[STREAM] Cache hit for: {question[:60]}", flush=True)
             async def stream_cached():
@@ -1529,7 +1536,7 @@ async def chat_stream(req: ChatRequest, request: Request):
             yield "data: [DONE]\n\n"
             # Cache the full response if it's a static question
             if collected and _is_cacheable(question):
-                _set_cached(question, req.system, "".join(collected))
+                _set_cached(question, req.system, "".join(collected), model)
                 print(f"[STREAM] Cached response for: {question[:60]}", flush=True)
         except anthropic.AuthenticationError:
             yield f"data: {json.dumps({'error': 'Invalid Anthropic API key'})}\n\n"
