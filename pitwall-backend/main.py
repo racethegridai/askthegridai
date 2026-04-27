@@ -1585,6 +1585,32 @@ async def waitlist_signup(request: Request):
     return {"ok": True}
 
 
+@app.get("/api/waitlist-count")
+async def waitlist_count(key: str = ""):
+    """Owner-only: return signup count, today's count, and 5 most recent entries."""
+    if key != "atgaiimamw2026":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    if not _WAITLIST_LOG.exists():
+        return {"total": 0, "today": 0, "recent": []}
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    rows: list[dict] = []
+    try:
+        with open(_WAITLIST_LOG, "r", newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                rows.append(row)
+    except Exception as exc:
+        log.warning("[WAITLIST] Count read failed: %s", exc)
+        return {"total": 0, "today": 0, "recent": []}
+    total = len(rows)
+    today_count = sum(1 for r in rows if r.get("timestamp", "").startswith(today))
+    recent = [
+        {"name": r.get("name", ""), "email": r.get("email", ""), "timestamp": r.get("timestamp", "")}
+        for r in rows[-5:][::-1]
+    ]
+    return {"total": total, "today": today_count, "recent": recent}
+
+
 @app.get("/api/waitlist-export")
 async def export_waitlist(key: str = ""):
     """Owner-only: download waitlist.csv."""

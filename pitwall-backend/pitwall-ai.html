@@ -5024,6 +5024,25 @@ async function wlSubmit(e) {
 <div id="ownerBadge">OWNER</div>
 <div id="influencerBadge">CREATOR</div>
 
+<!-- ── Owner waitlist dashboard (hidden until owner mode active) ── -->
+<div id="ownerWaitlistDash" style="display:none;position:fixed;bottom:16px;right:16px;z-index:8000;
+  background:#0d0d0d;border:1px solid #1e1e1e;border-radius:10px;padding:14px 16px;
+  min-width:220px;max-width:280px;font-family:'Titillium Web',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,.7);">
+  <div style="font-size:9px;font-weight:700;color:#e10600;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Waitlist</div>
+  <div style="display:flex;gap:16px;margin-bottom:10px;">
+    <div>
+      <div id="wlDashTotal" style="font-size:28px;font-weight:900;color:#fff;line-height:1;">—</div>
+      <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.5px;">Total</div>
+    </div>
+    <div>
+      <div id="wlDashToday" style="font-size:28px;font-weight:900;color:#e10600;line-height:1;">—</div>
+      <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.5px;">Today</div>
+    </div>
+  </div>
+  <div id="wlDashRecent" style="display:flex;flex-direction:column;gap:4px;"></div>
+  <div style="font-size:9px;color:#333;margin-top:10px;cursor:pointer;" onclick="_loadWaitlistDash(true)">↻ refresh</div>
+</div>
+
 <!-- ═══════════════════════════════════════════════════
      MOBILE HUB (< 768px only — completely replaces desktop layout)
 ═══════════════════════════════════════════════════ -->
@@ -10636,14 +10655,37 @@ function _setOwnerMode(on) {
     if (upgradePanel) upgradePanel.classList.remove('visible');
     if (chatInput)    { chatInput.disabled = false; chatInput.placeholder = 'Ask what just happened, who gained, or what to watch next\u2026'; }
     if (sendBtn)      sendBtn.disabled = false;
-    // Mobile: clear free-count display and re-enable Ask button
     _mobUpdateFreeCount();
     const mobBtn = document.getElementById('mobAskBtn');
     if (mobBtn) mobBtn.disabled = false;
+    // Show waitlist dashboard
+    const dash = document.getElementById('ownerWaitlistDash');
+    if (dash) { dash.style.display = 'block'; _loadWaitlistDash(); }
   } else {
     updateFreeLimitUI();
     _mobUpdateFreeCount();
+    const dash = document.getElementById('ownerWaitlistDash');
+    if (dash) dash.style.display = 'none';
   }
+}
+
+async function _loadWaitlistDash(force) {
+  try {
+    const r = await fetch(`${BACKEND}/api/waitlist-count?key=atgaiimamw2026`,
+      { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return;
+    const d = await r.json();
+    const totalEl  = document.getElementById('wlDashTotal');
+    const todayEl  = document.getElementById('wlDashToday');
+    const recentEl = document.getElementById('wlDashRecent');
+    if (totalEl)  totalEl.textContent  = d.total ?? '\u2014';
+    if (todayEl)  todayEl.textContent  = d.today ?? '\u2014';
+    if (recentEl) recentEl.innerHTML = (d.recent || []).map(function(e) {
+      var label = (e.name || 'Anonymous') + ' \u00b7 ' + (e.email || '');
+      return '<div style="font-size:10px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' +
+        label + '">' + label + '</div>';
+    }).join('');
+  } catch(e) { /* silent \u2014 dashboard is informational only */ }
 }
 
 function _toggleOwnerMode() {
