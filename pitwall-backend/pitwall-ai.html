@@ -2808,64 +2808,102 @@
       }
     }
 
-    /* intentionally removed */ .wl-promo-wrap input:focus { border-color:#555; color:#aaa; }
+    /* ── Waitlist gate ─────────────────────────────── */
+    #atgai-waitlist { display:flex; position:fixed; inset:0; background:#0a0a0a; align-items:center; justify-content:center; z-index:99999; font-family:'Titillium Web',sans-serif; }
+    body.has-access #atgai-waitlist { display:none !important; }
+    #atgai-app { display:none; }
+    body.has-access #atgai-app { display:block; }
   </style>
-</head>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet"></head>
 <body>
 
-<!-- ── Waitlist gate (runs before app renders) ─────── -->
-<div id="atgai-waitlist" role="main">
-  <img src="/atg-logo.svg" alt="ATG" class="wl-logo">
-  <div class="wl-headline">F1's AI companion is almost here</div>
-  <div class="wl-sub">Launching for the Miami Grand Prix. Be first in.</div>
-  <div class="wl-countdown">
-    <div class="wl-cd-unit"><span class="wl-cd-num" id="wl-d">--</span><span class="wl-cd-label">Days</span></div>
-    <div class="wl-cd-sep">:</div>
-    <div class="wl-cd-unit"><span class="wl-cd-num" id="wl-h">--</span><span class="wl-cd-label">Hrs</span></div>
-    <div class="wl-cd-sep">:</div>
-    <div class="wl-cd-unit"><span class="wl-cd-num" id="wl-m">--</span><span class="wl-cd-label">Min</span></div>
-    <div class="wl-cd-sep">:</div>
-    <div class="wl-cd-unit"><span class="wl-cd-num" id="wl-s">--</span><span class="wl-cd-label">Sec</span></div>
-  </div>
-  <form class="wl-form" id="wlForm" onsubmit="wlSubmit(event)">
-    <input class="wl-input" id="wlName"  type="text"  placeholder="Your name"         autocomplete="name">
-    <input class="wl-input" id="wlEmail" type="email" placeholder="Email address"      autocomplete="email" required>
-    <button class="wl-submit" id="wlBtn" type="submit">Join the waitlist</button>
-    <div class="wl-confirm" id="wlConfirm">You're in. We'll message you before lights out. 🏁</div>
-  </form>
-  <div class="wl-promo-wrap">
-    Have a code? Enter it here
-    <input type="text" id="wlPromo" placeholder="promo code"
-      oninput="if(this.value.toLowerCase()==='atgaiimamw2026'){localStorage.setItem('atgai_access','true');location.reload();}">
+<!-- ── Gate script: runs synchronously before any rendering ── -->
+<script>
+/* ONE LINE TO OPEN UP: set WAITLIST_ACTIVE = false */
+var WAITLIST_ACTIVE = true;
+(function() {
+  if (!WAITLIST_ACTIVE || localStorage.getItem('atgai_access') === 'true') {
+    document.body.classList.add('has-access');
+  }
+})();
+</script>
+
+<!-- ── Waitlist page ─────────────────────────────── -->
+<div id="atgai-waitlist">
+  <div style="width:100%;max-width:400px;padding:32px 24px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:20px;">
+
+    <img src="/atg-logo.svg" alt="ATG Your Racing Companion"
+      style="width:200px;height:auto;margin-bottom:4px;">
+
+    <div style="text-align:center;">
+      <div style="font-size:24px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:8px;letter-spacing:-.3px;">
+        F1&#8217;s AI companion is almost here
+      </div>
+      <div style="font-size:14px;color:#666;line-height:1.5;">
+        Launching for the Miami Grand Prix. Be first in.
+      </div>
+    </div>
+
+    <!-- Countdown -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%;text-align:center;">
+      <div>
+        <div id="wl-d" style="font-family:'Barlow Condensed',sans-serif;font-size:52px;font-weight:900;color:#e10600;line-height:1;font-variant-numeric:tabular-nums;">--</div>
+        <div style="font-size:11px;color:#444;text-transform:uppercase;letter-spacing:.8px;margin-top:4px;">Days</div>
+      </div>
+      <div>
+        <div id="wl-h" style="font-family:'Barlow Condensed',sans-serif;font-size:52px;font-weight:900;color:#e10600;line-height:1;font-variant-numeric:tabular-nums;">--</div>
+        <div style="font-size:11px;color:#444;text-transform:uppercase;letter-spacing:.8px;margin-top:4px;">Hrs</div>
+      </div>
+      <div>
+        <div id="wl-m" style="font-family:'Barlow Condensed',sans-serif;font-size:52px;font-weight:900;color:#e10600;line-height:1;font-variant-numeric:tabular-nums;">--</div>
+        <div style="font-size:11px;color:#444;text-transform:uppercase;letter-spacing:.8px;margin-top:4px;">Min</div>
+      </div>
+      <div>
+        <div id="wl-s" style="font-family:'Barlow Condensed',sans-serif;font-size:52px;font-weight:900;color:#e10600;line-height:1;font-variant-numeric:tabular-nums;">--</div>
+        <div style="font-size:11px;color:#444;text-transform:uppercase;letter-spacing:.8px;margin-top:4px;">Sec</div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form id="wlForm" onsubmit="wlSubmit(event)" style="display:flex;flex-direction:column;gap:10px;width:100%;">
+      <input id="wlName" type="text" placeholder="Your name" autocomplete="name"
+        style="background:#111;border:1px solid #222;border-radius:4px;color:#fff;font-family:'Titillium Web',sans-serif;font-size:14px;padding:13px 14px;outline:none;width:100%;box-sizing:border-box;transition:border-color .15s;"
+        onfocus="this.style.borderColor='#e10600'" onblur="this.style.borderColor='#222'">
+      <input id="wlEmail" type="email" placeholder="Email address" autocomplete="email" required
+        style="background:#111;border:1px solid #222;border-radius:4px;color:#fff;font-family:'Titillium Web',sans-serif;font-size:14px;padding:13px 14px;outline:none;width:100%;box-sizing:border-box;transition:border-color .15s;"
+        onfocus="this.style.borderColor='#e10600'" onblur="this.style.borderColor='#222'">
+      <button id="wlBtn" type="submit"
+        style="background:#e10600;border:none;border-radius:4px;color:#fff;font-family:'Titillium Web',sans-serif;font-size:14px;font-weight:900;letter-spacing:.5px;padding:14px;cursor:pointer;transition:background .15s;width:100%;">
+        Join the waitlist
+      </button>
+      <div id="wlConfirm" style="display:none;text-align:center;color:#22c55e;font-size:14px;font-weight:700;padding:8px 0;">
+        You&#8217;re in. We&#8217;ll message you before lights out. &#127937;
+      </div>
+    </form>
+
+    <!-- Promo code -->
+    <div style="text-align:center;font-size:11px;color:#333;margin-top:4px;">
+      Have a code?
+      <input type="text" id="wlPromo" placeholder="enter code" autocomplete="off"
+        style="display:inline-block;margin-left:8px;background:transparent;border:none;border-bottom:1px solid #222;color:#555;font-family:'Titillium Web',sans-serif;font-size:11px;padding:3px 0;width:110px;outline:none;"
+        oninput="if(this.value.toLowerCase()==='atgaiimamw2026'){localStorage.setItem('atgai_access','true');location.reload();}">
+    </div>
+
   </div>
 </div>
 
 <script>
-/* ── ONE LINE TO OPEN UP: change WAITLIST_ACTIVE to false ── */
-const WAITLIST_ACTIVE = true;
-
+// Countdown to Miami FP1 — 2026-05-01 16:30 UTC
 (function() {
-  const p = new URLSearchParams(location.search);
-  const hasAccess = !WAITLIST_ACTIVE
-    || localStorage.getItem('atgai_access') === 'true';
-  if (hasAccess) return;
-  document.body.classList.add('gate-active');
-
-  // Countdown to Miami FP1 — May 1 2026 12:30 local (EDT = UTC-4 → 16:30 UTC)
-  const TARGET = new Date('2026-05-01T16:30:00Z');
+  var TARGET = new Date('2026-05-01T16:30:00Z');
   function tick() {
-    const diff = TARGET - new Date();
-    if (diff <= 0) {
-      ['wl-d','wl-h','wl-m','wl-s'].forEach(function(id){
-        var el = document.getElementById(id); if (el) el.textContent = '0';
-      });
-      return;
-    }
+    var diff = TARGET - new Date();
+    if (diff < 0) diff = 0;
     var d = Math.floor(diff / 86400000);
     var h = Math.floor((diff % 86400000) / 3600000);
     var m = Math.floor((diff % 3600000) / 60000);
     var s = Math.floor((diff % 60000) / 1000);
-    var pad = function(n){ return String(n).padStart(2,'0'); };
+    var pad = function(n) { return String(n).padStart(2, '0'); };
     var dEl = document.getElementById('wl-d'); if (dEl) dEl.textContent = d;
     var hEl = document.getElementById('wl-h'); if (hEl) hEl.textContent = pad(h);
     var mEl = document.getElementById('wl-m'); if (mEl) mEl.textContent = pad(m);
@@ -2882,22 +2920,22 @@ async function wlSubmit(e) {
   if (!email) return;
   var btn  = document.getElementById('wlBtn');
   var conf = document.getElementById('wlConfirm');
-  if (btn) { btn.disabled = true; btn.textContent = 'Joining…'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Joining…'; btn.style.background = '#3a0000'; }
   try {
     await fetch('/api/waitlist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: name, email: email }),
     });
-  } catch(err) { /* fail silently — still show confirmation */ }
+  } catch(err) {}
   var form = document.getElementById('wlForm');
   if (form) form.style.display = 'none';
   if (conf) conf.style.display = 'block';
 }
 </script>
 
-
-
+<!-- ── App wrapper: hidden until access confirmed ── -->
+<div id="atgai-app">
 <!-- ═══════════════════════════════════════════════════
      MOBILE HUB (< 768px only — completely replaces desktop layout)
 ═══════════════════════════════════════════════════ -->
@@ -11284,5 +11322,6 @@ window.spAsk = function(prompt) {
 })();
 </script>
 
+</div><!-- /atgai-app -->
 </body>
 </html>
