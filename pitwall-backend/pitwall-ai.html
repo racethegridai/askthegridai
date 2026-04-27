@@ -13476,5 +13476,66 @@ window.spAsk = function(prompt) {
 })();
 </script>
 
+<div id='wl-overlay' style='display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0a0a;z-index:99999;overflow-y:auto;font-family:sans-serif'>
+  <div style='max-width:400px;margin:0 auto;padding:60px 24px;text-align:center'>
+    <img src='atg-logo.svg' style='width:200px;margin-bottom:32px'>
+    <h1 style='color:#f0ede8;font-size:24px;font-weight:600;margin:0 0 10px'>F1's AI companion is almost here</h1>
+    <p style='color:#666;font-size:14px;margin:0 0 32px'>Launching for the Miami Grand Prix. Be first in.</p>
+    <div style='display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:32px' id='wl-countdown'>
+      <div><div style='font-size:32px;font-weight:700;color:#e10600' id='wl-d'>--</div><div style='font-size:10px;color:#555;letter-spacing:.08em'>DAYS</div></div>
+      <div><div style='font-size:32px;font-weight:700;color:#e10600' id='wl-h'>--</div><div style='font-size:10px;color:#555;letter-spacing:.08em'>HRS</div></div>
+      <div><div style='font-size:32px;font-weight:700;color:#e10600' id='wl-m'>--</div><div style='font-size:10px;color:#555;letter-spacing:.08em'>MIN</div></div>
+      <div><div style='font-size:32px;font-weight:700;color:#e10600' id='wl-s'>--</div><div style='font-size:10px;color:#555;letter-spacing:.08em'>SEC</div></div>
+    </div>
+    <input id='wl-name' placeholder='Your name' style='width:100%;padding:12px;background:#111;border:1px solid #222;border-radius:8px;color:#f0ede8;font-size:14px;margin-bottom:10px;box-sizing:border-box'>
+    <input id='wl-email' type='email' placeholder='Email address' style='width:100%;padding:12px;background:#111;border:1px solid #222;border-radius:8px;color:#f0ede8;font-size:14px;margin-bottom:16px;box-sizing:border-box'>
+    <button onclick='wlSubmit()' style='width:100%;padding:14px;background:#e10600;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:24px'>Join the waitlist</button>
+    <div id='wl-success' style='display:none;color:#4caf50;font-size:14px;margin-bottom:24px'>You're in. We'll message you before lights out. 🏁</div>
+    <p style='color:#444;font-size:12px;margin-bottom:8px'>Have a code? Enter it here</p>
+    <input id='wl-code' placeholder='Promo code' style='width:100%;padding:10px;background:#111;border:1px solid #222;border-radius:8px;color:#f0ede8;font-size:13px;box-sizing:border-box' onkeydown='if(event.key==="Enter")wlCode()'>
+  </div>
+</div>
+
+<script>
+(function(){
+  var target = new Date('2026-05-01T14:00:00Z');
+  function tick(){
+    var diff = target - new Date();
+    if(diff < 0) diff = 0;
+    var d = Math.floor(diff/86400000);
+    var h = Math.floor((diff%86400000)/3600000);
+    var m = Math.floor((diff%3600000)/60000);
+    var s = Math.floor((diff%60000)/1000);
+    document.getElementById('wl-d').textContent = d;
+    document.getElementById('wl-h').textContent = h;
+    document.getElementById('wl-m').textContent = m;
+    document.getElementById('wl-s').textContent = s;
+  }
+  tick(); setInterval(tick, 1000);
+
+  var ol = document.getElementById('wl-overlay');
+  if(localStorage.getItem('atgai_access') === 'true'){ ol.style.display='none'; }
+  else { ol.style.display='block'; }
+
+  window.wlSubmit = function(){
+    var name = document.getElementById('wl-name').value.trim();
+    var email = document.getElementById('wl-email').value.trim();
+    if(!name || !email) return;
+    fetch('/api/waitlist', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:name, email:email})});
+    document.getElementById('wl-success').style.display='block';
+    document.getElementById('wl-name').style.display='none';
+    document.getElementById('wl-email').style.display='none';
+  };
+
+  window.wlCode = function(){
+    var code = document.getElementById('wl-code').value.trim();
+    if(code === 'atgaiimamw2026'){
+      localStorage.setItem('atgai_access','true');
+      location.reload();
+    }
+  };
+})();
+</script>
+
 </body>
 </html>
