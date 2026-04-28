@@ -5183,9 +5183,17 @@
     <button class="mob-back-btn" onclick="mobClosePage('incidents')">← Back</button>
     <span class="mob-page-title">Race Incidents</span>
   </div>
-  <div class="mob-page-body">
-    <div id="mobIncidentsBody">
-      <div class="left-inc-empty">No incidents recorded yet</div>
+  <div class="mob-page-body" style="display:flex;flex-direction:column;overflow:hidden">
+    <div id="mobIncidentsBody" style="flex:1;overflow-y:auto;padding:12px 14px">
+      <div style="text-align:center;padding:40px 0;color:#555;font-size:13px">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;margin-right:6px;vertical-align:middle"></span>
+        No incidents yet — race is green
+      </div>
+    </div>
+    <!-- Local AI response area -->
+    <div id="incAiWrap" style="display:none;padding:10px 14px;border-top:1px solid #1e1e1e;background:#0a0a0a">
+      <div style="font-size:9px;color:#e10600;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">AI EXPLANATION</div>
+      <div id="incAiResp" style="font-size:13px;color:#f0ede8;line-height:1.6;min-height:40px"></div>
     </div>
   </div>
 </div>
@@ -11624,10 +11632,89 @@ function _mobSyncStandings() {
 }
 
 // ── Sync incidents page ──────────────────────────
+const _INC_FLAG = (function() {
+  var defs = [
+    { keys:['CHEQUERED'],              label:'Chequered Flag',  text:'#f0ede8', bg:'#1e1e1e' },
+    { keys:['SAFETY CAR','SC LAP'],    label:'Safety Car',      text:'#7090ff', bg:'#1a1a2a' },
+    { keys:['RED FLAG','RED'],         label:'Red Flag',        text:'#e10600', bg:'#2a0000' },
+    { keys:['YELLOW','VSC'],           label:'Yellow Flag',     text:'#f5a623', bg:'#2a1f00' },
+    { keys:['GREEN FLAG','GREEN'],     label:'Green Flag',      text:'#4caf50', bg:'#001a00' },
+    { keys:['OVERTAKE'],              label:'Overtake',         text:'#4caf50', bg:'#001a00' },
+    { keys:['BATTLE','FIGHT'],        label:'Race Battle',      text:'#f5a623', bg:'#1a1800' },
+  ];
+  return function(msg) {
+    var up = (msg || '').toUpperCase();
+    for (var i = 0; i < defs.length; i++) {
+      for (var j = 0; j < defs[i].keys.length; j++) {
+        if (up.indexOf(defs[i].keys[j]) !== -1) return defs[i];
+      }
+    }
+    return { label:'Incident', text:'#e10600', bg:'#2a0000' };
+  };
+})();
+
 function _mobSyncIncidents() {
-  const src  = document.getElementById('leftIncidentsBody');
-  const dest = document.getElementById('mobIncidentsBody');
-  if (src && dest) dest.innerHTML = src.innerHTML;
+  var incidents = (liveData && liveData.incidents) ? liveData.incidents : [];
+  var dest = document.getElementById('mobIncidentsBody');
+  if (!dest) return;
+
+  if (!incidents.length) {
+    dest.innerHTML =
+      '<div style="text-align:center;padding:40px 0;color:#555;font-size:13px">' +
+      '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;margin-right:6px;vertical-align:middle"></span>' +
+      'No incidents yet — race is green</div>';
+    return;
+  }
+
+  // Newest first
+  var sorted = incidents.slice().reverse();
+  dest.innerHTML = sorted.map(function(inc) {
+    var msg   = inc.msg || inc.message || '';
+    var lap   = inc.lap || '';
+    var cfg   = _INC_FLAG(msg);
+    var safeMsg = escapeHtml(msg);
+    var safeQ   = msg.replace(/'/g, "\\'").replace(/"/g, '\\"');
+    return '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:12px 14px;margin-bottom:10px;">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+      (lap ? '<span style="font-family:\'Barlow Condensed\',sans-serif;font-weight:700;font-size:13px;color:#e10600;letter-spacing:.04em">LAP ' + lap + '</span>' : '') +
+      '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:' + cfg.bg + ';color:' + cfg.text + ';letter-spacing:.06em">' + cfg.label + '</span>' +
+      '</div>' +
+      '<div style="font-size:13px;color:#f0ede8;line-height:1.5;margin-bottom:10px">' + safeMsg + '</div>' +
+      '<button onclick="incAskAI(\'' + safeQ + '\')" ' +
+      'style="font-size:11px;padding:6px 12px;border-radius:20px;background:#111;border:1px solid #333;color:#e0ddd8;cursor:pointer;font-family:inherit">What does this mean? →</button>' +
+      '</div>';
+  }).join('');
+}
+
+var _incAiBusy = false;
+async function incAskAI(msg) {
+  if (_incAiBusy) return;
+  _incAiBusy = true;
+  var wrap = document.getElementById('incAiWrap');
+  var resp = document.getElementById('incAiResp');
+  if (!wrap || !resp) { _incAiBusy = false; return; }
+  wrap.style.display = 'block';
+  resp.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  var sys = 'You are an F1 expert explaining race incidents to a casual fan. Be concise — 2-3 sentences max. Plain English.\n\n' + getStyleInstruction();
+  var q   = 'Explain this F1 race incident: ' + msg;
+  try {
+    var res = await fetch(BACKEND + '/api/chat-stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: sys, messages: [{ role: 'user', content: q }] }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var reply = await _readTokenStream(res, function(txt) {
+      resp.innerHTML = _renderBold(txt);
+    });
+    var parsed = parseFollowups(reply || '');
+    resp.innerHTML = _renderBold(parsed.text || reply);
+  } catch(e) {
+    resp.textContent = '⚠ Could not reach AI.';
+  } finally {
+    _incAiBusy = false;
+  }
 }
 
 // ── Sync drivers grid ────────────────────────────
