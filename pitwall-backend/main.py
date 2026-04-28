@@ -82,6 +82,184 @@ OPENF1_TIMEOUT         = 3.0  # seconds — fail fast; cached data serves immedi
 BACKOFF_BASE = 10.0           # initial backoff on 429 (seconds)
 BACKOFF_MAX  = 120.0          # cap backoff at 2 minutes
 
+# ── Demo mode ────────────────────────────────────────
+DEMO_MODE: bool = os.environ.get("DEMO_MODE", "false").lower() == "true"
+_demo_lap: int  = 44          # current demo lap (44–53)
+_demo_lap_ts: float = 0.0     # time.time() when lap last advanced
+
+DEMO_SESSION = {
+    "session_key": 9999, "session_name": "Race",
+    "meeting_name": "2026 Japanese Grand Prix",
+    "location": "Suzuka", "country_name": "Japan",
+}
+
+DEMO_STANDINGS: dict[int, list[dict]] = {
+    44: [
+        {"driver_number":12,"broadcast_name":"K. ANTONELLI","team_name":"Mercedes","position":1,"gap_to_leader":0},
+        {"driver_number":81,"broadcast_name":"O. PIASTRI","team_name":"McLaren","position":2,"gap_to_leader":12.4},
+        {"driver_number":16,"broadcast_name":"C. LECLERC","team_name":"Ferrari","position":3,"gap_to_leader":18.1},
+        {"driver_number":63,"broadcast_name":"G. RUSSELL","team_name":"Mercedes","position":4,"gap_to_leader":19.8},
+        {"driver_number":4, "broadcast_name":"L. NORRIS","team_name":"McLaren","position":5,"gap_to_leader":28.3},
+        {"driver_number":44,"broadcast_name":"L. HAMILTON","team_name":"Ferrari","position":6,"gap_to_leader":31.7},
+        {"driver_number":10,"broadcast_name":"P. GASLY","team_name":"Alpine","position":7,"gap_to_leader":45.2},
+        {"driver_number":1, "broadcast_name":"M. VERSTAPPEN","team_name":"Red Bull","position":8,"gap_to_leader":46.1},
+        {"driver_number":30,"broadcast_name":"L. LAWSON","team_name":"Racing Bulls","position":9,"gap_to_leader":58.4},
+        {"driver_number":31,"broadcast_name":"E. OCON","team_name":"Haas","position":10,"gap_to_leader":62.1},
+    ],
+    46: [
+        {"driver_number":12,"broadcast_name":"K. ANTONELLI","team_name":"Mercedes","position":1,"gap_to_leader":0},
+        {"driver_number":81,"broadcast_name":"O. PIASTRI","team_name":"McLaren","position":2,"gap_to_leader":13.1},
+        {"driver_number":16,"broadcast_name":"C. LECLERC","team_name":"Ferrari","position":3,"gap_to_leader":19.4},
+        {"driver_number":63,"broadcast_name":"G. RUSSELL","team_name":"Mercedes","position":4,"gap_to_leader":19.9},
+        {"driver_number":4, "broadcast_name":"L. NORRIS","team_name":"McLaren","position":5,"gap_to_leader":30.1},
+        {"driver_number":44,"broadcast_name":"L. HAMILTON","team_name":"Ferrari","position":6,"gap_to_leader":34.2},
+        {"driver_number":10,"broadcast_name":"P. GASLY","team_name":"Alpine","position":7,"gap_to_leader":46.8},
+        {"driver_number":1, "broadcast_name":"M. VERSTAPPEN","team_name":"Red Bull","position":8,"gap_to_leader":47.3},
+        {"driver_number":30,"broadcast_name":"L. LAWSON","team_name":"Racing Bulls","position":9,"gap_to_leader":59.1},
+        {"driver_number":31,"broadcast_name":"E. OCON","team_name":"Haas","position":10,"gap_to_leader":63.4},
+    ],
+    48: [
+        {"driver_number":12,"broadcast_name":"K. ANTONELLI","team_name":"Mercedes","position":1,"gap_to_leader":0},
+        {"driver_number":81,"broadcast_name":"O. PIASTRI","team_name":"McLaren","position":2,"gap_to_leader":14.0},
+        {"driver_number":16,"broadcast_name":"C. LECLERC","team_name":"Ferrari","position":3,"gap_to_leader":20.8},
+        {"driver_number":63,"broadcast_name":"G. RUSSELL","team_name":"Mercedes","position":4,"gap_to_leader":21.2},
+        {"driver_number":4, "broadcast_name":"L. NORRIS","team_name":"McLaren","position":5,"gap_to_leader":29.8},
+        {"driver_number":44,"broadcast_name":"L. HAMILTON","team_name":"Ferrari","position":6,"gap_to_leader":33.1},
+        {"driver_number":10,"broadcast_name":"P. GASLY","team_name":"Alpine","position":7,"gap_to_leader":47.9},
+        {"driver_number":1, "broadcast_name":"M. VERSTAPPEN","team_name":"Red Bull","position":8,"gap_to_leader":48.8},
+        {"driver_number":30,"broadcast_name":"L. LAWSON","team_name":"Racing Bulls","position":9,"gap_to_leader":60.2},
+        {"driver_number":31,"broadcast_name":"E. OCON","team_name":"Haas","position":10,"gap_to_leader":64.7},
+    ],
+    50: [
+        {"driver_number":12,"broadcast_name":"K. ANTONELLI","team_name":"Mercedes","position":1,"gap_to_leader":0},
+        {"driver_number":81,"broadcast_name":"O. PIASTRI","team_name":"McLaren","position":2,"gap_to_leader":14.8},
+        {"driver_number":16,"broadcast_name":"C. LECLERC","team_name":"Ferrari","position":3,"gap_to_leader":21.3},
+        {"driver_number":63,"broadcast_name":"G. RUSSELL","team_name":"Mercedes","position":4,"gap_to_leader":21.9},
+        {"driver_number":4, "broadcast_name":"L. NORRIS","team_name":"McLaren","position":5,"gap_to_leader":28.4},
+        {"driver_number":44,"broadcast_name":"L. HAMILTON","team_name":"Ferrari","position":6,"gap_to_leader":32.0},
+        {"driver_number":10,"broadcast_name":"P. GASLY","team_name":"Alpine","position":7,"gap_to_leader":48.1},
+        {"driver_number":1, "broadcast_name":"M. VERSTAPPEN","team_name":"Red Bull","position":8,"gap_to_leader":49.2},
+        {"driver_number":30,"broadcast_name":"L. LAWSON","team_name":"Racing Bulls","position":9,"gap_to_leader":61.0},
+        {"driver_number":31,"broadcast_name":"E. OCON","team_name":"Haas","position":10,"gap_to_leader":65.3},
+    ],
+    52: [
+        {"driver_number":12,"broadcast_name":"K. ANTONELLI","team_name":"Mercedes","position":1,"gap_to_leader":0},
+        {"driver_number":81,"broadcast_name":"O. PIASTRI","team_name":"McLaren","position":2,"gap_to_leader":15.2},
+        {"driver_number":16,"broadcast_name":"C. LECLERC","team_name":"Ferrari","position":3,"gap_to_leader":23.1},
+        {"driver_number":63,"broadcast_name":"G. RUSSELL","team_name":"Mercedes","position":4,"gap_to_leader":23.8},
+        {"driver_number":4, "broadcast_name":"L. NORRIS","team_name":"McLaren","position":5,"gap_to_leader":27.2},
+        {"driver_number":44,"broadcast_name":"L. HAMILTON","team_name":"Ferrari","position":6,"gap_to_leader":30.9},
+        {"driver_number":10,"broadcast_name":"P. GASLY","team_name":"Alpine","position":7,"gap_to_leader":49.3},
+        {"driver_number":1, "broadcast_name":"M. VERSTAPPEN","team_name":"Red Bull","position":8,"gap_to_leader":50.1},
+        {"driver_number":30,"broadcast_name":"L. LAWSON","team_name":"Racing Bulls","position":9,"gap_to_leader":62.4},
+        {"driver_number":31,"broadcast_name":"E. OCON","team_name":"Haas","position":10,"gap_to_leader":66.8},
+    ],
+    53: [
+        {"driver_number":12,"broadcast_name":"K. ANTONELLI","team_name":"Mercedes","position":1,"gap_to_leader":0},
+        {"driver_number":81,"broadcast_name":"O. PIASTRI","team_name":"McLaren","position":2,"gap_to_leader":15.4},
+        {"driver_number":16,"broadcast_name":"C. LECLERC","team_name":"Ferrari","position":3,"gap_to_leader":23.6},
+        {"driver_number":63,"broadcast_name":"G. RUSSELL","team_name":"Mercedes","position":4,"gap_to_leader":24.1},
+        {"driver_number":4, "broadcast_name":"L. NORRIS","team_name":"McLaren","position":5,"gap_to_leader":27.0},
+        {"driver_number":44,"broadcast_name":"L. HAMILTON","team_name":"Ferrari","position":6,"gap_to_leader":30.8},
+        {"driver_number":10,"broadcast_name":"P. GASLY","team_name":"Alpine","position":7,"gap_to_leader":49.8},
+        {"driver_number":1, "broadcast_name":"M. VERSTAPPEN","team_name":"Red Bull","position":8,"gap_to_leader":50.7},
+        {"driver_number":30,"broadcast_name":"L. LAWSON","team_name":"Racing Bulls","position":9,"gap_to_leader":63.1},
+        {"driver_number":31,"broadcast_name":"E. OCON","team_name":"Haas","position":10,"gap_to_leader":67.2},
+    ],
+}
+
+DEMO_TEAM_RADIO = [
+    {"lap":44,"driver":"NOR","team":"McLaren","message":"The balance feels really good today, much better than FP3. I think we can push these last laps."},
+    {"lap":44,"driver":"LEC","team":"Ferrari","message":"These tyres are dropping off quickly. I need to manage the rears carefully through the final sector."},
+    {"lap":45,"driver":"RUS","team":"Mercedes","message":"I think we have the pace. Let us just execute the strategy cleanly and see what happens at Spoon."},
+    {"lap":46,"driver":"LEC","team":"Ferrari","message":"He is right behind me. I am defending, defending. Tell me when he has DRS."},
+    {"lap":46,"driver":"RUS","team":"Mercedes","message":"I was there, I was there! Nearly had him. Give me the gap every sector please."},
+    {"lap":48,"driver":"ANT","team":"Mercedes","message":"How is the gap to Piastri? Do I need to push or can I manage?"},
+    {"lap":48,"driver":"HAM","team":"Ferrari","message":"Norris just passed me. That was not supposed to happen. What is the plan now?"},
+    {"lap":50,"driver":"RUS","team":"Mercedes","message":"Something happened, I lost all power for a moment. What was that? I lost two seconds."},
+    {"lap":50,"driver":"RUS","team":"Mercedes","message":"Superclip? That is so frustrating. Tell the team we need to fix that before Miami."},
+    {"lap":51,"driver":"ANT","team":"Mercedes","message":"OK OK I see the flag. This is for the team. Let us bring it home cleanly."},
+    {"lap":52,"driver":"LEC","team":"Ferrari","message":"Last lap. I will defend to the end. Russell is not getting past me here."},
+    {"lap":53,"driver":"ANT","team":"Mercedes","message":"YES! YES! We did it again! This is incredible. Thank you everyone, thank you!"},
+]
+
+DEMO_INCIDENTS = [
+    {"lap":44,"message":"BATTLE: Russell closing on Leclerc — gap under 2 seconds at sector 2"},
+    {"lap":46,"message":"OVERTAKE ATTEMPT: Russell tries Leclerc at Spoon corner — Leclerc defends"},
+    {"lap":48,"message":"OVERTAKE: Norris passes Hamilton at Casio Triangle chicane for P5"},
+    {"lap":50,"message":"INCIDENT: Russell loses power — software superclip issue. Leclerc gaps him by 1.3s"},
+    {"lap":51,"message":"OVERTAKE: Russell recovers, passes Hamilton again for P4 at Degner"},
+    {"lap":53,"message":"CHEQUERED FLAG: Antonelli wins! Second consecutive victory. Youngest ever championship leader."},
+]
+
+_TEAM_COLOURS = {
+    "Mercedes":"#27F4D2","McLaren":"#FF8000","Ferrari":"#E8002D",
+    "Red Bull":"#3671C6","Alpine":"#FF87BC","Racing Bulls":"#6692FF",
+    "Haas":"#B6BABD","Williams":"#64C4FF","Aston Martin":"#229971",
+    "Kick Sauber":"#52E252",
+}
+_TYRE_CYCLE = ["H","H","H","H","H","H","H","H","M","S"]  # top 10 tyres lap 44+
+
+def _nearest_demo_lap(lap: int) -> int:
+    keys = sorted(DEMO_STANDINGS.keys())
+    return max(k for k in keys if k <= lap) if lap >= keys[0] else keys[0]
+
+def _build_demo_state() -> dict[str, Any]:
+    global _demo_lap, _demo_lap_ts
+    # Advance lap every 90 s
+    if _demo_lap_ts and (time.time() - _demo_lap_ts) >= 90:
+        if _demo_lap < 53:
+            _demo_lap += 1
+        _demo_lap_ts = time.time()
+
+    snap_lap = _nearest_demo_lap(_demo_lap)
+    raw      = DEMO_STANDINGS[snap_lap]
+
+    drivers: list[dict] = []
+    for i, d in enumerate(raw):
+        code = d["broadcast_name"].split(".")[-1].strip().split()[-1][:3].upper()
+        name = d["broadcast_name"]
+        gap  = d["gap_to_leader"]
+        drivers.append({
+            "number":  d["driver_number"],
+            "code":    code,
+            "name":    name,
+            "team":    d["team_name"],
+            "pos":     d["position"],
+            "gap":     f"+{gap:.1f}" if gap else "LEADER",
+            "tyre":    _TYRE_CYCLE[i % len(_TYRE_CYCLE)],
+            "stintLap": _demo_lap - 22,   # pitted at lap 22 SC
+            "colour":  _TEAM_COLOURS.get(d["team_name"], "#888"),
+            "strategy": [],
+        })
+
+    radio   = [r for r in DEMO_TEAM_RADIO  if r["lap"] <= _demo_lap][-3:]
+    incidents = [{"lap": inc["lap"], "msg": inc["message"]}
+                 for inc in DEMO_INCIDENTS if inc["lap"] <= _demo_lap]
+
+    radio_out = [{"driver": r["driver"], "team": r["team"],
+                  "msg": r["message"], "lap": r["lap"]} for r in radio]
+
+    return {
+        "session_key":    9999,
+        "session_name":   "Race",
+        "circuit":        "Suzuka",
+        "session_type":   "Race",
+        "year":           2026,
+        "is_live":        True,
+        "is_race":        True,
+        "lap":            _demo_lap,
+        "total_laps":     53,
+        "lap_pct":        round(_demo_lap / 53 * 100, 1),
+        "status":         "none",
+        "status_message": "",
+        "drivers":        drivers,
+        "incidents":      incidents,
+        "radio":          radio_out,
+        "pit_stops":      [],
+        "last_updated":   datetime.now(timezone.utc).isoformat(),
+    }
+
 # ── AI model constants ───────────────────────────────
 # User-facing chat uses Sonnet (set directly on each endpoint — do not change).
 HAIKU_MODEL = "claude-haiku-4-5"  # background summarization tasks only
@@ -623,8 +801,13 @@ async def _poller():
         try:
             is_live = _state.get("is_live", False)
             interval = POLL_INTERVAL_LIVE if is_live else POLL_INTERVAL_IDLE
-            log.info("Fetching race data (session_key=latest, live=%s, next=%ds)…", is_live, interval)
-            new_state = await _refresh()
+            if DEMO_MODE:
+                new_state = _build_demo_state()
+                interval  = 15   # fast refresh in demo
+                log.info("[DEMO] Lap %d/53 — demo state built", new_state["lap"])
+            else:
+                log.info("Fetching race data (session_key=latest, live=%s, next=%ds)…", is_live, interval)
+                new_state = await _refresh()
             async with _lock:
                 _state = new_state
 
@@ -1550,6 +1733,38 @@ async def chat_stream(req: ChatRequest, request: Request):
 async def ping():
     """Keep-alive endpoint — frontend pings every 4 minutes to prevent Railway cold starts."""
     return {"ok": True}
+
+
+@app.post("/api/demo/start")
+async def demo_start(request: Request):
+    """Owner-only: activate demo mode and reset lap counter to 44."""
+    global DEMO_MODE, _demo_lap, _demo_lap_ts
+    body = await request.json()
+    if body.get("key") != "atgaiimamw2026":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    DEMO_MODE     = True
+    _demo_lap     = 44
+    _demo_lap_ts  = time.time()
+    log.info("[DEMO] Demo mode started — lap 44/53")
+    return {"ok": True, "demo": True, "lap": _demo_lap}
+
+
+@app.post("/api/demo/stop")
+async def demo_stop(request: Request):
+    """Owner-only: deactivate demo mode and resume real OpenF1 data."""
+    global DEMO_MODE
+    body = await request.json()
+    if body.get("key") != "atgaiimamw2026":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    DEMO_MODE = False
+    log.info("[DEMO] Demo mode stopped — resuming live data")
+    return {"ok": True, "demo": False}
+
+
+@app.get("/api/demo/status")
+async def demo_status():
+    """Return current demo mode state and lap (no auth — used by frontend display)."""
+    return {"demo": DEMO_MODE, "lap": _demo_lap, "total_laps": 53}
 
 
 DATA_DIR      = os.environ.get("DATA_DIR", ".")
