@@ -4057,6 +4057,18 @@
       flex-direction: column;
       overflow: hidden;
     }
+    .mob-page.open { display: flex; }
+    @keyframes incSlideIn {
+      from { transform: translateY(-18px); opacity: 0; border-color: #e10600; }
+      to   { transform: translateY(0);     opacity: 1; }
+    }
+    @keyframes incFlash {
+      0%,100% { border-color: #1e1e1e; }
+      30%     { border-color: #e10600; box-shadow: 0 0 8px rgba(225,6,0,.4); }
+    }
+    .inc-card-new {
+      animation: incSlideIn .25s ease-out, incFlash 2s ease-out .1s;
+    }
     .mob-page-header {
       flex-shrink: 0;
       height: 52px;
@@ -5188,17 +5200,34 @@
     <button class="mob-back-btn" onclick="mobClosePage('incidents')">← Back</button>
     <span class="mob-page-title">Race Incidents</span>
   </div>
-  <div class="mob-page-body" style="display:flex;flex-direction:column;overflow:hidden">
-    <div id="mobIncidentsBody" style="flex:1;overflow-y:auto;padding:12px 14px">
-      <div style="text-align:center;padding:40px 0;color:#555;font-size:13px">
-        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;margin-right:6px;vertical-align:middle"></span>
-        No incidents yet — race is green
+  <!-- 65% scrollable list -->
+  <div id="mobIncidentsBody" style="flex:0 0 65%;overflow-y:auto;padding:12px 14px;border-bottom:1px solid #1e1e1e">
+    <div style="text-align:center;padding:40px 0;color:#555;font-size:13px">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;margin-right:6px;vertical-align:middle"></span>
+      No incidents yet — race is green
+    </div>
+  </div>
+  <!-- 35% fixed AI panel -->
+  <div id="incAiPanel" style="flex:0 0 35%;display:flex;flex-direction:column;background:#080808;overflow:hidden">
+    <!-- AI content area (default or active) -->
+    <div id="incAiContent" style="flex:1;overflow-y:auto;padding:10px 14px 4px">
+      <div id="incAiDefault" style="color:#444;font-size:12px;padding:12px 0">
+        Tap any incident to get an AI explanation
+      </div>
+      <div id="incAiActive" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:9px;font-weight:700;color:#e10600;letter-spacing:.08em;text-transform:uppercase">AI EXPLANATION</span>
+          <button onclick="incDismiss()" style="background:transparent;border:none;color:#555;font-size:16px;cursor:pointer;line-height:1;padding:0 2px">✕</button>
+        </div>
+        <div id="incAiResp" style="font-size:13px;color:#f0ede8;line-height:1.6"></div>
       </div>
     </div>
-    <!-- Local AI response area -->
-    <div id="incAiWrap" style="display:none;padding:10px 14px;border-top:1px solid #1e1e1e;background:#0a0a0a">
-      <div style="font-size:9px;color:#e10600;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">AI EXPLANATION</div>
-      <div id="incAiResp" style="font-size:13px;color:#f0ede8;line-height:1.6;min-height:40px"></div>
+    <!-- Always-visible input bar -->
+    <div style="padding:8px 12px 12px;flex-shrink:0;display:flex;gap:8px">
+      <input id="incAskInput" placeholder="Ask about this incident…"
+        style="flex:1;background:#111;border:1px solid #222;border-radius:8px;color:#f0ede8;font-size:12px;padding:8px 10px;outline:none;font-family:inherit"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();incFreeAsk();}">
+      <button onclick="incFreeAsk()" style="background:#e10600;border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:700;padding:0 12px;cursor:pointer;font-family:inherit">Ask</button>
     </div>
   </div>
 </div>
@@ -11804,12 +11833,36 @@ const _INC_FLAG = (function() {
   };
 })();
 
+var _incPrevCount = 0;
+
+function _incCardHtml(inc, isNew) {
+  var msg     = inc.msg || inc.message || '';
+  var lap     = inc.lap || '';
+  var cfg     = _INC_FLAG(msg);
+  var safeMsg = escapeHtml(msg);
+  var safeQ   = JSON.stringify(msg);
+  return '<div class="' + (isNew ? 'inc-card-new' : '') + '" ' +
+    'style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:12px 14px;margin-bottom:10px;">' +
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+    (lap ? '<span style="font-family:\'Barlow Condensed\',sans-serif;font-weight:700;font-size:13px;color:#e10600;letter-spacing:.04em">LAP ' + lap + '</span>' : '') +
+    '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:' + cfg.bg + ';color:' + cfg.text + ';letter-spacing:.06em">' + cfg.label + '</span>' +
+    '</div>' +
+    '<div style="font-size:13px;color:#f0ede8;line-height:1.5;margin-bottom:10px">' + safeMsg + '</div>' +
+    '<button onclick="incAskAI(' + safeQ + ')" ' +
+    'style="font-size:11px;padding:6px 12px;border-radius:20px;background:#111;border:1px solid #333;color:#e0ddd8;cursor:pointer;font-family:inherit">What does this mean? →</button>' +
+    '</div>';
+}
+
 function _mobSyncIncidents() {
   var incidents = (liveData && liveData.incidents) ? liveData.incidents : [];
   var dest = document.getElementById('mobIncidentsBody');
   if (!dest) return;
 
+  var newCount = incidents.length;
+  var hasNew   = newCount > _incPrevCount && _incPrevCount >= 0;
+
   if (!incidents.length) {
+    _incPrevCount = 0;
     dest.innerHTML =
       '<div style="text-align:center;padding:40px 0;color:#555;font-size:13px">' +
       '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;margin-right:6px;vertical-align:middle"></span>' +
@@ -11817,37 +11870,72 @@ function _mobSyncIncidents() {
     return;
   }
 
-  // Newest first
-  var sorted = incidents.slice().reverse();
-  dest.innerHTML = sorted.map(function(inc) {
-    var msg   = inc.msg || inc.message || '';
-    var lap   = inc.lap || '';
-    var cfg   = _INC_FLAG(msg);
-    var safeMsg = escapeHtml(msg);
-    var safeQ   = msg.replace(/'/g, "\\'").replace(/"/g, '\\"');
-    return '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:12px 14px;margin-bottom:10px;">' +
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
-      (lap ? '<span style="font-family:\'Barlow Condensed\',sans-serif;font-weight:700;font-size:13px;color:#e10600;letter-spacing:.04em">LAP ' + lap + '</span>' : '') +
-      '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:' + cfg.bg + ';color:' + cfg.text + ';letter-spacing:.06em">' + cfg.label + '</span>' +
-      '</div>' +
-      '<div style="font-size:13px;color:#f0ede8;line-height:1.5;margin-bottom:10px">' + safeMsg + '</div>' +
-      '<button onclick="incAskAI(\'' + safeQ + '\')" ' +
-      'style="font-size:11px;padding:6px 12px;border-radius:20px;background:#111;border:1px solid #333;color:#e0ddd8;cursor:pointer;font-family:inherit">What does this mean? →</button>' +
-      '</div>';
+  // Newest first; mark only brand-new cards
+  var sorted   = incidents.slice().reverse();
+  var newItems = hasNew ? newCount - _incPrevCount : 0;
+  dest.innerHTML = sorted.map(function(inc, i) {
+    return _incCardHtml(inc, i < newItems);
   }).join('');
+
+  _incPrevCount = newCount;
+
+  // Auto-dismiss AI panel when new incident arrives
+  if (hasNew) incDismiss();
+}
+
+function incDismiss() {
+  var def = document.getElementById('incAiDefault');
+  var act = document.getElementById('incAiActive');
+  if (def) def.style.display = '';
+  if (act) act.style.display = 'none';
 }
 
 var _incAiBusy = false;
 async function incAskAI(msg) {
   if (_incAiBusy) return;
   _incAiBusy = true;
-  var wrap = document.getElementById('incAiWrap');
+  var def  = document.getElementById('incAiDefault');
+  var act  = document.getElementById('incAiActive');
   var resp = document.getElementById('incAiResp');
-  if (!wrap || !resp) { _incAiBusy = false; return; }
-  wrap.style.display = 'block';
+  if (!resp) { _incAiBusy = false; return; }
+  if (def) def.style.display = 'none';
+  if (act) act.style.display = 'block';
   resp.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
   var sys = 'You are an F1 expert explaining race incidents to a casual fan. Be concise — 2-3 sentences max. Plain English.\n\n' + getStyleInstruction();
-  var q   = 'Explain this F1 race incident: ' + msg;
+  try {
+    var res = await fetch(BACKEND + '/api/chat-stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: sys, messages: [{ role: 'user', content: 'Explain this F1 race incident: ' + msg }] }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var reply = await _readTokenStream(res, function(txt) { resp.innerHTML = _renderBold(txt); });
+    var parsed = parseFollowups(reply || '');
+    resp.innerHTML = _renderBold(parsed.text || reply);
+  } catch(e) {
+    resp.textContent = '⚠ Could not reach AI.';
+  } finally {
+    _incAiBusy = false;
+  }
+}
+
+var _incFreeBusy = false;
+async function incFreeAsk() {
+  if (_incFreeBusy) return;
+  var input = document.getElementById('incAskInput');
+  if (!input || !input.value.trim()) return;
+  var q = input.value.trim();
+  input.value = '';
+  _incFreeBusy = true;
+  var def  = document.getElementById('incAiDefault');
+  var act  = document.getElementById('incAiActive');
+  var resp = document.getElementById('incAiResp');
+  if (!resp) { _incFreeBusy = false; return; }
+  if (def) def.style.display = 'none';
+  if (act) act.style.display = 'block';
+  resp.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  var sys = 'You are an F1 expert. Answer in 2-3 sentences, plain English.\n\n' + getStyleInstruction();
   try {
     var res = await fetch(BACKEND + '/api/chat-stream', {
       method: 'POST',
@@ -11856,15 +11944,13 @@ async function incAskAI(msg) {
       signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    var reply = await _readTokenStream(res, function(txt) {
-      resp.innerHTML = _renderBold(txt);
-    });
+    var reply = await _readTokenStream(res, function(txt) { resp.innerHTML = _renderBold(txt); });
     var parsed = parseFollowups(reply || '');
     resp.innerHTML = _renderBold(parsed.text || reply);
   } catch(e) {
     resp.textContent = '⚠ Could not reach AI.';
   } finally {
-    _incAiBusy = false;
+    _incFreeBusy = false;
   }
 }
 
