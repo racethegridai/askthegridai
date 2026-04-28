@@ -5129,12 +5129,13 @@
     <!-- AI input -->
     <div style="padding:12px 16px 20px">
       <div style="font-size:10px;color:#555;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Ask about any radio call</div>
+      <div id="mobRadioAiResp" style="display:none;margin-bottom:10px;background:#111;border-left:3px solid var(--red);border-radius:6px;padding:10px 12px;font-size:13px;color:#f0ede8;line-height:1.6"></div>
       <div class="mob-input-row">
         <input class="mob-chat-input" id="mobRadioInput"
           placeholder="Why did they say that?"
           onkeydown="if(event.key==='Enter'){event.preventDefault();_mobRadioAsk();}"
           autocomplete="off">
-        <button class="mob-ask-btn" onclick="_mobRadioAsk()">Ask</button>
+        <button class="mob-ask-btn" id="mobRadioAskBtn" onclick="_mobRadioAsk()">Ask</button>
       </div>
     </div>
 
@@ -10529,14 +10530,45 @@ If no incidents happened write: LAP ${lap} | The race is running cleanly right n
 
 async function _wjhFullAsk() {
   const input = document.getElementById('wjhFullInput');
-  if (!input) return;
+  const body  = document.getElementById('wjhFullBody');
+  if (!input || !body) return;
   const q = input.value.trim();
   if (!q) return;
   input.value = '';
-  // Route question to main AI chat and close overlay
-  document.getElementById('chatInput').value = q;
-  closeWjhView();
-  sendMsg();
+  // Answer directly inside the WJH view — do NOT close or switch tabs
+  const userDiv = document.createElement('div');
+  userDiv.style.cssText = 'text-align:right;margin:8px 0 4px;';
+  userDiv.innerHTML = '<span style="background:#1a1a1a;border-radius:8px 8px 2px 8px;padding:6px 10px;font-size:12px;color:#aaa;display:inline-block">' + escapeHtml(q) + '</span>';
+  body.appendChild(userDiv);
+  const aiDiv = document.createElement('div');
+  aiDiv.style.cssText = 'margin-bottom:10px;';
+  aiDiv.innerHTML = '<div style="background:#111;border-left:3px solid var(--red);border-radius:6px;padding:10px 12px;font-size:13px;color:#f0ede8;line-height:1.6"><div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
+  body.appendChild(aiDiv);
+  body.scrollTop = body.scrollHeight;
+  const bubble = aiDiv.querySelector('div');
+  const sys = buildSystem('default');
+  try {
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: sys, messages: [{ role: 'user', content: q }] }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const reply = await _readTokenStream(res, txt => {
+      if (bubble) bubble.innerHTML = _renderBold(txt);
+      body.scrollTop = body.scrollHeight;
+    });
+    const parsed = parseFollowups(reply || '');
+    if (bubble) bubble.innerHTML = _renderBold(parsed.text || reply);
+    renderFollowups(parsed.followups, bubble, function(fq) {
+      document.getElementById('wjhFullInput').value = fq;
+      _wjhFullAsk();
+    });
+  } catch(e) {
+    if (bubble) bubble.textContent = '⚠ Could not reach AI.';
+  }
+  body.scrollTop = body.scrollHeight;
 }
 
 /* ──────────────────────────────────────────────────
@@ -11422,16 +11454,39 @@ function _mobToggleHeroTrans() {
   if (el) el.style.display = _mobHeroTransOpen ? 'flex' : 'none';
 }
 
-function _mobRadioAsk() {
+async function _mobRadioAsk() {
   const input = document.getElementById('mobRadioInput');
-  const main  = document.getElementById('mobChatInput');
-  if (!input || !main) return;
+  const resp  = document.getElementById('mobRadioAiResp');
+  const btn   = document.getElementById('mobRadioAskBtn');
+  if (!input) return;
   const q = input.value.trim();
   if (!q) return;
   input.value = '';
-  main.value  = q;
-  mobClosePage('radio');
-  mobSendMsg();
+  if (resp) { resp.style.display = 'block'; resp.textContent = 'Thinking…'; }
+  if (btn)  { btn.disabled = true; btn.textContent = '…'; }
+  const sys = 'You are an F1 expert explaining team radio to a casual fan. Answer in 2-3 sentences, plain English.\n\n' + getStyleInstruction();
+  try {
+    const res = await fetch(`${BACKEND}/api/chat-stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: sys, messages: [{ role: 'user', content: q }] }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const reply = await _readTokenStream(res, txt => {
+      if (resp) resp.innerHTML = _renderBold(txt);
+    });
+    const parsed = parseFollowups(reply || '');
+    if (resp) { resp.innerHTML = _renderBold(parsed.text || reply); }
+    renderFollowups(parsed.followups, resp, function(fq) {
+      document.getElementById('mobRadioInput').value = fq;
+      _mobRadioAsk();
+    });
+  } catch(e) {
+    if (resp) resp.textContent = '⚠ Could not reach AI. Try again.';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Ask'; }
+  }
 }
 
 function renderMobRadio(radio) {
@@ -13236,7 +13291,7 @@ window.spAsk = function(prompt) {
     var inp = document.getElementById('chatInput');
     if (inp) {
       inp.value = prompt;
-      switchTab('live');
+      // Do NOT call switchTab — let the user stay on whichever tab they're on
       sendMsg();
     } else {
       console.warn('[spAsk] chatInput not found');
