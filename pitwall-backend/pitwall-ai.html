@@ -2511,9 +2511,22 @@
       100% { background: transparent; }
     }
 
-    .standings-updated td {
-      animation: row-flash 1.2s ease-out forwards;
+    /* position-change flash — only on actual movement */
+    @keyframes flashUp   { 0%{border-left-color:#4caf50;box-shadow:inset 3px 0 0 #4caf50} 100%{border-left-color:transparent;box-shadow:none} }
+    @keyframes flashDown { 0%{border-left-color:#e10600;box-shadow:inset 3px 0 0 #e10600} 100%{border-left-color:transparent;box-shadow:none} }
+    .pos-changed-up   { animation: flashUp   3s ease-out forwards; }
+    .pos-changed-down { animation: flashDown 3s ease-out forwards; }
+    .drs-available    { border-left: 2px solid #3671c6 !important; }
+    .fastest-dot { color: #a855f7; font-size: 9px; margin-left: 4px; vertical-align: middle; }
+    .standings-sep td { padding: 3px 4px; border: none; background: transparent; }
+    .sep-label { font-size: 8px; color: #2a2a2a; letter-spacing: .12em; text-transform: uppercase; }
+    .drv-mini-overlay {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 800;
+      background: #0d0d0d; border-top: 2px solid var(--red);
+      border-radius: 14px 14px 0 0; padding: 16px;
+      transform: translateY(100%); transition: transform .25s ease;
     }
+    .drv-mini-overlay.open { transform: translateY(0); }
 
     /* ── INCIDENT SLIDE-IN ───────────────────────────── */
     @keyframes slide-from-right {
@@ -9531,12 +9544,25 @@ function _stopTyrePoller() {
   _liveTyres = {};
 }
 
+function _parseGapSec(gap) {
+  if (!gap || gap === 'LEADER' || gap === 'WINNER' || gap === 'LAP') return null;
+  const m = String(gap).match(/(\d+)m\s*([\d.]+)/);
+  if (m) return parseInt(m[1]) * 60 + parseFloat(m[2]);
+  const s = String(gap).match(/\+?([\d.]+)/);
+  return s ? parseFloat(s[1]) : null;
+}
+
 function renderStandings(drivers) {
   _loadPrevPositions();
-  // Show all drivers (up to 22 on a full grid)
   drivers = drivers.slice(0, 22);
 
-  // Drivers currently in pit lane
+  // Pit counts (completed stops only)
+  const pitCounts = {};
+  (liveData.pit_stops || [])
+    .filter(p => p.duration !== null && p.duration !== undefined)
+    .forEach(p => { pitCounts[p.driver_number] = (pitCounts[p.driver_number] || 0) + 1; });
+
+  // In-pit now
   const inPit = new Set(
     (liveData.pit_stops || [])
       .filter(p => p.duration === null || p.duration === undefined)
@@ -9544,42 +9570,84 @@ function renderStandings(drivers) {
   );
 
   const tbody = document.getElementById('standingsTbody');
-  tbody.innerHTML = drivers.map(d => {
-    const posClass  = d.pos <= 3 ? `p${d.pos}` : '';
-    const isLeader  = d.pos === 1;
-    const arrow     = _arrowHtml(d.pos, d.number);
-    const pitHtml   = inPit.has(d.number) ? '<span class="pit-tag">PIT</span>' : '';
+  let html = '';
+
+  drivers.forEach((d, i) => {
+    // Separators
+    if (d.pos === 4)  html += '<tr class="standings-sep"><td colspan="5"><span class="sep-label">── PODIUM ──</span></td></tr>';
+    if (d.pos === 11) html += '<tr class="standings-sep"><td colspan="5"><span class="sep-label">── POINTS ──</span></td></tr>';
+
+    const posClass = d.pos <= 3 ? `p${d.pos}` : '';
+    const isLeader = d.pos === 1;
+
+    // Position change
+    const prev      = _prevPositions[d.number];
+    const movedUp   = prev !== undefined && d.pos < prev;
+    const movedDown = prev !== undefined && d.pos > prev;
+    const flashCls  = movedUp ? 'pos-changed-up' : movedDown ? 'pos-changed-down' : '';
+    const arrowHtml = movedUp
+      ? '<span class="pos-arrow up" style="font-size:8px;margin-left:2px">▲</span>'
+      : movedDown ? '<span class="pos-arrow down" style="font-size:8px;margin-left:2px">▼</span>' : '';
+
+    // DRS: gap to car ahead < 1s
+    let drsClass = '';
+    if (i > 0) {
+      const myGap    = _parseGapSec(d.gap);
+      const aheadGap = _parseGapSec(drivers[i - 1].gap);
+      if (myGap !== null && aheadGap !== null && (myGap - aheadGap) < 1.0) drsClass = 'drs-available';
+    }
+
+    // Interval (gap to car directly ahead)
+    let intervalHtml = '';
+    if (i > 0 && !isLeader) {
+      const myGap    = _parseGapSec(d.gap);
+      const aheadGap = _parseGapSec(drivers[i - 1].gap);
+      if (myGap !== null && aheadGap !== null) {
+        const diff = (myGap - aheadGap).toFixed(1);
+        intervalHtml = `<div style="font-size:9px;color:#444;margin-top:1px">+${diff}s</div>`;
+      }
+    }
+
+    const pits    = pitCounts[d.number] || 0;
+    const pitHtml = inPit.has(d.number) ? '<span class="pit-tag">PIT</span>' : '';
+    const fastHtml = d.fastest_lap ? '<span class="fastest-dot" title="Fastest lap">⬡</span>' : '';
+
     const gapDisplay = isLeader
       ? '<span class="leader-badge">LEADER</span>'
-      : `<div class="gap-val">${_formatGap(d.gap)}</div>`;
+      : `<div class="gap-val">${_formatGap(d.gap)}</div>${intervalHtml}`;
 
-    return `
-      <tr class="${isLeader ? 'p1' : ''} standings-updated">
-        <td class="td-pos ${posClass}">${d.pos}${arrow}</td>
+    html += `
+      <tr class="${isLeader ? 'p1' : ''} ${drsClass} ${flashCls}"
+          style="cursor:pointer" onclick="openDriverMiniCard(${d.number})">
+        <td class="td-pos ${posClass}">${d.pos}${arrowHtml}</td>
         <td class="td-dot"><span class="team-dot" style="background:${d.colour || '#888'}"></span></td>
         <td class="td-driver">
-          <div class="drv-name">${escapeHtml(d.name || d.code)}${pitHtml}</div>
+          <div class="drv-name">${escapeHtml(d.name || d.code)}${pitHtml}${fastHtml}</div>
           <div class="drv-team">${escapeHtml(d.team || '')}</div>
         </td>
         <td class="td-tyre">
           <span class="tyre-badge ${d.tyre || '?'}">${d.tyre || '?'}</span>
-          <div class="tyre-laps">+${d.stintLap || 0}L</div>
+          <div style="font-size:9px;color:#555;margin-top:2px">+${d.stintLap || 0}L${pits ? ' · ' + pits + 'P' : ''}</div>
         </td>
         <td class="td-gap">${gapDisplay}</td>
       </tr>`;
-  }).join('');
+  });
 
-  // Save current positions — next render will compare against these
+  tbody.innerHTML = html;
+
+  // Flash classes auto-clear after 3s
+  setTimeout(() => {
+    tbody.querySelectorAll('.pos-changed-up,.pos-changed-down')
+      .forEach(r => r.classList.remove('pos-changed-up', 'pos-changed-down'));
+  }, 3100);
+
+  // Save current positions for next diff
   const next = {};
   drivers.forEach(d => { next[d.number] = d.pos; });
   _prevPositions = next;
   _savePrevPositions();
 
   _lastUpdateMs = Date.now();
-  setTimeout(() => {
-    tbody.querySelectorAll('.standings-updated').forEach(r => r.classList.remove('standings-updated'));
-  }, 1300);
-
   _applyMobStandings();
 }
 
@@ -14045,6 +14113,61 @@ window.spAsk = function(prompt) {
 
   showDemoBar();
 })();
+</script>
+
+<!-- Driver mini-card overlay (desktop standings row tap) -->
+<div class="drv-mini-overlay" id="drvMiniOverlay" onclick="if(event.target===this)closeDrvMini()">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <div id="drvMiniName" style="font-size:15px;font-weight:700;color:#fff"></div>
+    <button onclick="closeDrvMini()" style="background:transparent;border:none;color:#555;font-size:20px;cursor:pointer;line-height:1">✕</button>
+  </div>
+  <div id="drvMiniBody" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px"></div>
+  <button id="drvMiniAskBtn" onclick="drvMiniAskAI()" style="width:100%;padding:10px;background:#111;border:1px solid #333;border-radius:8px;color:#e0ddd8;font-size:12px;cursor:pointer;font-family:inherit">Ask AI about this driver →</button>
+</div>
+
+<script>
+var _drvMiniNum = null;
+function openDriverMiniCard(num) {
+  var d = (liveData.drivers || []).find(function(x){ return x.number === num; });
+  if (!d) return;
+  _drvMiniNum = num;
+  var nameEl = document.getElementById('drvMiniName');
+  var body   = document.getElementById('drvMiniBody');
+  if (nameEl) nameEl.textContent = (d.name || d.code) + ' · ' + (d.team || '');
+  if (body) body.innerHTML =
+    '<div style="text-align:center"><div style="font-size:10px;color:#555;margin-bottom:4px">TYRE</div>' +
+    '<span class="tyre-badge ' + (d.tyre||'?') + '" style="font-size:14px;width:28px;height:28px">' + (d.tyre||'?') + '</span>' +
+    '<div style="font-size:11px;color:#555;margin-top:4px">+' + (d.stintLap||0) + ' laps</div></div>' +
+    '<div style="text-align:center"><div style="font-size:10px;color:#555;margin-bottom:4px">GAP</div>' +
+    '<div style="font-size:14px;font-weight:700;color:#f0ede8">' + (d.gap === 'LEADER' ? '— LEAD —' : (d.gap||'—')) + '</div></div>' +
+    '<div style="text-align:center"><div style="font-size:10px;color:#555;margin-bottom:4px">POS</div>' +
+    '<div style="font-size:24px;font-weight:900;color:#e10600">P' + d.pos + '</div></div>';
+  var ol = document.getElementById('drvMiniOverlay');
+  if (ol) ol.classList.add('open');
+}
+function closeDrvMini() {
+  var ol = document.getElementById('drvMiniOverlay');
+  if (ol) ol.classList.remove('open');
+  _drvMiniNum = null;
+}
+async function drvMiniAskAI() {
+  var d = (liveData.drivers || []).find(function(x){ return x.number === _drvMiniNum; });
+  if (!d) return;
+  var btn = document.getElementById('drvMiniAskBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Thinking…'; }
+  var q = 'How is ' + (d.name || d.code) + ' doing in the race right now? Tyre: ' + d.tyre + ' (+' + d.stintLap + 'L). Gap: ' + d.gap + '. Position: P' + d.pos + '. 2 sentences max.';
+  try {
+    var res = await fetch(BACKEND + '/api/chat', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ system: 'F1 race analyst. 2 sentences max. Plain English.', messages: [{role:'user',content:q}] }),
+      signal: AbortSignal.timeout(12000)
+    });
+    var data = await res.json();
+    if (btn) { btn.disabled = false; btn.textContent = data.reply || 'Could not load.'; btn.style.textAlign = 'left'; btn.style.color = '#f0ede8'; }
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '⚠ Could not reach AI.'; }
+  }
+}
 </script>
 
 <div id='atgai-mode-badge' style='display:none;position:fixed;bottom:12px;right:12px;z-index:9998;background:#111;border:1px solid;border-radius:4px;padding:3px 8px;font-size:10px;letter-spacing:.1em;font-weight:700;font-family:sans-serif'></div>
