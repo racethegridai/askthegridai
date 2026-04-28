@@ -24,7 +24,7 @@ import stripe
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
 # ── Questions log ────────────────────────────────────
@@ -1405,23 +1405,24 @@ def _build_dynamic_context() -> str:
         terms = ", ".join(t['title'] for t in cached_trends)
         sections.append("TRENDING F1 SEARCHES TODAY:\n" + terms)
 
-    # Current session + team radio from live race state
+    # Current session — trimmed to ~200 chars to keep prompts lean
     state = _state
     if state.get("session_key"):
-        lap   = state.get("lap", 0)
-        total = state.get("total_laps", "?")
-        name  = state.get("session_name", "unknown")
+        lap    = state.get("lap", 0)
+        total  = state.get("total_laps", "?")
+        name   = state.get("session_name", "unknown")
         status = state.get("status", "none")
-        sections.append(
-            f"CURRENT SESSION:\n{name} | Lap {lap}/{total} | Status: {status}"
-        )
+        top5   = state.get("drivers", [])[:5]
+        top5_str = ", ".join(
+            f"P{d['pos']} {d.get('code','?')}" for d in top5
+        ) if top5 else "—"
+        live_summary = f"{name} Lap {lap}/{total} | {top5_str} | Status:{status}"
+        sections.append(f"RACE: {live_summary[:200]}")
         radio = state.get("radio", [])
         if radio:
-            lines = [
-                f"{r.get('driver','?')} ({r.get('team','')}): recent radio clip"
-                for r in radio[:3]
-            ]
-            sections.append("RECENT TEAM RADIO CLIPS:\n" + "\n".join(lines))
+            last = radio[-1]
+            msg  = last.get("msg", last.get("message", ""))[:80]
+            sections.append(f"LAST RADIO: {last.get('driver','?')}: {msg}")
 
     if not sections:
         return ""
@@ -1547,7 +1548,7 @@ async def chat(req: ChatRequest, request: Request):
         cached_reply = _get_rc(cache_key)
         if cached_reply:
             print(f"[CACHE HIT]  key={cache_key[:8]}… msg={last_user_msg[:60]!r}", flush=True)
-            return {"reply": cached_reply}
+            return JSONResponse({"reply": cached_reply}, headers={"X-Cache": "HIT"})
         print(f"[CACHE MISS] key={cache_key[:8]}… msg={last_user_msg[:60]!r}", flush=True)
         # Log only real user questions that will hit the API (not owner/system)
         if last_user_msg and not last_user_msg.startswith("ATGAI"):
@@ -1564,34 +1565,48 @@ async def chat(req: ChatRequest, request: Request):
     client = anthropic.AsyncAnthropic(api_key=api_key)
 
     _chat_model = "claude-haiku-4-5-20251001" if req.model == "haiku" else "claude-sonnet-4-20250514"
+    # Shorter questions need fewer tokens — cap at 300 for speed, 400 globally
+    _max_tok = 300 if len(last_user_msg) < 60 else 400
 
     async def _call_anthropic() -> str:
         response = await client.messages.create(
             model=_chat_model,
-            max_tokens=600,
+            max_tokens=_max_tok,
             system=_CRITICAL_CONTEXT + "\n\n" + req.system,
             messages=req.messages,
         )
         return response.content[0].text
 
-    try:
-        reply = await _call_anthropic()
-    except anthropic.AuthenticationError:
-        raise HTTPException(status_code=401, detail="Invalid Anthropic API key in .env")
-    except anthropic.RateLimitError:
-        log.warning("[CHAT] Rate limit hit — waiting 2s and retrying once")
+    # Exponential backoff — up to 3 attempts
+    reply = None
+    last_exc: Exception | None = None
+    for _attempt in range(3):
         try:
-            await asyncio.sleep(2)
             reply = await _call_anthropic()
-        except Exception:
-            return {"error": "Too many requests right now. Please try again in a moment."}
-    except Exception as exc:
-        log.warning("[CHAT] Unexpected error: %s", exc)
-        return {"error": "Something went wrong. Please try again in a moment."}
+            break
+        except anthropic.AuthenticationError:
+            raise HTTPException(status_code=401, detail="Invalid Anthropic API key in .env")
+        except (anthropic.RateLimitError, anthropic.APIStatusError) as exc:
+            is_429 = isinstance(exc, anthropic.RateLimitError) or getattr(exc, "status_code", 0) == 429
+            if is_429 and _attempt < 2:
+                wait = (2 ** _attempt) * 1.5
+                log.warning("[CHAT] 429 — attempt %d, waiting %.1fs", _attempt + 1, wait)
+                await asyncio.sleep(wait)
+                last_exc = exc
+            else:
+                last_exc = exc
+                break
+        except Exception as exc:
+            log.warning("[CHAT] Unexpected error: %s", exc)
+            return {"reply": "Something went wrong. Please try again in a moment."}
+
+    if reply is None:
+        log.warning("[CHAT] All retries exhausted: %s", last_exc)
+        return {"reply": "The AI is getting lots of questions right now — try again in a few seconds!"}
 
     if cache_key and reply:
         _set_rc(cache_key, reply)
-    return {"reply": reply}
+    return JSONResponse({"reply": reply}, headers={"X-Cache": "MISS"})
 
 
 @app.post("/api/chat-stream")
