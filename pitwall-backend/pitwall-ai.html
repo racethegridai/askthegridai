@@ -7004,18 +7004,19 @@
         <div class="rp-strat-warn" id="rpStratWarn">Safety car before lap 12 flips the entire strategy. Teams will gamble on early cheap stops.</div>
       </div>
 
-      <!-- WEATHER CARD -->
-      <div class="rp-card">
-        <div class="rp-card-title" style="margin-bottom:8px">Miami Weather</div>
-        <div class="rp-ai-weather-row" style="margin-bottom:10px">
-          <button class="rp-toggle-btn active-dry" id="rpBtnDry2" onclick="rpToggleWeather(false)">Dry</button>
-          <button class="rp-toggle-btn" id="rpBtnRain2" onclick="rpToggleWeather(true)">&#x26A1; Rain</button>
+      <!-- WEATHER CARD — live data from Open-Meteo -->
+      <div class="rp-card" id="rpWeatherCard">
+        <div class="rp-card-title" style="margin-bottom:12px" id="rpWeatherTitle">Race Weekend Weather</div>
+        <div id="rpWeatherForecast" style="margin-bottom:10px">
+          <div style="color:#444;font-size:11px;padding:8px 0">Loading weather…</div>
         </div>
-        <div class="rp-weather-impact">
-          <div class="rp-weather-impact-label">AI weather impact</div>
-          <div class="rp-weather-text" id="rpWeatherText">Miami averages 34°C on race day with high humidity causing tyre surface temperatures to spike 12 to 15 degrees above ambient. The front-left tyre at Turn 4 is the first to go. Expect most teams to pit earlier than their models suggest. A 38 percent rain chance means teams will watch the sky from lap 20.</div>
+        <div id="rpWeatherAnalysisSection" style="display:none">
+          <div id="rpWeatherAnalysisCards" style="margin-bottom:10px"></div>
         </div>
-        <button class="rp-btn-blue" id="rpWeatherBtn" onclick="rpSend('How does Miami heat and potential rain affect race strategy and tyre choices for the 2026 Miami GP?')">Ask AI full weather impact →</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="rp-btn-blue" onclick="loadRpWeatherAnalysis()" id="rpAnalyseBtn">Analyse Race Impact →</button>
+          <button class="rp-btn-blue" onclick="rpSend('How does the forecast weather affect race strategy and tyre choices this weekend?')" style="opacity:.7">Ask AI →</button>
+        </div>
       </div>
 
       <!-- SPEED TRAP -->
@@ -9294,6 +9295,7 @@ function switchNewsTab(name) {
   document.querySelectorAll('.news-panel').forEach(p => {
     p.classList.toggle('active', p.id === 'news-' + name);
   });
+  if (name === 'preview') loadRpWeather();
 }
 
 let _newsBusy = false;
@@ -12628,6 +12630,104 @@ async function rpChatSend(q) {
     _rpcBusy = false;
     if (sendBtn) sendBtn.disabled = false;
     msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+}
+
+/* ── Live weather for Race Preview ─────────────────── */
+let _rpWeatherData = null;
+
+const _WMO_ICON = {
+  'Clear':'☀️','Partly Cloudy':'⛅','Foggy':'🌫️',
+  'Drizzle':'🌦️','Rain':'🌧️','Rain Showers':'🌧️',
+  'Thunderstorm':'⛈️','Snow':'❄️','Overcast':'☁️',
+};
+
+async function loadRpWeather() {
+  const titleEl    = document.getElementById('rpWeatherTitle');
+  const forecastEl = document.getElementById('rpWeatherForecast');
+  if (!forecastEl) return;
+  try {
+    const res = await fetch(`${BACKEND}/api/weather`, { signal: AbortSignal.timeout(12000) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    _rpWeatherData = d;
+    if (titleEl) titleEl.textContent = (d.race_name || 'Race') + ' Weather';
+
+    const fc = d.forecast || [];
+    // Show FP1 / Qualifying / Race day (first, third, fifth day or what we have)
+    const slots = [
+      { label: 'FP1',        day: fc[0] },
+      { label: 'Qualifying', day: fc[2] || fc[1] },
+      { label: 'Race Day',   day: fc[4] || fc[3] || fc[2] },
+    ].filter(s => s.day);
+
+    const rainRisk = (() => {
+      const maxRain = Math.max(...slots.map(s => s.day.rain_chance || 0));
+      if (maxRain >= 60) return { label: 'HIGH RAIN RISK',   color: '#e10600', bg: '#2a0000' };
+      if (maxRain >= 30) return { label: 'MEDIUM RAIN RISK', color: '#f5a623', bg: '#1a1000' };
+      return              { label: 'LOW RAIN RISK',  color: '#4caf50', bg: '#001a00' };
+    })();
+
+    forecastEl.innerHTML =
+      '<div style="display:grid;grid-template-columns:repeat(' + slots.length + ',1fr);gap:6px;margin-bottom:10px">' +
+      slots.map(s => {
+        const icon = _WMO_ICON[s.day.condition] || '🌡️';
+        return '<div style="background:#050505;border:1px solid #1e1e1e;border-radius:8px;padding:10px 8px;text-align:center">' +
+          '<div style="font-size:9px;font-weight:700;color:#555;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">' + s.label + '</div>' +
+          '<div style="font-size:20px;margin-bottom:4px">' + icon + '</div>' +
+          '<div style="font-size:13px;font-weight:700;color:#f0ede8">' + Math.round(s.day.max_temp || 0) + '°C</div>' +
+          '<div style="font-size:11px;color:#' + (s.day.rain_chance >= 40 ? '7090ff' : '555') + ';margin-top:2px">' + (s.day.rain_chance || 0) + '% rain</div>' +
+          '</div>';
+      }).join('') +
+      '</div>' +
+      '<div style="display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;background:' + rainRisk.bg + ';color:' + rainRisk.color + ';letter-spacing:.06em;margin-bottom:8px">' + rainRisk.label + '</div>';
+  } catch(e) {
+    if (forecastEl) forecastEl.innerHTML = '<div style="color:#555;font-size:11px;padding:8px 0">Weather data unavailable</div>';
+  }
+}
+
+async function loadRpWeatherAnalysis() {
+  const btn     = document.getElementById('rpAnalyseBtn');
+  const section = document.getElementById('rpWeatherAnalysisSection');
+  const cards   = document.getElementById('rpWeatherAnalysisCards');
+  if (!_rpWeatherData || !cards) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Analysing…'; }
+  try {
+    const res = await fetch(`${BACKEND}/api/weather-analysis`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ weather: _rpWeatherData.forecast, race_name: _rpWeatherData.race_name }),
+      signal: AbortSignal.timeout(20000),
+    });
+    const d = await res.json();
+    if (d.error) throw new Error(d.error);
+
+    const riskColor = { high: '#e10600', medium: '#f5a623', low: '#4caf50' }[d.rain_risk] || '#888';
+    const card = (label, content, borderColor) =>
+      '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-left:3px solid ' + borderColor + ';border-radius:8px;padding:10px 12px;margin-bottom:8px">' +
+      '<div style="font-size:9px;font-weight:700;color:' + borderColor + ';letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">' + label + '</div>' +
+      '<div style="font-size:12px;color:#d4d0ca;line-height:1.55">' + escapeHtml(content) + '</div></div>';
+    const driverRow = (arr, color) => arr.map(x =>
+      '<div style="font-size:12px;padding:3px 0;color:#f0ede8"><span style="color:' + color + ';font-weight:700">' + escapeHtml(x.driver || x) + '</span> — <span style="color:#666">' + escapeHtml(x.reason || '') + '</span></div>'
+    ).join('');
+
+    if (section) section.style.display = '';
+    cards.innerHTML =
+      card('Race Day', d.race_day_condition || '', riskColor) +
+      '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:10px 12px;margin-bottom:8px">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+          '<div><div style="font-size:9px;font-weight:700;color:#4caf50;letter-spacing:.08em;margin-bottom:5px">🟢 WET WEATHER WINNERS</div>' + driverRow(d.wet_weather_winners || [], '#4caf50') + '</div>' +
+          '<div><div style="font-size:9px;font-weight:700;color:#e10600;letter-spacing:.08em;margin-bottom:5px">🔴 WET WEATHER LOSERS</div>' + driverRow(d.wet_weather_losers || [], '#e10600') + '</div>' +
+        '</div></div>' +
+      card('Strategy Impact', d.strategy_impact || '', '#7090ff') +
+      '<div style="background:#1a0000;border:1px solid #3a0000;border-radius:8px;padding:10px 12px">' +
+        '<div style="font-size:9px;font-weight:700;color:#e10600;letter-spacing:.08em;margin-bottom:5px">👀 FAN TIP</div>' +
+        '<div style="font-size:12px;color:#f0ede8;line-height:1.55">' + escapeHtml(d.fan_tip || '') + '</div></div>';
+  } catch(e) {
+    if (cards) cards.innerHTML = '<div style="color:#555;font-size:12px">Analysis failed — try again.</div>';
+    if (section) section.style.display = '';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Analyse Race Impact →'; }
   }
 }
 

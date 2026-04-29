@@ -1288,6 +1288,17 @@ def _build_dynamic_context() -> str:
             msg  = last.get("msg", last.get("message", ""))[:80]
             sections.append(f"LAST RADIO: {last.get('driver','?')}: {msg}")
 
+    # Weather for next race (if cached)
+    wd = _weather_cache.get("data")
+    if wd and wd.get("forecast"):
+        fc = wd["forecast"]
+        race_day = fc[-1] if len(fc) >= 1 else fc[0]
+        sections.append(
+            f"RACE WEATHER ({wd.get('location','?')}): "
+            f"{race_day['condition']}, {race_day['rain_chance']}% rain chance, "
+            f"max {race_day['max_temp']}°C, wind {race_day['wind_kmh']} km/h"
+        )
+
     if not sections:
         return ""
     updated = (state.get("last_updated") or "")[:19] or "now"
@@ -1827,6 +1838,157 @@ async def get_reddit(key: str = ""):
 # ── Fan topics cache ──────────────────────────────
 _fan_topics_cache: dict = {"topics": [], "cached_at": None}
 _FAN_TOPICS_TTL = 4 * 3600   # 4 hours
+
+# ── Weather cache ─────────────────────────────────
+_weather_cache: dict = {"data": None, "cached_at": None}
+_WEATHER_TTL = 3600   # 1 hour
+
+_CIRCUIT_COORDS: dict[str, dict] = {
+    "Miami":        {"lat": 25.9581,  "lon": -80.2389},
+    "Monaco":       {"lat": 43.7347,  "lon":   7.4206},
+    "Silverstone":  {"lat": 52.0786,  "lon":  -1.0169},
+    "Monza":        {"lat": 45.6156,  "lon":   9.2811},
+    "Suzuka":       {"lat": 34.8431,  "lon": 136.5407},
+    "Spa":          {"lat": 50.4372,  "lon":   5.9714},
+    "Interlagos":   {"lat": -23.7036, "lon": -46.6997},
+    "Singapore":    {"lat":  1.2914,  "lon": 103.8640},
+    "Abu Dhabi":    {"lat": 24.4672,  "lon":  54.6031},
+    "Barcelona":    {"lat": 41.5700,  "lon":   2.2611},
+    "Baku":         {"lat": 40.3725,  "lon":  49.8533},
+    "Melbourne":    {"lat": -37.8497, "lon": 144.9680},
+    "Montreal":     {"lat": 45.5000,  "lon": -73.5228},
+    "Zandvoort":    {"lat": 52.3888,  "lon":   4.5409},
+    "Austin":       {"lat": 30.1328,  "lon": -97.6411},
+    "Mexico City":  {"lat": 19.4042,  "lon": -99.0907},
+    "Las Vegas":    {"lat": 36.1147,  "lon": -115.1728},
+    "Jeddah":       {"lat": 21.6319,  "lon":  39.1044},
+    "Bahrain":      {"lat": 26.0325,  "lon":  50.5106},
+    "Shanghai":     {"lat": 31.3389,  "lon": 121.2197},
+    "Imola":        {"lat": 44.3439,  "lon":  11.7167},
+    "Spielberg":    {"lat": 47.2197,  "lon":  14.7647},
+    "Budapest":     {"lat": 47.5789,  "lon":  19.2486},
+    "Lusail":       {"lat": 25.4900,  "lon":  51.4542},
+    "Yas Island":   {"lat": 24.4672,  "lon":  54.6031},
+}
+
+def _wmo_condition(code: int) -> str:
+    if code == 0:          return "Clear"
+    if code in [1, 2, 3]:  return "Partly Cloudy"
+    if code in [45, 48]:   return "Foggy"
+    if code in [51,53,55]: return "Drizzle"
+    if code in [61,63,65]: return "Rain"
+    if code in [71,73,75]: return "Snow"
+    if code in [80,81,82]: return "Rain Showers"
+    if code in [95,96,99]: return "Thunderstorm"
+    return "Overcast"
+
+@app.get("/api/weather")
+async def get_race_weather():
+    """7-day forecast for next race location via Open-Meteo (free, no key). 1-hour cache."""
+    now = datetime.now(timezone.utc)
+    if (
+        _weather_cache["cached_at"]
+        and (now - _weather_cache["cached_at"]).total_seconds() < _WEATHER_TTL
+        and _weather_cache["data"]
+    ):
+        return _weather_cache["data"]
+
+    # Determine next race from OpenF1
+    location, race_name, race_date = "Miami", "Miami Grand Prix", "2026-05-01"
+    try:
+        async with httpx.AsyncClient(timeout=8) as cl:
+            r = await cl.get("https://api.openf1.org/v1/meetings?year=2026")
+            meetings = r.json()
+        upcoming = [
+            m for m in meetings
+            if m.get("date_start") and
+               datetime.fromisoformat(m["date_start"].replace("Z", "+00:00")) > now
+        ]
+        upcoming.sort(key=lambda x: x["date_start"])
+        if upcoming:
+            nxt       = upcoming[0]
+            location  = nxt.get("location", "Miami")
+            race_name = nxt.get("meeting_name", "Miami Grand Prix")
+            race_date = nxt.get("date_start", "2026-05-01")[:10]
+    except Exception as exc:
+        log.warning("[WEATHER] Meeting lookup failed: %s", exc)
+
+    coords = _CIRCUIT_COORDS.get(location, _CIRCUIT_COORDS["Miami"])
+    url = (
+        f"https://api.open-meteo.com/v1/forecast"
+        f"?latitude={coords['lat']}&longitude={coords['lon']}"
+        "&daily=temperature_2m_max,temperature_2m_min,"
+        "precipitation_probability_max,precipitation_sum,"
+        "windspeed_10m_max,weathercode"
+        "&timezone=auto&forecast_days=7"
+    )
+    try:
+        async with httpx.AsyncClient(timeout=10) as cl:
+            wr = await cl.get(url)
+        wd = wr.json()
+        daily = wd.get("daily", {})
+        forecast = [
+            {
+                "date":       daily["time"][i],
+                "max_temp":   daily["temperature_2m_max"][i],
+                "min_temp":   daily["temperature_2m_min"][i],
+                "rain_chance": daily["precipitation_probability_max"][i],
+                "rain_mm":    daily["precipitation_sum"][i],
+                "wind_kmh":   daily["windspeed_10m_max"][i],
+                "condition":  _wmo_condition(daily["weathercode"][i]),
+            }
+            for i in range(min(7, len(daily.get("time", []))))
+        ]
+    except Exception as exc:
+        log.warning("[WEATHER] Forecast fetch failed: %s", exc)
+        forecast = []
+
+    result = {
+        "location":  location,
+        "race_name": race_name,
+        "race_date": race_date,
+        "forecast":  forecast,
+    }
+    _weather_cache["data"]      = result
+    _weather_cache["cached_at"] = now
+    log.info("[WEATHER] Fetched %d days for %s", len(forecast), location)
+    return result
+
+
+@app.post("/api/weather-analysis")
+async def weather_analysis(request: Request):
+    """AI analysis of race weekend weather impact. Uses Haiku for speed."""
+    body    = await request.json()
+    weather = body.get("weather", {})
+    race    = body.get("race_name", "the race")
+    api_key = os.getenv("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return {"error": "No API key"}
+    prompt = (
+        f"You are an F1 weather expert. Based on this forecast for {race}:\n"
+        f"{json.dumps(weather, indent=2)}\n\n"
+        "Return ONLY a JSON object with these keys:\n"
+        "- summary: one sentence on overall race weekend weather\n"
+        "- rain_risk: 'high', 'medium', or 'low'\n"
+        "- race_day_condition: one sentence on race day specifically\n"
+        "- wet_weather_winners: array of 3 objects {driver, reason (1 word)}\n"
+        "- wet_weather_losers: array of 3 objects {driver, reason (1 word)}\n"
+        "- strategy_impact: one sentence on how weather affects pit strategy\n"
+        "- fan_tip: one casual sentence telling fans what to watch for weather-wise\n"
+        "No extra text, just the JSON."
+    )
+    try:
+        cl   = anthropic.AsyncAnthropic(api_key=api_key)
+        resp = await cl.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=500,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = resp.content[0].text.strip().replace("```json", "").replace("```", "").strip()
+        return json.loads(raw)
+    except Exception as exc:
+        log.warning("[WEATHER-ANALYSIS] Failed: %s", exc)
+        return {"error": str(exc)}
 
 
 @app.get("/api/fan-topics")
