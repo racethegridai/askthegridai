@@ -1392,13 +1392,7 @@ def _build_dynamic_context() -> str:
         headlines = [f"- {item['title']}" for item in news_items[:5]]
         sections.append("LATEST F1 NEWS:\n" + "\n".join(headlines))
 
-    # Reddit trending
-    if cached_reddit:
-        lines = [
-            f"- {p['title']} ({p['score']} upvotes)"
-            for p in cached_reddit[:5]
-        ]
-        sections.append("TRENDING ON R/FORMULA1 NOW:\n" + "\n".join(lines))
+    # Reddit trending — excluded from public AI context (owner-only)
 
     # Google Trends
     if cached_trends:
@@ -1978,14 +1972,84 @@ async def get_news():
 
 @app.get("/api/trending")
 async def get_trending():
-    """Return Reddit trending posts, Google Trends F1 terms, and latest news."""
+    """Return public trending data — Reddit excluded (use /api/reddit?key=... for that)."""
     async with _news_lock:
         news = list(_news_cache["items"])
     return {
-        "reddit": cached_reddit,
         "trends": cached_trends,
         "news":   news,
     }
+
+
+@app.get("/api/reddit")
+async def get_reddit(key: str = ""):
+    """Owner-only: return cached Reddit posts."""
+    if key != "atgaiimamw2026":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return {"reddit": cached_reddit}
+
+
+# ── Fan topics cache ──────────────────────────────
+_fan_topics_cache: dict = {"topics": [], "cached_at": None}
+_FAN_TOPICS_TTL = 4 * 3600   # 4 hours
+
+
+@app.get("/api/fan-topics")
+async def get_fan_topics():
+    """AI-generated fan discussion topics, cached 4 hours."""
+    now = datetime.now(timezone.utc)
+    if (
+        _fan_topics_cache["cached_at"]
+        and (now - _fan_topics_cache["cached_at"]).total_seconds() < _FAN_TOPICS_TTL
+        and _fan_topics_cache["topics"]
+    ):
+        return {"topics": _fan_topics_cache["topics"], "cached": True}
+
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        return {"topics": _fan_topics_cache.get("topics", []), "cached": True}
+
+    # Build brief race context for the prompt
+    ctx_parts: list[str] = []
+    standings = _standings_cache.get("data")
+    if standings and standings.get("standings"):
+        top3 = [
+            f"P{d['position']} {d.get('driver','?')} ({d.get('team','?')})"
+            for d in standings["standings"][:3]
+        ]
+        ctx_parts.append("Championship: " + ", ".join(top3))
+    news = _news_cache.get("items", [])
+    if news:
+        ctx_parts.append("News: " + "; ".join(i["title"] for i in news[:3]))
+    context = " | ".join(ctx_parts) or "2026 F1 season mid-point"
+
+    prompt = (
+        f"Context: {context}\n\n"
+        "Generate 5 engaging fan discussion topics for an F1 companion app. "
+        "Return ONLY a JSON array of 5 objects with these exact keys:\n"
+        '  title (max 8 words), heat (one of: HOT / TRENDING / RISING / WATCH), '
+        'question (the Ask AI prompt, max 15 words).\n'
+        'No extra text — just the JSON array.'
+    )
+
+    try:
+        client = anthropic.AsyncAnthropic(api_key=api_key)
+        resp = await client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=400,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = resp.content[0].text.strip().replace("```json", "").replace("```", "").strip()
+        topics = json.loads(raw)
+        if isinstance(topics, list) and topics:
+            _fan_topics_cache["topics"]    = topics[:5]
+            _fan_topics_cache["cached_at"] = now
+            log.info("[FAN-TOPICS] Generated %d topics", len(topics))
+            return {"topics": topics[:5], "cached": False}
+    except Exception as exc:
+        log.warning("[FAN-TOPICS] Failed: %s", exc)
+
+    return {"topics": _fan_topics_cache.get("topics", []), "cached": True}
 
 
 @app.get("/api/news/insights")
