@@ -8581,6 +8581,7 @@ function _renderRedditCards(posts) {
         <span class="reddit-upvotes">&#9650; ${(p.score||0).toLocaleString()}</span>
         <span class="reddit-comments">${(p.num_comments||0).toLocaleString()} comments</span>
         ${p.created ? `<span class="reddit-time">${_timeAgoJs(p.created)}</span>` : ''}
+        <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:9px;color:#FF4500;text-decoration:none;font-weight:700;letter-spacing:.3px">View on Reddit →</a>
         <button class="reddit-ask-btn" onclick="event.stopPropagation();newsRedditOpen('${escapeHtml(p.title).replace(/'/g,"\\'")}')">Ask AI</button>
       </div>
     </div>`).join('');
@@ -8615,10 +8616,9 @@ function _renderRssGrid(items) {
         <div class="rss-card-body">
           ${item.source_badge ? `<span class="rss-card-badge ${badgeCls}">${escapeHtml(item.source_badge)}</span>` : ''}
           <div class="rss-card-title">${escapeHtml(item.title)}</div>
-          <div class="rss-card-preview">${escapeHtml(item.summary)}</div>
           <div class="rss-card-foot">
             <span class="rss-card-time">${escapeHtml(item.time_ago || '')}</span>
-            <span class="rss-card-explore">EXPLORE ARTICLE →</span>
+            ${item.source ? `<a class="rss-card-explore" href="${escapeHtml(item.source)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="text-decoration:none">READ ON ${escapeHtml(item.source_badge || 'SOURCE')} →</a>` : '<span class="rss-card-explore">READ ARTICLE →</span>'}
           </div>
         </div>
       </div>`;
@@ -8999,10 +8999,9 @@ function _renderMobNewsCards(items) {
         <div class="mob-rss-card-body">
           ${item.source_badge ? `<span class="rss-card-badge ${badgeCls}">${escapeHtml(item.source_badge)}</span>` : ''}
           <div class="mob-rss-card-title">${escapeHtml(item.title)}</div>
-          <div class="mob-rss-card-preview">${escapeHtml(item.summary)}</div>
           <div class="mob-rss-card-foot">
             <span class="mob-rss-card-time">${escapeHtml(item.time_ago || '')}</span>
-            <span class="mob-rss-card-explore">EXPLORE ARTICLE →</span>
+            ${item.source ? `<a class="mob-rss-card-explore" href="${escapeHtml(item.source)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="text-decoration:none">READ ON ${escapeHtml(item.source_badge || 'SOURCE')} →</a>` : '<span class="mob-rss-card-explore">READ ARTICLE →</span>'}
           </div>
         </div>
       </div>`;
@@ -13434,15 +13433,18 @@ var _INFO_CONTENT = {
     ]
   },
   'terms': {
-    title: 'Terms of Service',
+    title: 'Terms of Use',
     updated: 'April 2026',
     sections: [
-      { title: 'Acceptance of terms', body: 'By using Ask The Grid AI you agree to these terms. If you do not agree do not use the service.' },
-      { title: 'Description of service', body: 'Ask The Grid AI provides AI-powered Formula 1 race companion services. We are not affiliated with Formula 1, FIA, or any F1 team.' },
+      { title: 'Independent fan tool', body: 'Ask The Grid AI is an independent fan tool and is not affiliated with Formula One Management, Formula 1, the FIA, or any F1 team or driver. Formula 1, F1, and related marks are trademarks of Formula One Licensing BV.' },
+      { title: 'Acceptance of terms', body: 'By using Ask The Grid AI you agree to these terms. If you do not agree, do not use the service.' },
+      { title: 'AI-generated content', body: 'Questions you ask are processed by the Anthropic Claude AI. Responses are AI-generated and for informational and entertainment purposes only. They may contain errors. Never make safety or financial decisions based on AI responses.' },
+      { title: 'User questions', body: 'Questions you submit may be logged anonymously to improve the service. Do not submit personal information, private data, or confidential content in your questions.' },
+      { title: 'Third-party content', body: 'News headlines link to original sources (Motorsport.com). Reddit posts link to reddit.com. We do not reproduce article body text. We are not responsible for third-party content.' },
       { title: 'Subscription and billing', body: 'Pro subscriptions are billed monthly. You can cancel at any time. Refunds are not provided for partial months.' },
-      { title: 'Acceptable use', body: 'You may not use the service to scrape data, attempt to reverse engineer the AI, or share your account with others.' },
-      { title: 'Disclaimer', body: 'AI responses are for entertainment and informational purposes only. Race predictions are not guaranteed. We are not responsible for decisions made based on AI responses.' },
-      { title: 'Changes to terms', body: 'We may update these terms at any time. Continued use of the service constitutes acceptance of new terms.' }
+      { title: 'Acceptable use', body: 'You may not use the service to scrape data, reverse-engineer the AI, or share your account credentials.' },
+      { title: 'Disclaimer of warranties', body: 'The service is provided "as is" without warranties of any kind. Race data and AI predictions are not guaranteed to be accurate or up to date.' },
+      { title: 'Changes to terms', body: 'We may update these terms at any time. Continued use constitutes acceptance of new terms.' }
     ]
   },
   'privacy': {
@@ -13609,11 +13611,14 @@ function applyPromoCode() {
 <div id="info-dropdown" style="display:none;position:fixed;z-index:99999;background:#111;border:1px solid #1c1c1c;border-radius:8px;min-width:200px;box-shadow:0 4px 20px rgba(0,0,0,.5);overflow:hidden;">
   <div class="nav-info-row" onclick="openPromoModal()" style="color:#a855f7;border-bottom:1px solid #222;">🎟 Enter Promo Code</div>
   <div class="nav-info-row" onclick="openInfoModal('how-it-works')">How it works</div>
-  <div class="nav-info-row" onclick="openInfoModal('terms')">Terms of service</div>
+  <div class="nav-info-row" onclick="openInfoModal('terms')">Terms of use</div>
   <div class="nav-info-row" onclick="openInfoModal('privacy')">Privacy policy</div>
   <div class="nav-info-row" onclick="openInfoModal('about')">About Ask The Grid AI</div>
   <div class="nav-info-row" onclick="openInfoModal('contact')">Contact us</div>
   <div class="nav-info-row" onclick="openInfoModal('cookie')">Cookie policy</div>
+  <div style="padding:10px 14px 12px;font-size:9px;color:#333;line-height:1.5;border-top:1px solid #1a1a1a">
+    Ask The Grid AI is an independent fan tool and is not affiliated with Formula One Management, Formula 1, or any F1 team.
+  </div>
 </div>
 
 <!-- ── INFO MODAL ──────────────────────────────────── -->
