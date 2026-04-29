@@ -1360,10 +1360,61 @@ The most recent completed races are from the 2026 season."""
 
 
 class ChatRequest(BaseModel):
-    system: str
+    system:   str
     messages: list[dict]
-    driver: str | None = None   # set when user is on a driver profile page
-    model:  str | None = None   # 'haiku' → force Haiku; None → auto-route
+    driver:   str | None = None   # set when user is on a driver profile page
+    model:    str | None = None   # 'haiku' → force Haiku; None → auto-route
+    context:  str | None = None   # semantic context for model routing
+
+
+_HAIKU_CONTEXTS = {
+    "news_summary", "news_insight", "fan_topics", "article_summary",
+    "rule_explanation", "incident_explanation", "trivia", "driver_profile",
+}
+_SONNET_CONTEXTS = {
+    "live_race", "race_strategy", "championship", "homepage_insight",
+}
+
+
+def _select_model(req: "ChatRequest") -> str:
+    """
+    Model routing priority:
+      1. Explicit req.model field ('haiku' / 'sonnet') → use that
+      2. Semantic context → _HAIKU_CONTEXTS or _SONNET_CONTEXTS
+      3. Message length < 80 chars → Haiku
+      4. Message length > 120 chars → Sonnet
+      5. Fall back to _model_for_question() pattern matching
+    """
+    _H = "claude-haiku-4-5-20251001"
+    _S = "claude-sonnet-4-20250514"
+
+    # Explicit override
+    if req.model == "haiku":
+        return _H
+    if req.model in ("sonnet", "claude-sonnet-4-6"):
+        return _S
+
+    # Context-based routing
+    ctx = (req.context or "").lower()
+    if ctx in _HAIKU_CONTEXTS:
+        return _H
+    if ctx in _SONNET_CONTEXTS:
+        return _S
+
+    # Message length
+    last_msg = ""
+    for m in reversed(req.messages):
+        if m.get("role") == "user":
+            last_msg = m.get("content", "")
+            break
+    msg_len = len(last_msg)
+
+    if msg_len < 80:
+        return _H
+    if msg_len > 120:
+        return _S
+
+    return _model_for_question(last_msg)
 
 
 def _build_dynamic_context() -> str:
@@ -1558,7 +1609,7 @@ async def chat(req: ChatRequest, request: Request):
 
     client = anthropic.AsyncAnthropic(api_key=api_key)
 
-    _chat_model = "claude-haiku-4-5-20251001" if req.model == "haiku" else "claude-sonnet-4-20250514"
+    _chat_model = _select_model(req)
     # Shorter questions need fewer tokens — cap at 300 for speed, 400 globally
     _max_tok = 300 if len(last_user_msg) < 60 else 400
 
@@ -1624,11 +1675,7 @@ async def chat_stream(req: ChatRequest, request: Request):
 
     # ── Extract question + choose model ──────────────────
     question = (req.messages[-1].get("content", "") if req.messages else "")
-    # req.model == 'haiku' forces Haiku; otherwise auto-route by question complexity
-    if req.model == "haiku":
-        model = "claude-haiku-4-5-20251001"
-    else:
-        model = _model_for_question(question)
+    model = _select_model(req)
 
     # ── System 1: question cache (static F1 facts only) ──
     if _is_cacheable(question):
