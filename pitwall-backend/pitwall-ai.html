@@ -3,7 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ask The Grid AI — F1 Race Intelligence</title>
+  <title>Ask The Grid AI — Motorsport Race Intelligence</title>
+  <meta name="description" content="Ask The Grid AI is an independent fan tool that explains live motorsport race action in plain English using AI. Not affiliated with Formula One Management or any team.">
+  <meta name="robots" content="index, follow">
+  <meta property="og:title" content="Ask The Grid AI — Motorsport Race Intelligence">
+  <meta property="og:description" content="Your AI race companion. Ask anything about what's happening on track — explained simply.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.askthegridai.com">
   <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,300;0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
   <script>
   // Mode system — defined in <head> so atgaiSetMode is available to all scripts
@@ -13451,11 +13457,13 @@ var _INFO_CONTENT = {
     title: 'Privacy Policy',
     updated: 'April 2026',
     sections: [
-      { title: 'Data we collect', body: 'We collect your email address when you subscribe. We collect anonymous usage data including which features you use. We do not sell your data to third parties.' },
-      { title: 'How we use data', body: 'Your email is used for billing and service communications only. Usage data helps us improve the product.' },
-      { title: 'Cookies', body: 'We use localStorage to remember your preferences such as explanation style and language selection. We do not use third party tracking cookies.' },
-      { title: 'AI conversations', body: 'Questions you ask the AI are sent to Anthropic for processing. Anthropic\'s privacy policy applies to that data. We do not store your conversation history on our servers.' },
-      { title: 'Contact', body: 'For privacy questions email privacy@askthegridai.com' }
+      { title: 'Waitlist data', body: 'Ask The Grid AI collects your name and email address when you join the waitlist. We use this information only to notify you about the product launch and related updates. We do not sell your data to third parties. To request deletion of your data email soccertaco1122@gmail.com.' },
+      { title: 'Subscriber data', body: 'If you subscribe to a paid plan we collect your email address for billing and service communications. Payment processing is handled by Stripe — we do not store your payment card details.' },
+      { title: 'Usage data', body: 'We collect anonymous usage data including which features you use. This data is used solely to improve the product and is never sold.' },
+      { title: 'Cookies and local storage', body: 'We use localStorage to remember your preferences such as explanation style. We do not use third-party tracking cookies or advertising trackers.' },
+      { title: 'AI conversations', body: 'Questions you ask are sent to Anthropic Claude for processing. Anthropic\'s privacy policy applies to that data. We do not store your full conversation history on our servers.' },
+      { title: 'Your rights', body: 'You may request access to, correction of, or deletion of your personal data at any time by emailing soccertaco1122@gmail.com. We will respond within 30 days.' },
+      { title: 'Contact', body: 'For privacy questions: soccertaco1122@gmail.com' }
     ]
   },
   'about': {
@@ -14182,6 +14190,28 @@ async function drvMiniAskAI() {
   };
   applyBadge();
 })();
+</script>
+
+<!-- Site-wide legal footer -->
+<div id="site-footer" style="position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);padding:5px 16px;text-align:center;font-family:'Titillium Web',sans-serif;font-size:9px;color:#333;letter-spacing:.02em;pointer-events:none;display:none">
+  Ask The Grid AI is an independent fan tool and is not affiliated with Formula One Management, Formula 1, or any F1 team or driver.
+  <span style="margin-left:8px;cursor:pointer;pointer-events:auto" onclick="openInfoModal('terms')" style="color:#444;text-decoration:underline">Terms</span>
+  · <span style="cursor:pointer;pointer-events:auto" onclick="openInfoModal('privacy')">Privacy</span>
+</div>
+<script>
+// Show footer once app is loaded (not on waitlist overlay)
+document.addEventListener('DOMContentLoaded', function() {
+  if (localStorage.getItem('atgai_access') === 'true' || !document.getElementById('wl-overlay')) {
+    var f = document.getElementById('site-footer');
+    if (f) f.style.display = 'block';
+  }
+  // Also show after promo code grants access
+  var origReload = location.reload.bind(location);
+  if (localStorage.getItem('atgai_access') === 'true') {
+    var f = document.getElementById('site-footer');
+    if (f) f.style.display = 'block';
+  }
+});
 </script>
 
 </body>
