@@ -7841,20 +7841,44 @@ const PitMgr = (() => {
   let _dismissIv = {};
 
   // ── Helpers ───────────────────────────────────────
+
+  // OpenF1 pit_duration = total pit lane time (entry + stationary + exit).
+  // Subtract ~20 s of travel to get the stationary stop time.
+  // If raw value > 60 it is almost certainly a unit error — treat as bad data.
+  function _normDur(raw) {
+    if (raw == null || raw <= 0) return null;
+    if (raw > 60) {
+      const adjusted = raw - 20;
+      if (adjusted > 30) return null;   // still implausible → discard
+      return adjusted;
+    }
+    return raw;   // ≤ 60 s: use as-is (already the stationary time)
+  }
+
   function _rating(dur) {
-    if (dur < 2.5) return { label: 'FAST',    cls: 'fast' };
-    if (dur < 3.5) return { label: 'NORMAL',  cls: 'normal' };
-    if (dur < 5.0) return { label: 'SLOW',    cls: 'slow' };
-    return               { label: 'PROBLEM',  cls: 'problem' };
+    if (dur == null) return { label: 'NO DATA', cls: 'slow' };
+    if (dur < 2.5)  return { label: 'FAST',    cls: 'fast' };
+    if (dur < 3.5)  return { label: 'NORMAL',  cls: 'normal' };
+    if (dur < 8.0)  return { label: 'SLOW',    cls: 'slow' };
+    return                 { label: 'PROBLEM',  cls: 'problem' };
   }
 
   function _fmtMs(ms) {
-    const s   = ms / 1000;
+    const s = ms / 1000;
     return `${Math.floor(s)}.${Math.floor((s % 1) * 10)}`;
   }
 
   function _fmtDur(dur) {
+    if (dur == null) return '—';
     return `${Math.floor(dur)}.${Math.floor((dur % 1) * 10)}`;
+  }
+
+  // Look up driver info from liveData.drivers by number
+  function _drvInfo(dn) {
+    const drivers = (liveData && liveData.drivers) || [];
+    const d = drivers.find(x => x.number === dn || String(x.number) === String(dn));
+    if (d) return { code: d.code || '#' + dn, name: d.name || d.code || '#' + dn, team: d.team || '', colour: d.colour || '#888', tyre: d.tyre || '' };
+    return { code: '#' + dn, name: '#' + dn, team: '', colour: '#888', tyre: '' };
   }
 
   // ── Timer tick ───────────────────────────────────
@@ -7900,7 +7924,7 @@ const PitMgr = (() => {
         <div class="pit-overlay-label done">PIT STOP COMPLETE</div>
         <div class="pit-overlay-driver" style="color:${pit.colour}">${escapeHtml(pit.name)}</div>
         <div class="pit-overlay-team">${escapeHtml(pit.team)}</div>
-        <div class="pit-overlay-timer done">${_fmtDur(duration)}s</div>
+        <div class="pit-overlay-timer done">${duration != null ? _fmtDur(duration) + 's' : 'No data'}</div>
         <div class="pit-overlay-bottom">
           <span class="pit-rating-badge ${cls}">${label}</span>
           <span class="pit-overlay-lap">Lap ${pit.lap || '—'}</span>
@@ -7955,15 +7979,28 @@ const PitMgr = (() => {
       h.duration < _history[best].duration ? i : best, 0);
 
     body.innerHTML = _history.map((h, i) => {
-      const { label, cls } = _rating(h.duration);
+      // Fill in driver info if the stored entry lacks name/code
+      const info = (h.name && String(h.name) !== String(h.driver_number || ''))
+        ? h
+        : { ...h, ..._drvInfo(h.driver_number) };
+
+      const rawDur  = h.duration;
+      const dur     = _normDur(rawDur);
+      const { label, cls } = _rating(dur);
+      const durTxt  = dur != null ? _fmtDur(dur) + 's' : 'No data';
+      const tyre    = info.tyre || h.tyre || '';
+      const tyreBadge = tyre
+        ? `<span class="tyre-badge ${tyre}" style="width:16px;height:16px;font-size:8px;vertical-align:middle;display:inline-flex;align-items:center;justify-content:center;margin-left:4px">${tyre}</span>`
+        : '';
+
       return `
         <div class="pit-history-row">
-          <span class="pit-hist-dot" style="background:${h.colour}"></span>
-          <span class="pit-hist-name">${escapeHtml(h.code)} &mdash; ${escapeHtml(h.name)}</span>
+          <span class="pit-hist-dot" style="background:${info.colour}"></span>
+          <span class="pit-hist-name">${escapeHtml(info.code)}</span>
           <span class="pit-hist-lap">L${h.lap || '?'}</span>
-          <span class="pit-hist-time">${_fmtDur(h.duration)}s</span>
+          <span class="pit-hist-time">${durTxt}${tyreBadge}</span>
           <span class="pit-hist-badge pit-rating-badge ${cls}">${label}</span>
-          ${i === fastIdx ? '<span class="pit-hist-trophy">🏆</span>' : ''}
+          ${i === fastIdx && dur != null ? '<span class="pit-hist-trophy">🏆</span>' : ''}
         </div>`;
     }).join('');
   }
@@ -8002,12 +8039,17 @@ const PitMgr = (() => {
 
       // Active pit just got a duration → stop complete
       if (_active[dn] && pit.duration != null) {
-        const done = { ..._active[dn], duration: pit.duration };
+        const displayDur = _normDur(pit.duration);
+        const done = { ..._active[dn], duration: pit.duration, _displayDur: displayDur };
         delete _active[dn];
         _history.unshift(done);
         _renderHistory();
-        const aiText = await _ai(done.name, done.team, pit.duration, done.lap);
-        _showCompleted(dn, done, pit.duration, aiText);
+        if (displayDur != null) {
+          const aiText = await _ai(done.name, done.team, displayDur, done.lap);
+          _showCompleted(dn, done, displayDur, aiText);
+        } else {
+          _showCompleted(dn, done, null, null);
+        }
       }
     }
   }
