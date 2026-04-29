@@ -7324,7 +7324,7 @@ function _setBackendStatus(connected, method = '') {
     el.textContent = `● BACKEND ${method}`;
     el.style.color = 'var(--green)';
   } else {
-    el.textContent = '● OFFLINE · DEMO MODE';
+    el.textContent = '● OFFLINE';
     el.style.color = '#555';
   }
 }
@@ -14150,53 +14150,6 @@ window.spAsk = function(prompt) {
 })();
 </script>
 
-<!-- ── Demo control bar (owner mode only) ── -->
-<div id='demo-bar' style='display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:9997;background:#0d0d0d;border:1px solid #e10600;border-top:none;border-radius:0 0 8px 8px;padding:6px 14px;display:flex;align-items:center;gap:10px;font-family:sans-serif;font-size:11px;'>
-  <span style='color:#e10600;font-weight:700;letter-spacing:.08em'>DEMO</span>
-  <span id='demo-lap-display' style='color:#888'>—</span>
-  <button id='demo-start-btn' onclick='demoStart()' style='background:#e10600;border:none;border-radius:4px;color:#fff;font-size:10px;font-weight:700;padding:4px 10px;cursor:pointer;letter-spacing:.05em'>START</button>
-  <button id='demo-stop-btn' onclick='demoStop()' style='background:#222;border:1px solid #444;border-radius:4px;color:#888;font-size:10px;font-weight:700;padding:4px 10px;cursor:pointer;letter-spacing:.05em'>STOP</button>
-</div>
-
-<script>
-(function(){
-  var DEMO_KEY = 'atgaiimamw2026';
-  var bar = document.getElementById('demo-bar');
-  var lapEl = document.getElementById('demo-lap-display');
-
-  function showDemoBar(){
-    if(localStorage.getItem('atgai_access') === 'true'){
-      if(bar) bar.style.display = 'flex';
-      refreshDemoStatus();
-      setInterval(refreshDemoStatus, 10000);
-    }
-  }
-
-  async function refreshDemoStatus(){
-    try {
-      var r = await fetch('/api/demo/status');
-      var d = await r.json();
-      if(lapEl) lapEl.textContent = d.demo ? 'Lap ' + d.lap + '/53' : 'off';
-      var startBtn = document.getElementById('demo-start-btn');
-      var stopBtn  = document.getElementById('demo-stop-btn');
-      if(startBtn) startBtn.style.opacity = d.demo ? '.4' : '1';
-      if(stopBtn)  stopBtn.style.opacity  = d.demo ? '1'  : '.4';
-    } catch(e) {}
-  }
-
-  window.demoStart = async function(){
-    await fetch('/api/demo/start', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key:DEMO_KEY})});
-    refreshDemoStatus();
-  };
-
-  window.demoStop = async function(){
-    await fetch('/api/demo/stop', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key:DEMO_KEY})});
-    refreshDemoStatus();
-  };
-
-  showDemoBar();
-})();
-</script>
 
 <!-- Driver mini-card overlay (desktop standings row tap) -->
 <div class="drv-mini-overlay" id="drvMiniOverlay" onclick="if(event.target===this)closeDrvMini()">
