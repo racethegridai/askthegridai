@@ -2010,6 +2010,7 @@ async def get_fan_topics():
         return {"topics": _fan_topics_cache.get("topics", []), "cached": True}
 
     # Build brief race context for the prompt
+    # Build race context for the prompt
     ctx_parts: list[str] = []
     standings = _standings_cache.get("data")
     if standings and standings.get("standings"):
@@ -2017,19 +2018,24 @@ async def get_fan_topics():
             f"P{d['position']} {d.get('driver','?')} ({d.get('team','?')})"
             for d in standings["standings"][:3]
         ]
-        ctx_parts.append("Championship: " + ", ".join(top3))
+        ctx_parts.append("Championship top 3: " + ", ".join(top3))
+    state = _state
+    if state.get("session_key"):
+        ctx_parts.append(f"Next race: {state.get('circuit','?')} ({state.get('session_name','?')})")
     news = _news_cache.get("items", [])
     if news:
-        ctx_parts.append("News: " + "; ".join(i["title"] for i in news[:3]))
+        ctx_parts.append("Latest: " + "; ".join(i["title"] for i in news[:2]))
     context = " | ".join(ctx_parts) or "2026 F1 season mid-point"
 
     prompt = (
-        f"Context: {context}\n\n"
-        "Generate 5 engaging fan discussion topics for an F1 companion app. "
-        "Return ONLY a JSON array of 5 objects with these exact keys:\n"
-        '  title (max 8 words), heat (one of: HOT / TRENDING / RISING / WATCH), '
-        'question (the Ask AI prompt, max 15 words).\n'
-        'No extra text — just the JSON array.'
+        "You are an F1 fan community expert. "
+        f"Based on this current F1 race weekend context: {context}\n\n"
+        "Generate exactly 5 topics that real F1 fans would be actively discussing right now. "
+        "Return ONLY a JSON array of 5 objects, each with keys: "
+        "'topic' (short punchy title, max 8 words), "
+        "'heat' (one of: 'hot', 'rising', 'trending'), and "
+        "'why' (one sentence explaining why fans care right now, max 15 words). "
+        "No extra text, just the JSON array."
     )
 
     try:
