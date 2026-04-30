@@ -1840,7 +1840,7 @@ _fan_topics_cache: dict = {"topics": [], "cached_at": None}
 _FAN_TOPICS_TTL = 4 * 3600   # 4 hours
 
 # ── Weather cache ─────────────────────────────────
-_weather_cache: dict = {"data": None, "cached_at": None}
+_weather_cache: dict = {"data": None, "cached_at": None}  # reset on deploy
 _WEATHER_TTL = 3600   # 1 hour
 
 _CIRCUIT_COORDS: dict[str, dict] = {
@@ -1895,6 +1895,7 @@ async def get_race_weather():
 
     # Determine next race from OpenF1
     location, race_name, race_date = "Miami", "Miami Grand Prix", "2026-05-01"
+    fp1_date, qual_date, race_day_date = "2026-05-01", "2026-05-02", "2026-05-03"
     try:
         async with httpx.AsyncClient(timeout=8) as cl:
             r = await cl.get("https://api.openf1.org/v1/meetings?year=2026")
@@ -1910,6 +1911,32 @@ async def get_race_weather():
             location  = nxt.get("location", "Miami")
             race_name = nxt.get("meeting_name", "Miami Grand Prix")
             race_date = nxt.get("date_start", "2026-05-01")[:10]
+            # Fetch individual sessions to get actual session dates
+            try:
+                mk = nxt.get("meeting_key")
+                sr = await cl.get(
+                    f"https://api.openf1.org/v1/sessions?meeting_key={mk}"
+                )
+                sessions = sr.json()
+                for s in sessions:
+                    sn = (s.get("session_name") or "").lower()
+                    sd = (s.get("date_start") or "")[:10]
+                    if not sd:
+                        continue
+                    if "practice 1" in sn or "fp1" in sn:
+                        fp1_date = sd
+                    elif "qualifying" in sn and "sprint" not in sn:
+                        qual_date = sd
+                    elif sn in ("race", "grand prix"):
+                        race_day_date = sd
+            except Exception:
+                pass   # fall back to defaults below
+        # Default offsets when sessions not available
+        from datetime import date as _date, timedelta as _td
+        _rd = _date.fromisoformat(race_date)
+        if fp1_date  == "2026-05-01": fp1_date      = str(_rd)
+        if qual_date == "2026-05-02": qual_date      = str(_rd + _td(days=1))
+        if race_day_date == "2026-05-03": race_day_date = str(_rd + _td(days=2))
     except Exception as exc:
         log.warning("[WEATHER] Meeting lookup failed: %s", exc)
 
@@ -1944,10 +1971,13 @@ async def get_race_weather():
         forecast = []
 
     result = {
-        "location":  location,
-        "race_name": race_name,
-        "race_date": race_date,
-        "forecast":  forecast,
+        "location":      location,
+        "race_name":     race_name,
+        "race_date":     race_date,
+        "fp1_date":      fp1_date,
+        "qual_date":     qual_date,
+        "race_day_date": race_day_date,
+        "forecast":      forecast,
     }
     _weather_cache["data"]      = result
     _weather_cache["cached_at"] = now

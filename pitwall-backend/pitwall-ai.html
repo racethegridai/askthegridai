@@ -12690,11 +12690,12 @@ async function loadRpWeather() {
     if (mobTitleEl) mobTitleEl.textContent = (d.race_name || 'Race') + ' Weather';
 
     const fc = d.forecast || [];
-    // Show FP1 / Qualifying / Race day (first, third, fifth day or what we have)
+    // Match forecast entries by actual session dates returned from OpenF1
+    const byDate = (date) => fc.find(f => f.date === date) || null;
     const slots = [
-      { label: 'FP1',        day: fc[0] },
-      { label: 'Qualifying', day: fc[2] || fc[1] },
-      { label: 'Race Day',   day: fc[4] || fc[3] || fc[2] },
+      { label: 'FP1',        day: byDate(d.fp1_date)      || fc[0] },
+      { label: 'Qualifying', day: byDate(d.qual_date)     || fc[2] || fc[1] },
+      { label: 'Race Day',   day: byDate(d.race_day_date) || fc[4] || fc[3] || fc[2] },
     ].filter(s => s.day);
 
     const rainRisk = (() => {
