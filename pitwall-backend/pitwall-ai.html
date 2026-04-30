@@ -9002,7 +9002,7 @@ async function _articleDeepDiveRender(title, summary) {
   // Render 4 follow-up chips
   const chips = Array.isArray(parsed.chips) ? parsed.chips : [];
   chipsEl.innerHTML = chips.map(c =>
-    '<button onclick="_newsRedditAsk(' + JSON.stringify(String(c)) + ')" ' +
+    '<button onclick="_newsRedditAsk(' + _qs(String(c)) + ')" ' +
     'style="font-size:11px;padding:10px 16px;border-radius:20px;background:#111;border:1px solid #333;color:#e0ddd8;cursor:pointer;font-family:inherit;">' +
     escapeHtml(String(c)) + '</button>'
   ).join('');
@@ -9014,7 +9014,7 @@ function _renderDeepDiveError(title, summary) {
   sectionsEl.innerHTML =
     '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:18px 16px;text-align:center;">' +
     '<div style="font-size:13px;color:#888;margin-bottom:12px;">Taking a moment…</div>' +
-    '<button onclick="_articleDeepDiveBusy=false;openNewsArticleAI(' + JSON.stringify(title) + ',' + JSON.stringify(summary) + ')" ' +
+    '<button onclick="_articleDeepDiveBusy=false;openNewsArticleAI(' + _qs(title) + ',' + _qs(summary) + ')" ' +
     'style="background:#e10600;border:none;border-radius:6px;padding:9px 20px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Tap to retry</button>' +
     '</div>';
 }
@@ -10301,6 +10301,12 @@ function _renderBold(text) {
   return escapeHtml(text)
     .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;font-weight:700">$1</strong>')
     .replace(/\n/g, '<br>');
+}
+
+/* _qs(s) — safely encode a string for use inside onclick="fn('...')" attributes.
+   JSON.stringify produces double-quoted strings which break double-quoted attributes. */
+function _qs(s) {
+  return "'" + String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
 }
 
 function renderFollowups(questions, container, sendFn) {
@@ -12467,7 +12473,7 @@ function mobTmShowZone(zone) {
   const chips = document.getElementById('mobTmChips');
   if (chips) {
     chips.innerHTML = (_mobTmZoneChips[zone] || []).map(q =>
-      `<button class="mob-tm-chip" onclick="mobTmChipAsk(${JSON.stringify(q)})">${escapeHtml(q)}</button>`
+      `<button class="mob-tm-chip" onclick="mobTmChipAsk(${_qs(q)})">${escapeHtml(q)}</button>`
     ).join('');
   }
 
@@ -12802,9 +12808,9 @@ async function mobLoadWxAnalysis() {
       card('Race Day', d.race_day_condition || '', riskColor) +
       '<div class="rp-wx-card rp-wx-wl-wrap"><div class="rp-wx-wl-grid">' +
         '<div><div class="rp-wx-card-label" style="color:#4caf50">🟢 Wet Weather Winners</div>' +
-        (d.wet_weather_winners||[]).map(function(x){ var q=JSON.stringify('Why does ' + (x.driver||'') + ' excel in wet conditions?'); return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#4caf50">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span><button class="rp-wx-driver-ask" onclick="rpSend(' + q + ')">Why? →</button></div>'; }).join('') +
+        (d.wet_weather_winners||[]).map(function(x){ var _dq = _qs('Why does ' + (x.driver||'') + ' excel in wet conditions?'); return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#4caf50">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span><button class="rp-wx-driver-ask" onclick="rpSend(' + _dq + ')">Why? →</button></div>'; }).join('') +
         '</div><div><div class="rp-wx-card-label" style="color:#e10600">🔴 Wet Weather Losers</div>' +
-        (d.wet_weather_losers||[]).map(function(x){ var q=JSON.stringify('Why does ' + (x.driver||'') + ' struggle in wet conditions?'); return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#e10600">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span><button class="rp-wx-driver-ask" onclick="rpSend(' + q + ')">Why? →</button></div>'; }).join('') +
+        (d.wet_weather_losers||[]).map(function(x){ var _dq = _qs('Why does ' + (x.driver||'') + ' struggle in wet conditions?'); return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#e10600">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span><button class="rp-wx-driver-ask" onclick="rpSend(' + _dq + ')">Why? →</button></div>'; }).join('') +
         '</div></div></div>' +
       card('Strategy Impact', d.strategy_impact || '', '#7090ff') +
       '<div class="rp-wx-card rp-wx-tip"><div class="rp-wx-card-label" style="color:#e10600">👀 Fan Tip</div>' +
@@ -12844,9 +12850,9 @@ async function loadRpWeatherAnalysis() {
       card('Race Day', d.race_day_condition || '', riskColor) +
       '<div class="rp-wx-card rp-wx-wl-wrap"><div class="rp-wx-wl-grid">' +
         '<div><div class="rp-wx-card-label" style="color:#4caf50">🟢 Wet Weather Winners</div>' +
-        (d.wet_weather_winners || []).map(function(x){ var q=JSON.stringify('Why does ' + (x.driver||'') + ' excel in wet conditions?'); return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#4caf50">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span><button class="rp-wx-driver-ask" onclick="mobWxAsk(' + q + ')">Why? →</button></div>'; }).join('') +
+        (d.wet_weather_winners || []).map(function(x){ var _dq = _qs('Why does ' + (x.driver||'') + ' excel in wet conditions?'); return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#4caf50">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span><button class="rp-wx-driver-ask" onclick="mobWxAsk(' + _dq + ')">Why? →</button></div>'; }).join('') +
         '</div><div><div class="rp-wx-card-label" style="color:#e10600">🔴 Wet Weather Losers</div>' +
-        (d.wet_weather_losers || []).map(function(x){ var q=JSON.stringify('Why does ' + (x.driver||'') + ' struggle in wet conditions?'); return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#e10600">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span><button class="rp-wx-driver-ask" onclick="mobWxAsk(' + q + ')">Why? →</button></div>'; }).join('') +
+        (d.wet_weather_losers || []).map(function(x){ var _dq = _qs('Why does ' + (x.driver||'') + ' struggle in wet conditions?'); return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#e10600">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span><button class="rp-wx-driver-ask" onclick="mobWxAsk(' + _dq + ')">Why? →</button></div>'; }).join('') +
         '</div></div></div>' +
       card('Strategy Impact', d.strategy_impact || '', '#7090ff') +
       '<div class="rp-wx-card rp-wx-tip"><div class="rp-wx-card-label" style="color:#e10600">👀 Fan Tip</div>' +
@@ -13442,7 +13448,7 @@ async function _newsRedditAsk(text) {
     bubble.innerHTML =
       '<div style="text-align:center;padding:6px 0;">' +
       '<div style="font-size:13px;color:#888;margin-bottom:10px;">Taking a moment…</div>' +
-      '<button onclick="_newsRedditAsk(' + JSON.stringify(retryQ) + ')" ' +
+      '<button onclick="_newsRedditAsk(' + _qs(retryQ) + ')" ' +
       'style="background:#e10600;border:none;border-radius:6px;padding:8px 18px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Tap to retry</button>' +
       '</div>';
   } finally {
@@ -14143,7 +14149,7 @@ window.spAsk = function(prompt) {
         </div>
         <div class="atgai-card">
           <span class="atgai-section-label">ask the grid</span>
-          <div class="atgai-chip-row">${prompts.map(p => `<button class="atgai-chip" onclick="atgaiAsk(${JSON.stringify(p)})">${p}</button>`).join("")}</div>
+          <div class="atgai-chip-row">${prompts.map(p => `<button class="atgai-chip" onclick="atgaiAsk(${_qs(p)})">${p}</button>`).join("")}</div>
         </div>
         <div class="atgai-card">
           <span class="atgai-section-label">trending</span>
@@ -14152,7 +14158,7 @@ window.spAsk = function(prompt) {
         <div class="atgai-card atgai-trivia-card">
           <span class="atgai-section-label">did you know?</span>
           <p class="atgai-trivia-text">${trivia.fact}</p>
-          <div class="atgai-chip-row atgai-chip-row--sm">${trivia.chips.map(c => `<button class="atgai-chip atgai-chip--sm" onclick="atgaiAsk(${JSON.stringify(c)})">${c}</button>`).join("")}</div>
+          <div class="atgai-chip-row atgai-chip-row--sm">${trivia.chips.map(c => `<button class="atgai-chip atgai-chip--sm" onclick="atgaiAsk(${_qs(c)})">${c}</button>`).join("")}</div>
         </div>
       </div>`;
 
@@ -14188,7 +14194,7 @@ window.spAsk = function(prompt) {
         </div>
         <div class="atgai-card">
           <span class="atgai-section-label">ask about the session</span>
-          <div class="atgai-chip-row">${prompts.map(p => `<button class="atgai-chip" onclick="atgaiAsk(${JSON.stringify(p)})">${p}</button>`).join("")}</div>
+          <div class="atgai-chip-row">${prompts.map(p => `<button class="atgai-chip" onclick="atgaiAsk(${_qs(p)})">${p}</button>`).join("")}</div>
         </div>
         <div class="atgai-card atgai-insights-card" id="atgai-insights-card">
           <span class="atgai-section-label">grid ai insight</span>
