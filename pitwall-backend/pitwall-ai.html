@@ -5322,8 +5322,39 @@
     <button class="mob-back-btn" onclick="mobClosePage('championship')">← Back</button>
     <span class="mob-page-title">Championship</span>
   </div>
-  <div class="mob-page-body" id="mobChampBody">
-    <div style="padding:20px 16px;color:#555;font-size:12px">Loading championship standings…</div>
+  <div class="mob-page-body" id="mobChampBody" style="overflow-y:auto;padding:0;display:flex;flex-direction:column">
+    <!-- Toggle -->
+    <div style="display:flex;gap:0;padding:14px 14px 10px;flex-shrink:0">
+      <button id="mobChampBtnDrivers" onclick="mobChampSwitch('drivers')"
+        style="flex:1;padding:8px 0;font-family:'Titillium Web',sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;border:1px solid #e10600;border-radius:4px 0 0 4px;cursor:pointer;background:#e10600;color:#fff">
+        DRIVERS
+      </button>
+      <button id="mobChampBtnConstructors" onclick="mobChampSwitch('constructors')"
+        style="flex:1;padding:8px 0;font-family:'Titillium Web',sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;border:1px solid #e10600;border-left:none;border-radius:0 4px 4px 0;cursor:pointer;background:transparent;color:#e10600">
+        CONSTRUCTORS
+      </button>
+    </div>
+    <!-- Leader card -->
+    <div id="mobChampLeader" style="margin:0 14px 12px;flex-shrink:0"></div>
+    <!-- Standings list -->
+    <div id="mobChampList" style="flex:1;padding:0 14px"></div>
+    <!-- Ask AI -->
+    <div style="padding:14px;flex-shrink:0;border-top:1px solid #1e1e1e">
+      <div style="font-size:9px;font-weight:700;color:#e10600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Ask AI About The Championship</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+        <button onclick="mobChampAsk('Who can still realistically win the 2026 championship?')" class="rp-wx-chip">Who can still win?</button>
+        <button onclick="mobChampAsk('How many points does the championship leader need to win?')" class="rp-wx-chip">Points needed?</button>
+        <button onclick="mobChampAsk('Explain how F1 championship points work and how they are scored')" class="rp-wx-chip">How points work</button>
+        <button onclick="mobChampAsk('Who is the dark horse for the 2026 championship and why?')" class="rp-wx-chip">Dark horse?</button>
+      </div>
+      <div id="mobChampAiResp" style="display:none;background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:12px;font-size:13px;color:#f0ede8;line-height:1.6;margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px">
+        <input id="mobChampAiInput" placeholder="Ask about the championship…"
+          style="flex:1;background:#111;border:1px solid #222;border-radius:8px;color:#f0ede8;font-size:12px;padding:9px 11px;outline:none;font-family:inherit"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();mobChampAsk(null);}">
+        <button onclick="mobChampAsk(null)" style="background:#e10600;border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:700;padding:0 14px;cursor:pointer;font-family:inherit">Ask</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -12226,24 +12257,181 @@ function _buildMobProfileHTML(d) {
 }
 
 // ── Sync championship ────────────────────────────
+const _MOB_TEAM_COLORS = {
+  'Mercedes':'#00d2be','Ferrari':'#e8002d','McLaren':'#ff8700',
+  'Red Bull':'#3671c6','Alpine':'#ff87bc','Aston Martin':'#358c75',
+  'Williams':'#64c4ff','Racing Bulls':'#6692ff','Haas':'#b6babd',
+  'Kick Sauber':'#52e252','Audi':'#e4001d',
+};
+function _mobTeamColor(team) { return _MOB_TEAM_COLORS[team] || '#888'; }
+
+let _mobChampView = 'drivers';
+let _mobChampAiBusy = false;
+
+function mobChampSwitch(view) {
+  _mobChampView = view;
+  const db = document.getElementById('mobChampBtnDrivers');
+  const cb = document.getElementById('mobChampBtnConstructors');
+  if (db) { db.style.background = view==='drivers'?'#e10600':'transparent'; db.style.color = view==='drivers'?'#fff':'#e10600'; }
+  if (cb) { cb.style.background = view==='constructors'?'#e10600':'transparent'; cb.style.color = view==='constructors'?'#fff':'#e10600'; }
+  _renderMobChamp();
+}
+
 function _mobSyncChampionship() {
-  const body = document.getElementById('mobChampBody');
-  if (!body) return;
-  if (_chmpData && _chmpData.standings) {
-    body.innerHTML = `<table class="standings" style="width:100%">
-      <thead><tr><th>POS</th><th colspan="2">DRIVER</th><th style="text-align:right;padding-right:12px">PTS</th></tr></thead>
-      <tbody>${_chmpData.standings.slice(0, 20).map((d,i) => `
-        <tr>
-          <td class="td-pos">${i+1}</td>
-          <td class="td-dot"><span class="team-dot" style="background:${d.colour||'#888'}"></span></td>
-          <td class="td-driver"><div class="drv-name">${escapeHtml(d.name||d.code||'')}</div><div class="drv-team">${escapeHtml(d.team||'')}</div></td>
-          <td style="text-align:right;padding-right:12px;font-weight:700;color:#fff">${d.points||0}</td>
-        </tr>`).join('')}
-      </tbody></table>`;
-  } else {
-    body.innerHTML = '<div style="padding:20px 16px;color:#555;font-size:12px">Loading championship standings…</div>';
+  if (!_chmpData || !_chmpData.standings) {
     fetchChampionshipStandings();
+    return;
   }
+  _renderMobChamp();
+}
+
+function _renderMobChamp() {
+  if (!_chmpData || !_chmpData.standings) return;
+  const standings = _chmpData.standings;
+  const leaderEl  = document.getElementById('mobChampLeader');
+  const listEl    = document.getElementById('mobChampList');
+  if (!listEl) return;
+
+  if (_mobChampView === 'drivers') {
+    _renderMobDriverChamp(standings, leaderEl, listEl);
+  } else {
+    _renderMobConstructorChamp(standings, leaderEl, listEl);
+  }
+}
+
+function _renderMobDriverChamp(standings, leaderEl, listEl) {
+  const leaderPts = Number(standings[0]?.points || 0);
+  const leader    = standings[0];
+  const p2pts     = Number(standings[1]?.points || 0);
+
+  // Leader card
+  if (leaderEl && leader) {
+    const tc = _mobTeamColor(leader.team);
+    const lname = (leader.first_name ? leader.first_name + ' ' : '') + (leader.driver || '');
+    leaderEl.innerHTML =
+      '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-top:3px solid #e10600;border-radius:10px;padding:14px 16px">' +
+        '<div style="font-size:9px;font-weight:700;color:#e10600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Championship Leader</div>' +
+        '<div style="display:flex;align-items:center;gap:12px">' +
+          '<div style="width:4px;height:44px;border-radius:2px;background:' + tc + ';flex-shrink:0"></div>' +
+          '<div style="flex:1">' +
+            '<div style="font-size:16px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.04em">' + escapeHtml(lname) + '</div>' +
+            '<div style="font-size:11px;color:#666;margin-top:2px">' + escapeHtml(leader.team || '') + '</div>' +
+          '</div>' +
+          '<div style="text-align:right">' +
+            '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:700;color:#fff;line-height:1">' + (leader.points || 0) + '</div>' +
+            '<div style="font-size:10px;color:#555;margin-top:2px">+' + (leaderPts - p2pts) + ' pts lead</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  // Standings rows
+  const rowHtml = standings.slice(0, 20).map((s, i) => {
+    const pos   = s.position || (i + 1);
+    const tc    = _mobTeamColor(s.team);
+    const name  = (s.first_name ? s.first_name + ' ' : '') + (s.driver || '');
+    const pts   = Number(s.points || 0);
+    const gap   = i === 0 ? '' : '−' + (leaderPts - pts) + ' pts';
+    const posColor = pos === 1 ? '#e10600' : '#fff';
+    let divider = '';
+    if (pos === 4)  divider = '<div style="margin:4px 0;border-top:1px solid #1a1a1a;display:flex;align-items:center;gap:8px"><span style="font-size:8px;color:#2a2a2a;letter-spacing:.1em;white-space:nowrap">PODIUM POSITIONS</span><div style="flex:1;height:1px;background:#1a1a1a"></div></div>';
+    if (pos === 11) divider = '<div style="margin:4px 0;border-top:1px solid #1a1a1a;display:flex;align-items:center;gap:8px"><span style="font-size:8px;color:#2a2a2a;letter-spacing:.1em;white-space:nowrap">POINTS BOUNDARY</span><div style="flex:1;height:1px;background:#1a1a1a"></div></div>';
+    return divider +
+      '<div style="display:flex;align-items:center;gap:0;padding:10px 0;border-bottom:1px solid #111">' +
+        '<div style="width:3px;height:48px;border-radius:1px;background:' + tc + ';flex-shrink:0;margin-right:12px"></div>' +
+        '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:22px;font-weight:700;color:' + posColor + ';width:30px;flex-shrink:0;line-height:1">' + pos + '</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:14px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(name) + '</div>' +
+          '<div style="font-size:11px;color:#555;margin-top:2px">' + escapeHtml(s.team || '') + '</div>' +
+        '</div>' +
+        '<div style="text-align:right;flex-shrink:0">' +
+          '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:700;color:#fff;line-height:1">' + pts + '</div>' +
+          (gap ? '<div style="font-size:10px;color:#555;margin-top:2px">' + escapeHtml(gap) + '</div>' : '') +
+        '</div>' +
+      '</div>';
+  }).join('');
+  listEl.innerHTML = rowHtml;
+}
+
+function _renderMobConstructorChamp(driverStandings, leaderEl, listEl) {
+  // Aggregate driver points into constructors
+  const ctorMap = {};
+  driverStandings.forEach(s => {
+    const t = s.team || 'Unknown';
+    if (!ctorMap[t]) ctorMap[t] = { team: t, points: 0, drivers: [] };
+    ctorMap[t].points += Number(s.points || 0);
+    ctorMap[t].drivers.push({ name: (s.first_name ? s.first_name[0] + '. ' : '') + (s.driver || ''), pts: Number(s.points || 0) });
+  });
+  const ctors = Object.values(ctorMap).sort((a, b) => b.points - a.points);
+  const leaderPts = ctors[0]?.points || 0;
+
+  // Leader card
+  if (leaderEl && ctors[0]) {
+    const tc = _mobTeamColor(ctors[0].team);
+    leaderEl.innerHTML =
+      '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-top:3px solid #e10600;border-radius:10px;padding:14px 16px">' +
+        '<div style="font-size:9px;font-weight:700;color:#e10600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Constructors Leader</div>' +
+        '<div style="display:flex;align-items:center;gap:12px">' +
+          '<div style="width:4px;height:44px;border-radius:2px;background:' + tc + ';flex-shrink:0"></div>' +
+          '<div style="flex:1"><div style="font-size:16px;font-weight:900;color:#fff;text-transform:uppercase">' + escapeHtml(ctors[0].team) + '</div>' +
+            '<div style="font-size:11px;color:#666;margin-top:2px">' + ctors[0].drivers.map(d=>d.name).join(' · ') + '</div></div>' +
+          '<div style="text-align:right"><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:700;color:#fff;line-height:1">' + ctors[0].points + '</div>' +
+            '<div style="font-size:10px;color:#555;margin-top:2px">+' + (leaderPts - (ctors[1]?.points||0)) + ' pts lead</div></div>' +
+        '</div></div>';
+  }
+
+  const rowHtml = ctors.map((c, i) => {
+    const pos = i + 1;
+    const tc  = _mobTeamColor(c.team);
+    const gap = i === 0 ? '' : '−' + (leaderPts - c.points) + ' pts';
+    const posColor = pos === 1 ? '#e10600' : '#fff';
+    const [open, close] = [`mobChampCtor${i}`, `mobChampCtor${i}`];
+    return '<div style="border-bottom:1px solid #111">' +
+      '<div onclick="document.getElementById(\'' + open + '\').style.display=document.getElementById(\'' + close + '\').style.display===\'none\'?\'block\':\'none\'" ' +
+        'style="display:flex;align-items:center;gap:0;padding:10px 0;cursor:pointer">' +
+        '<div style="width:3px;height:48px;border-radius:1px;background:' + tc + ';flex-shrink:0;margin-right:12px"></div>' +
+        '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:22px;font-weight:700;color:' + posColor + ';width:30px;flex-shrink:0">' + pos + '</div>' +
+        '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.04em">' + escapeHtml(c.team) + '</div>' +
+          '<div style="font-size:11px;color:#555;margin-top:2px">Tap to expand</div></div>' +
+        '<div style="text-align:right;flex-shrink:0"><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:700;color:#fff;line-height:1">' + c.points + '</div>' +
+          (gap ? '<div style="font-size:10px;color:#555;margin-top:2px">' + escapeHtml(gap) + '</div>' : '') + '</div>' +
+      '</div>' +
+      '<div id="' + open + '" style="display:none;padding:8px 14px 10px 52px;background:#080808">' +
+        c.drivers.sort((a,b)=>b.pts-a.pts).map(d =>
+          '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px">' +
+          '<span style="color:#d4d0ca">' + escapeHtml(d.name) + '</span>' +
+          '<span style="color:#fff;font-weight:700">' + d.pts + ' pts</span></div>'
+        ).join('') +
+      '</div></div>';
+  }).join('');
+  listEl.innerHTML = rowHtml;
+}
+
+async function mobChampAsk(prompt) {
+  if (_mobChampAiBusy) return;
+  const inp  = document.getElementById('mobChampAiInput');
+  const resp = document.getElementById('mobChampAiResp');
+  if (!resp) return;
+  const q = prompt || (inp && inp.value.trim()) || '';
+  if (!q) return;
+  if (inp) inp.value = '';
+  _mobChampAiBusy = true;
+  resp.style.display = 'block';
+  resp.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  const sys = 'You are an F1 championship analyst. Answer concisely in 2-3 sentences, plain English.\n\n' + getStyleInstruction();
+  try {
+    const res = await fetch(BACKEND + '/api/chat-stream', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ system: sys, messages:[{role:'user',content:q}], context:'championship' }),
+      signal: AbortSignal.timeout(20000),
+    });
+    const reply = await _readTokenStream(res, txt => { resp.innerHTML = _renderBold(txt); });
+    const parsed = parseFollowups(reply || '');
+    resp.innerHTML = _renderBold(parsed.text || reply);
+    renderFollowups(parsed.followups, resp, function(fq){ mobChampAsk(fq); });
+  } catch(e) {
+    resp.textContent = '⚠ Could not reach AI.';
+  } finally { _mobChampAiBusy = false; }
 }
 
 // ── Mobile AI chat (hub hero input) ─────────────
