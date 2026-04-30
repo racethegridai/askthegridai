@@ -1985,37 +1985,82 @@ async def get_race_weather():
     return result
 
 
+_weather_analysis_cache: dict = {"data": None, "race": None, "cached_at": None}
+
+_WET_DRIVER_KNOWLEDGE = """
+Known 2026 F1 driver wet-weather profiles (use this to make accurate predictions):
+EXCELLENT in wet: Lewis Hamilton (Ferrari) — widely regarded as the greatest wet-weather driver ever,
+  multiple wet masterclasses at Nurburgring 2000, Brazil 2016, Germany 2019;
+  Max Verstappen (Red Bull) — exceptional car control in tricky conditions, Brazil 2016 as a 19-year-old;
+  Fernando Alonso (Aston Martin) — legendary wet pace, consistently extracts maximum from any car in rain.
+  Lando Norris (McLaren) — increasingly brilliant in changeable conditions, excellent tyre judgement.
+GOOD in wet: George Russell (Mercedes) — composed and precise, strong at managing intermediates;
+  Charles Leclerc (Ferrari) — fast in wet when confident, occasionally over-drives;
+  Kimi Antonelli (Mercedes) — still learning but raw talent shows in tricky conditions.
+STRUGGLES in wet: Oscar Piastri (McLaren) — competent but not naturally outstanding in rain, tends to be conservative;
+  Carlos Sainz (Williams) — inconsistent in rain, has had several wet-weather spins;
+  Max's Red Bull often struggles with car balance in wet compared to Mercedes/Ferrari.
+KEY FACTOR: Mercedes and McLaren 2026 cars have excellent aerodynamic stability in wet;
+  Red Bull's 2026 car has been described as nervous — worse in changeable conditions.
+"""
+
 @app.post("/api/weather-analysis")
 async def weather_analysis(request: Request):
-    """AI analysis of race weekend weather impact. Uses Haiku for speed."""
+    """AI analysis of race weekend weather impact. Cached per race to ensure consistent results."""
     body    = await request.json()
     weather = body.get("weather", {})
     race    = body.get("race_name", "the race")
     api_key = os.getenv("ANTHROPIC_API_KEY", "")
     if not api_key:
         return {"error": "No API key"}
+
+    # Return cached analysis for the same race (prevents different results each call)
+    now = datetime.now(timezone.utc)
+    cached = _weather_analysis_cache
+    if (
+        cached["race"] == race and cached["data"]
+        and cached["cached_at"]
+        and (now - cached["cached_at"]).total_seconds() < _WEATHER_TTL
+    ):
+        log.info("[WEATHER-ANALYSIS] Cache hit for %s", race)
+        return cached["data"]
+
+    # Extract race day rain chance for context
+    race_day = next((d for d in (weather or []) if d), {})
+    rain_pct = race_day.get("rain_chance", 0)
+
     prompt = (
-        f"You are an F1 weather expert. Based on this forecast for {race}:\n"
-        f"{json.dumps(weather, indent=2)}\n\n"
-        "Return ONLY a JSON object with these keys:\n"
-        "- summary: one sentence on overall race weekend weather\n"
-        "- rain_risk: 'high', 'medium', or 'low'\n"
-        "- race_day_condition: one sentence on race day specifically\n"
-        "- wet_weather_winners: array of 3 objects {driver, reason (1 word)}\n"
-        "- wet_weather_losers: array of 3 objects {driver, reason (1 word)}\n"
-        "- strategy_impact: one sentence on how weather affects pit strategy\n"
-        "- fan_tip: one casual sentence telling fans what to watch for weather-wise\n"
-        "No extra text, just the JSON."
+        f"You are an expert F1 analyst predicting wet-weather performance at {race}.\n\n"
+        f"Forecast rain chance on race day: {rain_pct}%.\n"
+        f"Full forecast: {json.dumps(weather)}\n\n"
+        f"{_WET_DRIVER_KNOWLEDGE}\n"
+        "Based on the forecast AND the driver wet-weather knowledge above, return ONLY a JSON object:\n"
+        "- summary: one sentence on overall weekend weather\n"
+        "- rain_risk: 'high' (≥60%), 'medium' (30-59%), or 'low' (<30%)\n"
+        "- race_day_condition: one specific sentence on race day conditions\n"
+        "- wet_weather_winners: array of exactly 3 objects with 'driver' (full name) and "
+        "'reason' (one short sentence on WHY they excel in wet — not just one word)\n"
+        "- wet_weather_losers: array of exactly 3 objects with 'driver' (full name) and "
+        "'reason' (one short sentence on WHY they struggle in wet)\n"
+        "- strategy_impact: one sentence on how rain chance affects pit strategy\n"
+        "- fan_tip: one casual engaging sentence on what fans should watch for\n"
+        "Use the driver knowledge provided. Be specific and consistent. No extra text, just JSON."
     )
     try:
         cl   = anthropic.AsyncAnthropic(api_key=api_key)
         resp = await cl.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=500,
+            model="claude-sonnet-4-20250514",   # Sonnet for better knowledge + consistency
+            max_tokens=600,
             messages=[{"role": "user", "content": prompt}],
         )
-        raw = resp.content[0].text.strip().replace("```json", "").replace("```", "").strip()
-        return json.loads(raw)
+        raw    = resp.content[0].text.strip().replace("```json", "").replace("```", "").strip()
+        result = json.loads(raw)
+        # Cache it so repeated calls return the same analysis
+        _weather_analysis_cache["data"]      = result
+        _weather_analysis_cache["race"]      = race
+        _weather_analysis_cache["cached_at"] = now
+        log.info("[WEATHER-ANALYSIS] Generated and cached for %s", race)
+        return result
     except Exception as exc:
         log.warning("[WEATHER-ANALYSIS] Failed: %s", exc)
         return {"error": str(exc)}

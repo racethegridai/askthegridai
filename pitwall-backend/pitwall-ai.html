@@ -4648,8 +4648,10 @@
     .rp-wx-card-body  { font-size:13px; color:#d4d0ca; line-height:1.6; }
     .rp-wx-wl-grid  { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .rp-wx-driver   { padding:3px 0; }
-    .rp-wx-driver-name   { font-size:13px; font-weight:700; display:block; }
-    .rp-wx-driver-reason { font-size:11px; color:#666; display:block; }
+    .rp-wx-driver-name   { font-size:13px; font-weight:700; display:block; margin-bottom:2px; }
+    .rp-wx-driver-reason { font-size:11px; color:#888; display:block; line-height:1.5; margin-bottom:4px; }
+    .rp-wx-driver-ask    { font-size:10px; color:#555; background:transparent; border:1px solid #222; border-radius:12px; padding:2px 8px; cursor:pointer; font-family:inherit; display:inline-block; margin-top:2px; }
+    .rp-wx-driver-ask:hover { border-color:#555; color:#aaa; }
     .rp-wx-chip { font-size:11px;padding:6px 12px;border-radius:20px;background:#111;border:1px solid #2a2a2a;color:#d4d0ca;cursor:pointer;font-family:inherit;transition:border-color .15s; }
     .rp-wx-chip:active { border-color:#e10600; }
 
@@ -12799,10 +12801,10 @@ async function mobLoadWxAnalysis() {
     cds.innerHTML =
       card('Race Day', d.race_day_condition || '', riskColor) +
       '<div class="rp-wx-card rp-wx-wl-wrap"><div class="rp-wx-wl-grid">' +
-        '<div><div class="rp-wx-card-label" style="color:#4caf50">🟢 Wet Winners</div>' +
-        (d.wet_weather_winners||[]).map(function(x){ return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#4caf50">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span></div>'; }).join('') +
-        '</div><div><div class="rp-wx-card-label" style="color:#e10600">🔴 Wet Losers</div>' +
-        (d.wet_weather_losers||[]).map(function(x){ return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#e10600">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span></div>'; }).join('') +
+        '<div><div class="rp-wx-card-label" style="color:#4caf50">🟢 Wet Weather Winners</div>' +
+        (d.wet_weather_winners||[]).map(function(x){ var q=JSON.stringify('Why does ' + (x.driver||'') + ' excel in wet conditions?'); return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#4caf50">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span><button class="rp-wx-driver-ask" onclick="rpSend(' + q + ')">Why? →</button></div>'; }).join('') +
+        '</div><div><div class="rp-wx-card-label" style="color:#e10600">🔴 Wet Weather Losers</div>' +
+        (d.wet_weather_losers||[]).map(function(x){ var q=JSON.stringify('Why does ' + (x.driver||'') + ' struggle in wet conditions?'); return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#e10600">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span><button class="rp-wx-driver-ask" onclick="rpSend(' + q + ')">Why? →</button></div>'; }).join('') +
         '</div></div></div>' +
       card('Strategy Impact', d.strategy_impact || '', '#7090ff') +
       '<div class="rp-wx-card rp-wx-tip"><div class="rp-wx-card-label" style="color:#e10600">👀 Fan Tip</div>' +
@@ -12841,10 +12843,10 @@ async function loadRpWeatherAnalysis() {
     cards.innerHTML =
       card('Race Day', d.race_day_condition || '', riskColor) +
       '<div class="rp-wx-card rp-wx-wl-wrap"><div class="rp-wx-wl-grid">' +
-        '<div><div class="rp-wx-card-label" style="color:#4caf50">🟢 Wet Winners</div>' +
-        (d.wet_weather_winners || []).map(function(x){ return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#4caf50">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span></div>'; }).join('') +
-        '</div><div><div class="rp-wx-card-label" style="color:#e10600">🔴 Wet Losers</div>' +
-        (d.wet_weather_losers || []).map(function(x){ return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#e10600">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span></div>'; }).join('') +
+        '<div><div class="rp-wx-card-label" style="color:#4caf50">🟢 Wet Weather Winners</div>' +
+        (d.wet_weather_winners || []).map(function(x){ var q=JSON.stringify('Why does ' + (x.driver||'') + ' excel in wet conditions?'); return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#4caf50">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span><button class="rp-wx-driver-ask" onclick="mobWxAsk(' + q + ')">Why? →</button></div>'; }).join('') +
+        '</div><div><div class="rp-wx-card-label" style="color:#e10600">🔴 Wet Weather Losers</div>' +
+        (d.wet_weather_losers || []).map(function(x){ var q=JSON.stringify('Why does ' + (x.driver||'') + ' struggle in wet conditions?'); return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#e10600">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span><button class="rp-wx-driver-ask" onclick="mobWxAsk(' + q + ')">Why? →</button></div>'; }).join('') +
         '</div></div></div>' +
       card('Strategy Impact', d.strategy_impact || '', '#7090ff') +
       '<div class="rp-wx-card rp-wx-tip"><div class="rp-wx-card-label" style="color:#e10600">👀 Fan Tip</div>' +
