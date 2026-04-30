@@ -5916,41 +5916,22 @@
 <div class="mob-rp-section" id="mob-rp-weather">
   <div class="mob-rp-section-hdr">
     <button class="mob-back-btn" onclick="mobCloseRpSection('weather')">← Back</button>
-    <span class="mob-page-title">Weather</span>
+    <span class="mob-page-title" id="mobWxTitle">Weather</span>
   </div>
-  <div class="mob-rp-section-body">
-    <div class="mob-rp-sec-badge" style="background:rgba(0,150,255,.15);color:#0096ff">⛈️ Miami Weather Forecast</div>
-    <div class="mob-rp-sec-stat-grid">
-      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">38%</div><div class="mob-rp-sec-stat-lbl">Rain chance</div></div>
-      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">30°C</div><div class="mob-rp-sec-stat-lbl">Air temp</div></div>
-      <div class="mob-rp-sec-stat"><div class="mob-rp-sec-stat-num">High</div><div class="mob-rp-sec-stat-lbl">Humidity</div></div>
+  <div class="mob-rp-section-body" style="overflow-y:auto">
+    <div id="mobWxForecast"><div style="color:#444;font-size:12px;padding:16px 0">Loading weather…</div></div>
+    <div id="mobWxAnalysisSection" style="display:none">
+      <div id="mobWxAnalysisCards"></div>
     </div>
-    <div class="mob-rp-sec-h">Race Day Forecast</div>
-    <div class="mob-rp-sec-row" onclick="spOpenDetail('rain-conditions')" style="cursor:pointer">
-      <div class="mob-rp-sec-row-lbl">Afternoon Thunderstorm Risk</div>
-      <div class="mob-rp-sec-row-val">38% chance of rain</div>
-      <div class="mob-rp-sec-row-sub">Miami races run in the afternoon local time — peak thunderstorm hours in Florida. Rain is not guaranteed but is a genuine possibility. Could arrive mid-race and completely rewrite the strategy.</div>
-    </div>
-    <div class="mob-rp-sec-row" onclick="spOpenDetail('dry-conditions')" style="cursor:pointer">
-      <div class="mob-rp-sec-row-lbl">Track Temperature</div>
-      <div class="mob-rp-sec-row-val">45–50°C surface temp</div>
-      <div class="mob-rp-sec-row-sub">Hot tarmac accelerates tyre degradation on the softer compounds. Teams running the C4 soft will see blistering within 12–15 laps. This drives the 1-stop strategy.</div>
-    </div>
-    <div class="mob-rp-sec-row" onclick="spOpenDetail('tyre-deg')" style="cursor:pointer">
-      <div class="mob-rp-sec-row-lbl">Humidity Effect</div>
-      <div class="mob-rp-sec-row-val">High humidity all weekend</div>
-      <div class="mob-rp-sec-row-sub">South Florida in May is extremely humid. Affects driver hydration and car cooling. Brake temperatures run higher than expected. Some cars historically overheat in Miami traffic.</div>
-    </div>
-    <div class="mob-rp-sec-h">If Rain Comes</div>
-    <div class="mob-rp-sec-row" onclick="spOpenDetail('rain-conditions')" style="cursor:pointer">
-      <div class="mob-rp-sec-row-lbl" style="color:#0096ff">Red Flag Risk ⚠ 24%</div>
-      <div class="mob-rp-sec-row-val">Potential race stoppage</div>
-      <div class="mob-rp-sec-row-sub">Heavy rain on a semi-street circuit can trigger a red flag. In 2024 a brief shower caused a VSC period. If a full red flag comes, teams can change tyres freely — this is the wildcard that could let any driver win.</div>
-    </div>
-    <div class="mob-rp-sec-row" onclick="spOpenDetail('wind-impact')" style="cursor:pointer">
-      <div class="mob-rp-sec-row-lbl">Drivers who benefit from rain</div>
-      <div class="mob-rp-sec-row-val">Hamilton, Norris</div>
-      <div class="mob-rp-sec-row-sub">Hamilton is historically exceptional in mixed conditions — his wet-weather instinct is unmatched. Norris won here in 2024 partially through excellent tyre management. Both could gain positions if rain arrives.</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+      <button onclick="mobLoadWxAnalysis()" id="mobWxAnalyseBtn"
+        style="width:100%;padding:13px;background:#e10600;border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
+        Analyse Race Impact →
+      </button>
+      <button onclick="mobRpAskAI && (document.getElementById('mobRpAiInput').value='How does the weather forecast affect race strategy this weekend?',mobRpAskAI())"
+        style="width:100%;padding:12px;background:transparent;border:1px solid #e10600;border-radius:8px;color:#e0ddd8;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+        Ask AI about weather →
+      </button>
     </div>
   </div>
 </div>
@@ -12338,6 +12319,7 @@ function mobOpenRpSection(name) {
   document.querySelectorAll('.mob-rp-section').forEach(p => p.classList.remove('open'));
   const page = document.getElementById(`mob-rp-${name}`);
   if (page) page.classList.add('open');
+  if (name === 'weather') loadRpWeather();
 }
 
 function mobCloseRpSection(name) {
@@ -12685,6 +12667,8 @@ async function loadRpWeather() {
     const d = await res.json();
     _rpWeatherData = d;
     if (titleEl) titleEl.textContent = (d.race_name || 'Race') + ' Weather';
+    const mobTitleEl = document.getElementById('mobWxTitle');
+    if (mobTitleEl) mobTitleEl.textContent = (d.race_name || 'Race') + ' Weather';
 
     const fc = d.forecast || [];
     // Show FP1 / Qualifying / Race day (first, third, fifth day or what we have)
@@ -12701,7 +12685,8 @@ async function loadRpWeather() {
       return              { label: 'LOW RAIN RISK',  color: '#4caf50', bg: '#001a00' };
     })();
 
-    forecastEl.innerHTML =
+    const mobForecastEl = document.getElementById('mobWxForecast');
+    const wxHtml =
       '<div class="rp-wx-strip">' +
       slots.map(s => {
         const icon = _WMO_ICON[s.day.condition] || '🌡️';
@@ -12715,8 +12700,52 @@ async function loadRpWeather() {
       }).join('') +
       '</div>' +
       '<div class="rp-wx-risk" style="background:' + rainRisk.bg + ';color:' + rainRisk.color + '">' + rainRisk.label + '</div>';
+    forecastEl.innerHTML = wxHtml;
+    if (mobForecastEl) mobForecastEl.innerHTML = wxHtml;
   } catch(e) {
     if (forecastEl) forecastEl.innerHTML = '<div style="color:#555;font-size:11px;padding:8px 0">Weather data unavailable</div>';
+    if (mobForecastEl) mobForecastEl.innerHTML = '<div style="color:#555;font-size:11px;padding:8px 0">Weather data unavailable</div>';
+  }
+}
+
+async function mobLoadWxAnalysis() {
+  // Mobile wrapper — mirrors loadRpWeatherAnalysis() but targets mobile containers
+  const btn  = document.getElementById('mobWxAnalyseBtn');
+  const sect = document.getElementById('mobWxAnalysisSection');
+  const cds  = document.getElementById('mobWxAnalysisCards');
+  if (!_rpWeatherData || !cds) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Analysing…'; }
+  try {
+    const res = await fetch(`${BACKEND}/api/weather-analysis`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ weather: _rpWeatherData.forecast, race_name: _rpWeatherData.race_name }),
+      signal: AbortSignal.timeout(20000),
+    });
+    const d = await res.json();
+    if (d.error) throw new Error(d.error);
+    const riskColor = { high: '#e10600', medium: '#f5a623', low: '#4caf50' }[d.rain_risk] || '#888';
+    const card = (label, content, bc) =>
+      '<div class="rp-wx-card" style="border-left-color:' + bc + '">' +
+      '<div class="rp-wx-card-label" style="color:' + bc + '">' + label + '</div>' +
+      '<div class="rp-wx-card-body">' + escapeHtml(content) + '</div></div>';
+    if (sect) sect.style.display = '';
+    cds.innerHTML =
+      card('Race Day', d.race_day_condition || '', riskColor) +
+      '<div class="rp-wx-card rp-wx-wl-wrap"><div class="rp-wx-wl-grid">' +
+        '<div><div class="rp-wx-card-label" style="color:#4caf50">🟢 Wet Winners</div>' +
+        (d.wet_weather_winners||[]).map(function(x){ return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#4caf50">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span></div>'; }).join('') +
+        '</div><div><div class="rp-wx-card-label" style="color:#e10600">🔴 Wet Losers</div>' +
+        (d.wet_weather_losers||[]).map(function(x){ return '<div class="rp-wx-driver"><span class="rp-wx-driver-name" style="color:#e10600">' + escapeHtml(x.driver||x) + '</span><span class="rp-wx-driver-reason">' + escapeHtml(x.reason||'') + '</span></div>'; }).join('') +
+        '</div></div></div>' +
+      card('Strategy Impact', d.strategy_impact || '', '#7090ff') +
+      '<div class="rp-wx-card rp-wx-tip"><div class="rp-wx-card-label" style="color:#e10600">👀 Fan Tip</div>' +
+      '<div class="rp-wx-card-body" style="color:#f0ede8">' + escapeHtml(d.fan_tip||'') + '</div></div>';
+  } catch(e) {
+    if (cds) cds.innerHTML = '<div style="color:#555;font-size:12px">Analysis failed — try again.</div>';
+    if (sect) sect.style.display = '';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Analyse Race Impact →'; }
   }
 }
 
