@@ -4650,6 +4650,8 @@
     .rp-wx-driver   { padding:3px 0; }
     .rp-wx-driver-name   { font-size:13px; font-weight:700; display:block; }
     .rp-wx-driver-reason { font-size:11px; color:#666; display:block; }
+    .rp-wx-chip { font-size:11px;padding:6px 12px;border-radius:20px;background:#111;border:1px solid #2a2a2a;color:#d4d0ca;cursor:pointer;font-family:inherit;transition:border-color .15s; }
+    .rp-wx-chip:active { border-color:#e10600; }
 
     @media (max-width: 768px) {
       .rp-wx-strip { grid-template-columns: repeat(3,1fr); gap:6px; }
@@ -5923,15 +5925,32 @@
     <div id="mobWxAnalysisSection" style="display:none">
       <div id="mobWxAnalysisCards"></div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
-      <button onclick="mobLoadWxAnalysis()" id="mobWxAnalyseBtn"
-        style="width:100%;padding:13px;background:#e10600;border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
-        Analyse Race Impact →
-      </button>
-      <button onclick="mobRpAskAI && (document.getElementById('mobRpAiInput').value='How does the weather forecast affect race strategy this weekend?',mobRpAskAI())"
-        style="width:100%;padding:12px;background:transparent;border:1px solid #e10600;border-radius:8px;color:#e0ddd8;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
-        Ask AI about weather →
-      </button>
+    <!-- Analyse button -->
+    <button onclick="mobLoadWxAnalysis()" id="mobWxAnalyseBtn"
+      style="width:100%;padding:13px;background:#e10600;border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;margin-bottom:14px">
+      Analyse Race Impact →
+    </button>
+
+    <!-- Local AI weather chat -->
+    <div style="border-top:1px solid #1e1e1e;padding-top:14px">
+      <div style="font-size:10px;font-weight:700;color:#e10600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">Ask AI About Weather</div>
+      <!-- Preset chips -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+        <button onclick="mobWxAsk('Will it rain during the race this weekend?')" class="rp-wx-chip">Will it rain?</button>
+        <button onclick="mobWxAsk('How does the heat and humidity affect tyre strategy?')" class="rp-wx-chip">Heat &amp; tyres</button>
+        <button onclick="mobWxAsk('Which drivers do best in wet conditions and why?')" class="rp-wx-chip">Wet weather drivers</button>
+        <button onclick="mobWxAsk('How does weather change pit stop strategy this weekend?')" class="rp-wx-chip">Strategy impact</button>
+      </div>
+      <!-- AI response area -->
+      <div id="mobWxChatArea" style="display:none;background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:12px;margin-bottom:10px;font-size:13px;color:#f0ede8;line-height:1.65"></div>
+      <!-- Free text input -->
+      <div style="display:flex;gap:8px">
+        <input id="mobWxInput" placeholder="Ask anything about the weather…"
+          style="flex:1;background:#111;border:1px solid #222;border-radius:8px;color:#f0ede8;font-size:13px;padding:10px 12px;outline:none;font-family:inherit"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();mobWxAsk(null);}">
+        <button onclick="mobWxAsk(null)"
+          style="background:#e10600;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;padding:0 14px;cursor:pointer;font-family:inherit">Ask</button>
+      </div>
     </div>
   </div>
 </div>
@@ -12705,6 +12724,52 @@ async function loadRpWeather() {
   } catch(e) {
     if (forecastEl) forecastEl.innerHTML = '<div style="color:#555;font-size:11px;padding:8px 0">Weather data unavailable</div>';
     if (mobForecastEl) mobForecastEl.innerHTML = '<div style="color:#555;font-size:11px;padding:8px 0">Weather data unavailable</div>';
+  }
+}
+
+var _mobWxBusy = false;
+async function mobWxAsk(prompt) {
+  var input   = document.getElementById('mobWxInput');
+  var chatEl  = document.getElementById('mobWxChatArea');
+  if (!chatEl) return;
+  var q = prompt || (input && input.value.trim()) || '';
+  if (!q) return;
+  if (_mobWxBusy) return;
+  if (input) input.value = '';
+  _mobWxBusy = true;
+  chatEl.style.display = 'block';
+  chatEl.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+
+  // Build weather context for the system prompt
+  var wxCtx = '';
+  if (_rpWeatherData && _rpWeatherData.forecast) {
+    var fc = _rpWeatherData.forecast;
+    var raceDay = fc[4] || fc[3] || fc[fc.length - 1] || {};
+    wxCtx = ' Current forecast for ' + (_rpWeatherData.race_name || 'race') + ': ' +
+      (raceDay.condition || '') + ', ' + (raceDay.rain_chance || 0) + '% rain chance, ' +
+      'max ' + Math.round(raceDay.max_temp || 0) + '°C, wind ' + (raceDay.wind_kmh || 0) + ' km/h.';
+  }
+
+  var sys = 'You are an F1 weather and strategy expert.' + wxCtx +
+    ' Answer in 2-3 sentences, plain English. No jargon.\n\n' + getStyleInstruction();
+  try {
+    var res = await fetch(BACKEND + '/api/chat-stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: sys, messages: [{ role: 'user', content: q }], context: 'race_strategy' }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var reply = await _readTokenStream(res, function(txt) {
+      chatEl.innerHTML = _renderBold(txt);
+    });
+    var parsed = parseFollowups(reply || '');
+    chatEl.innerHTML = _renderBold(parsed.text || reply);
+    renderFollowups(parsed.followups, chatEl, function(fq) { mobWxAsk(fq); });
+  } catch(e) {
+    chatEl.innerHTML = '<span style="color:#555">Could not reach AI — try again.</span>';
+  } finally {
+    _mobWxBusy = false;
   }
 }
 
