@@ -8711,6 +8711,8 @@ function _showOwnerToast(msg) {
 function activateOwnerMode() {
   localStorage.setItem(OWNER_KEY, '1');
   window._ownerBypass = true;
+  var sec = document.getElementById('ownerAnalyticsSection');
+  if (sec) { sec.style.display = 'block'; _loadAnalytics(); }
   // Remove all limit UI
   const upgradePanel = document.getElementById('upgradePanel');
   const freeLimitBar = document.getElementById('freeLimitBar');
@@ -14348,6 +14350,15 @@ function toggleInfoDropdown(e) {
     dd.style.right = '10px';
     dd.style.left = 'auto';
     dd.style.display = 'block';
+    // Show analytics if owner mode active via ANY path
+    var isOwner = localStorage.getItem('atgai_mode') === 'owner' ||
+                  localStorage.getItem('pitwall_owner_mode') === '1' ||
+                  window._ownerBypass === true;
+    var sec = document.getElementById('ownerAnalyticsSection');
+    if (sec) {
+      sec.style.display = isOwner ? 'block' : 'none';
+      if (isOwner) _loadAnalytics();
+    }
   }
 }
 
