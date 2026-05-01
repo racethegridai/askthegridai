@@ -8728,9 +8728,12 @@ function activateOwnerMode() {
 
 function deactivateOwnerMode() {
   localStorage.removeItem(OWNER_KEY);
+  localStorage.removeItem('atgai_mode');
   window._ownerBypass = false;
   const badge = document.getElementById('ownerBadge');
   if (badge) badge.style.display = 'none';
+  const modeBadge = document.getElementById('atgai-mode-badge');
+  if (modeBadge) modeBadge.style.display = 'none';
   updateFreeLimitUI();
   _showOwnerToast('Owner mode deactivated');
 }
@@ -8754,8 +8757,9 @@ function activateInfluencerMode() {
 
 // Check for secret codes in any input — returns true if a code was handled
 function _checkSecretCode(val) {
-  if (val === 'ATGAIIMAMW2026') { activateOwnerMode(); return true; }
-  if (val === 'ATGAI2026OFF')   { deactivateOwnerMode(); return true; }
+  const v = (val || '').trim().toUpperCase();
+  if (v === 'ATGAIIMAMW2026') { activateOwnerMode(); return true; }
+  if (v === 'ATGAI2026OFF')   { deactivateOwnerMode(); return true; }
   return false;
 }
 
