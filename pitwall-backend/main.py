@@ -1036,9 +1036,10 @@ async def _news_poller():
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
-    global _state, _log_lock, _WAITLIST_LOCK
-    _log_lock      = asyncio.Lock()   # must be created inside the running event loop
+    global _state, _log_lock, _WAITLIST_LOCK, _VISITS_LOCK
+    _log_lock      = asyncio.Lock()
     _WAITLIST_LOCK = asyncio.Lock()
+    _VISITS_LOCK   = asyncio.Lock()
     _state = _blank_state()
     task_regular  = asyncio.create_task(_poller())
     task_critical = asyncio.create_task(_poll_critical())
@@ -1066,12 +1067,58 @@ app.add_middleware(
 )
 
 # ── Serve the frontend HTML ───────────────────────────
-_html_file = Path(__file__).parent / "pitwall-ai.html"
+_html_file   = Path(__file__).parent / "pitwall-ai.html"
+_VISITS_LOG  = Path(os.environ.get("DATA_DIR", ".")) / "visits_log.csv"
+_VISITS_LOCK: asyncio.Lock | None = None   # initialised in _lifespan
+
+async def _log_visit(request: Request) -> None:
+    if _VISITS_LOCK is None:
+        return
+    ip  = _get_client_ip(request)
+    ua  = request.headers.get("user-agent", "")[:200]
+    ref = request.headers.get("referer", "")[:200]
+    ts  = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    async with _VISITS_LOCK:
+        try:
+            if not _VISITS_LOG.exists():
+                with open(_VISITS_LOG, "w", newline="", encoding="utf-8") as f:
+                    csv.writer(f).writerow(["timestamp", "ip", "user_agent", "referrer"])
+            with open(_VISITS_LOG, "a", newline="", encoding="utf-8") as f:
+                csv.writer(f).writerow([ts, ip, ua, ref])
+        except Exception as exc:
+            log.debug("[VISITS] Write failed: %s", exc)
 
 @app.get("/")
-async def serve_frontend():
+async def serve_frontend(request: Request):
     from fastapi.responses import FileResponse
+    asyncio.create_task(_log_visit(request))
     return FileResponse(_html_file, media_type="text/html")
+
+
+@app.get("/api/visit-stats")
+async def visit_stats(key: str = ""):
+    """Owner-only: visit analytics from visits_log.csv."""
+    if key != "atgaiimamw2026":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    if not _VISITS_LOG.exists():
+        return {"total": 0, "today": 0, "unique_ips": 0, "recent": []}
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    rows: list[dict] = []
+    try:
+        with open(_VISITS_LOG, "r", newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                rows.append(row)
+    except Exception as exc:
+        log.warning("[VISITS] Read failed: %s", exc)
+        return {"total": 0, "today": 0, "unique_ips": 0, "recent": []}
+    total      = len(rows)
+    today_cnt  = sum(1 for r in rows if r.get("timestamp", "").startswith(today))
+    unique_ips = len({r.get("ip", "") for r in rows if r.get("ip")})
+    recent = [
+        {"timestamp": r.get("timestamp", ""), "ip": r.get("ip", ""), "referrer": r.get("referrer", "")}
+        for r in rows[-10:][::-1]
+    ]
+    return {"total": total, "today": today_cnt, "unique_ips": unique_ips, "recent": recent}
 
 
 @app.get("/atg-logo.svg")
