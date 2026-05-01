@@ -6029,42 +6029,144 @@
 <div class="mob-rp-section" id="mob-rp-prediction">
   <div class="mob-rp-section-hdr">
     <button class="mob-back-btn" onclick="mobCloseRpSection('prediction')">← Back</button>
-    <span class="mob-page-title">Prediction</span>
+    <span class="mob-page-title">AI Prediction</span>
   </div>
-  <div class="mob-rp-section-body">
-    <div class="mob-rp-sec-badge" style="background:rgba(225,6,0,.15);color:#e10600">🏆 AI Race Predictions</div>
-    <div class="mob-rp-sec-h">Race Winner</div>
-    <div class="mob-rp-sec-row" onclick="spOpenDetail('winner-prediction')" style="cursor:pointer">
-      <div class="mob-rp-sec-row-lbl" style="color:#e10600">Favourite</div>
-      <div class="mob-rp-sec-row-val">Kimi Antonelli</div>
-      <div class="mob-rp-sec-row-sub">Championship leader with the fastest car. Mercedes upgrades should extend their advantage in the fast middle sector. If nothing goes wrong and the safety car doesn't mix things up, Antonelli starts favourite.</div>
-    </div>
-    <div class="mob-rp-sec-row" onclick="spOpenDetail('winner-prediction')" style="cursor:pointer">
-      <div class="mob-rp-sec-row-lbl" style="color:#888">Strong challenger</div>
-      <div class="mob-rp-sec-row-val">George Russell</div>
-      <div class="mob-rp-sec-row-sub">Second in the championship and in the same car as Antonelli. Russell has won on circuits like this before. If Antonelli makes a mistake or gets caught by the safety car, Russell is the obvious beneficiary.</div>
-    </div>
-    <div class="mob-rp-sec-h">Dark Horses</div>
-    <div class="mob-rp-sec-row" onclick="spOpenDetail('red-flag-prediction')" style="cursor:pointer">
-      <div class="mob-rp-sec-row-lbl" style="color:#dc143c">Dark horse #1</div>
-      <div class="mob-rp-sec-row-val">Lewis Hamilton</div>
-      <div class="mob-rp-sec-row-sub">Hamilton has historically been strong at Miami. Ferrari bring upgrades. A safety car moment mid-race could put him in clean air. His first win for Ferrari would be one of the great F1 stories.</div>
-    </div>
-    <div class="mob-rp-sec-row" onclick="spOpenDetail('safety-car-prediction')" style="cursor:pointer">
-      <div class="mob-rp-sec-row-lbl" style="color:#ff8700">Dark horse #2</div>
-      <div class="mob-rp-sec-row-val">Lando Norris</div>
-      <div class="mob-rp-sec-row-sub">Won here in 2024. McLaren upgrade package. If rain comes, Norris is arguably the best wet-weather driver in the field right now. A safety car gamble on fresh softs could be his path to the win.</div>
-    </div>
-    <div class="mob-rp-sec-h">Podium Prediction</div>
-    <div class="mob-rp-sec-row">
-      <div class="mob-rp-sec-row-lbl">Dry race</div>
-      <div class="mob-rp-sec-row-val">Antonelli · Russell · Norris</div>
-      <div class="mob-rp-sec-row-sub">Mercedes 1-2 with McLaren splitting them if the upgrades hit. Hamilton pushes Norris close for P3.</div>
-    </div>
-    <div class="mob-rp-sec-row" onclick="spOpenDetail('safety-car-prediction')" style="cursor:pointer">
-      <div class="mob-rp-sec-row-lbl" style="color:#0096ff">If it rains</div>
-      <div class="mob-rp-sec-row-val">Hamilton · Norris · Antonelli</div>
-      <div class="mob-rp-sec-row-sub">Wet conditions shuffle the order completely. Hamilton and Norris historically gain in rain. Red Bull's straight-line speed upgrade could move Verstappen into the points.</div>
+  <div class="mob-rp-section-body" style="overflow-y:auto;padding:0;display:flex;flex-direction:column">
+    <div style="flex:1;overflow-y:auto;padding:14px">
+
+      <!-- ── FEATURED WINNER CARD ── -->
+      <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:12px;overflow:hidden;margin-bottom:14px">
+        <div style="background:#e10600;padding:8px 14px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:9px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.12em;text-transform:uppercase">Race Winner · AI Favourite</span>
+          <span style="margin-left:auto;font-size:9px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.06em">65% CONFIDENCE</span>
+        </div>
+        <div style="padding:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#00d2be;flex-shrink:0"></span>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#fff;line-height:1;letter-spacing:.02em">KIMI ANTONELLI</div>
+          </div>
+          <div style="font-size:11px;color:#555;margin-bottom:10px;letter-spacing:.04em">MERCEDES</div>
+          <div style="border-left:3px solid #e10600;padding-left:12px;font-size:13px;color:#d4d0ca;line-height:1.6;margin-bottom:12px">
+            Championship leader with the fastest car. Mercedes upgrades extend their advantage in the fast middle sector. If nothing goes wrong and the safety car doesn't mix things up, Antonelli starts favourite.
+          </div>
+          <div style="background:#111;border-radius:4px;height:5px;overflow:hidden">
+            <div style="width:65%;height:100%;background:#e10600;border-radius:4px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CHALLENGERS ── -->
+      <div style="font-size:9px;font-weight:700;color:#444;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px">Strong Challengers</div>
+
+      <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;color:#1e1e1e;line-height:1;flex-shrink:0;width:32px;text-align:center">2</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.04em">George Russell</div>
+          <div style="font-size:10px;color:#555;margin-bottom:8px">Mercedes</div>
+          <div style="font-size:12px;color:#888;line-height:1.5;margin-bottom:10px">Same car as Antonelli, same pace. Russell has won on circuits like this. If Antonelli gets caught out by the safety car, Russell is the obvious beneficiary.</div>
+          <div style="background:#111;border-radius:3px;height:3px;overflow:hidden">
+            <div style="width:52%;height:100%;background:#00d2be;border-radius:3px"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:flex-start;gap:12px">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;color:#1e1e1e;line-height:1;flex-shrink:0;width:32px;text-align:center">3</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.04em">Lando Norris</div>
+          <div style="font-size:10px;color:#555;margin-bottom:8px">McLaren</div>
+          <div style="font-size:12px;color:#888;line-height:1.5;margin-bottom:10px">Won here in 2024. McLaren upgrade package arrives for Miami. On pure pace he is in the mix — if rain comes he moves even higher.</div>
+          <div style="background:#111;border-radius:3px;height:3px;overflow:hidden">
+            <div style="width:38%;height:100%;background:#ff8700;border-radius:3px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DARK HORSES ── -->
+      <div style="font-size:9px;font-weight:700;color:#444;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px">Dark Horses</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:12px">
+          <div style="display:inline-block;font-size:8px;font-weight:700;padding:2px 7px;border-radius:3px;background:#2a0000;color:#e10600;letter-spacing:.08em;margin-bottom:8px">SC THREAT</div>
+          <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:2px">Hamilton</div>
+          <div style="font-size:10px;color:#555;margin-bottom:6px">Ferrari</div>
+          <div style="font-size:11px;color:#666;line-height:1.5">Strong at Miami. Ferrari upgrades + safety car window could land him P1.</div>
+        </div>
+        <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:12px">
+          <div style="display:inline-block;font-size:8px;font-weight:700;padding:2px 7px;border-radius:3px;background:#0a1a2a;color:#60a5fa;letter-spacing:.08em;margin-bottom:8px">RAIN</div>
+          <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:2px">Verstappen</div>
+          <div style="font-size:10px;color:#555;margin-bottom:6px">Red Bull</div>
+          <div style="font-size:11px;color:#666;line-height:1.5">Engine upgrade for Miami. Straight-line speed at the back straight is his weapon.</div>
+        </div>
+      </div>
+
+      <!-- ── PODIUM: DRY ── -->
+      <div style="font-size:9px;font-weight:700;color:#444;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px">Podium Predictions</div>
+      <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:14px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f5d040;flex-shrink:0"></span>
+          <span style="font-size:10px;font-weight:700;color:#f5d040;letter-spacing:.1em;text-transform:uppercase">Dry Race</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#e10600;width:22px">P1</span>
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#00d2be;flex-shrink:0"></span>
+            <span style="font-size:13px;font-weight:700;color:#fff;flex:1">Antonelli</span>
+            <span style="font-size:11px;color:#555">Clean air, fastest car</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#888;width:22px">P2</span>
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#00d2be;flex-shrink:0"></span>
+            <span style="font-size:13px;font-weight:700;color:#fff;flex:1">Russell</span>
+            <span style="font-size:11px;color:#555">Tracks teammate closely</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#888;width:22px">P3</span>
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff8700;flex-shrink:0"></span>
+            <span style="font-size:13px;font-weight:700;color:#fff;flex:1">Norris</span>
+            <span style="font-size:11px;color:#555">McLaren upgrades deliver</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PODIUM: WET ── -->
+      <div style="background:#0f0f0f;border:1px solid #1a3060;border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#60a5fa;flex-shrink:0"></span>
+          <span style="font-size:10px;font-weight:700;color:#60a5fa;letter-spacing:.1em;text-transform:uppercase">If It Rains</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#e10600;width:22px">P1</span>
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#e8002d;flex-shrink:0"></span>
+            <span style="font-size:13px;font-weight:700;color:#fff;flex:1">Hamilton</span>
+            <span style="font-size:11px;color:#555">Greatest wet driver ever</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#888;width:22px">P2</span>
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff8700;flex-shrink:0"></span>
+            <span style="font-size:13px;font-weight:700;color:#fff;flex:1">Norris</span>
+            <span style="font-size:11px;color:#555">Won here in rain in 2024</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#888;width:22px">P3</span>
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#00d2be;flex-shrink:0"></span>
+            <span style="font-size:13px;font-weight:700;color:#fff;flex:1">Antonelli</span>
+            <span style="font-size:11px;color:#555">Still in the mix even in wet</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /scroll area -->
+
+    <!-- ── ASK AI BAR ── -->
+    <div style="padding:12px 14px 16px;border-top:1px solid #1e1e1e;flex-shrink:0">
+      <div id="mobPredAiResp" style="display:none;background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:12px;font-size:13px;color:#f0ede8;line-height:1.6;margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px">
+        <input id="mobPredAiInput" placeholder="Ask about the prediction…"
+          style="flex:1;background:#111;border:1px solid #222;border-radius:8px;color:#f0ede8;font-size:13px;padding:10px 12px;outline:none;font-family:inherit"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();mobPredAsk(null);}">
+        <button onclick="mobPredAsk(null)" style="background:#e10600;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;padding:0 14px;cursor:pointer;font-family:inherit">Ask</button>
+      </div>
     </div>
   </div>
 </div>
@@ -12517,6 +12619,35 @@ function _renderMobConstructorChamp(driverStandings, leaderEl, listEl) {
       '</div></div>';
   }).join('');
   listEl.innerHTML = rowHtml;
+}
+
+var _mobPredBusy = false;
+async function mobPredAsk(prompt) {
+  if (_mobPredBusy) return;
+  const inp  = document.getElementById('mobPredAiInput');
+  const resp = document.getElementById('mobPredAiResp');
+  if (!resp) return;
+  const q = prompt || (inp && inp.value.trim()) || '';
+  if (!q) return;
+  if (inp) inp.value = '';
+  _mobPredBusy = true;
+  resp.style.display = 'block';
+  resp.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  const sys = 'You are an F1 race predictor. Answer concisely in 2-3 sentences, plain English. Reference current 2026 standings and Miami GP context.\n\n' + getStyleInstruction();
+  try {
+    _countNextStream = true;
+    const res = await fetch(BACKEND + '/api/chat-stream', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ system: sys, messages: [{role:'user', content: q}], context: 'race_strategy' }),
+      signal: AbortSignal.timeout(20000),
+    });
+    const reply = await _readTokenStream(res, txt => { resp.innerHTML = _renderBold(txt); });
+    const parsed = parseFollowups(reply || '');
+    resp.innerHTML = _renderBold(parsed.text || reply);
+    renderFollowups(parsed.followups, resp, function(fq){ mobPredAsk(fq); });
+  } catch(e) {
+    resp.textContent = '⚠ Could not reach AI.';
+  } finally { _mobPredBusy = false; }
 }
 
 async function mobChampAsk(prompt) {
