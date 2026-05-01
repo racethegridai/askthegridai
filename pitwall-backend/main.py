@@ -1749,6 +1749,23 @@ async def export_questions(key: str = ""):
     )
 
 
+@app.post("/api/create-donation")
+async def create_donation(request: Request):
+    """$2 one-time donation for 10 extra questions during race weekend."""
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[{"price": os.getenv("STRIPE_DONATION_PRICE_ID"), "quantity": 1}],
+            mode="payment",
+            success_url="https://www.askthegridai.com?donated=true&extra=10",
+            cancel_url="https://www.askthegridai.com?cancelled=true",
+        )
+        return {"url": session.url}
+    except Exception as e:
+        print(f"[DONATION] Stripe error: {str(e)}", flush=True)
+        return {"error": str(e)}
+
+
 @app.post("/api/create-checkout")
 async def create_checkout(request: Request):
     """Create a Stripe Checkout session and return the redirect URL."""

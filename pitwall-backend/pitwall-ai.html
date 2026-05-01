@@ -8454,6 +8454,106 @@ let busy    = false;
 const FREE_LIMIT = 3;
 const FREE_LIMIT_KEY = 'pitwall_free_questions';
 
+/* ── 10-question weekend limit ─────────────────────
+   Tracks all user AI calls across the whole site.
+   Resets automatically after Miami weekend (May 5 2026).
+   Owner mode: unlimited always.
+   Donation: resets counter to 0, adds 10 more.
+──────────────────────────────────────────────────── */
+const _WQ_KEY        = 'atgai_questions_used';
+const _WQ_LIMIT      = 10;
+const _WQ_RESET_DATE = new Date('2026-05-06T00:00:00Z');  // After Miami
+const _WQ_DISMISSED  = 'atgai_limit_dismissed';
+
+// Flag: set by user-facing AI functions so _readTokenStream knows to count
+var _countNextStream = false;
+
+function _wqReset() {
+  if (new Date() > _WQ_RESET_DATE) {
+    localStorage.removeItem(_WQ_KEY);
+    localStorage.removeItem(_WQ_DISMISSED);
+  }
+}
+
+function _wqCount() {
+  _wqReset();
+  return parseInt(localStorage.getItem(_WQ_KEY) || '0', 10);
+}
+
+function _wqIsOwner() {
+  return localStorage.getItem('atgai_mode') === 'owner';
+}
+
+function _wqAllowed() {
+  if (_wqIsOwner()) return true;
+  return _wqCount() < _WQ_LIMIT;
+}
+
+function _wqIncrement() {
+  if (_wqIsOwner()) return;
+  const n = _wqCount() + 1;
+  localStorage.setItem(_WQ_KEY, String(n));
+  if (n === 8) _wqToast('2 questions remaining this weekend');
+  if (n >= _WQ_LIMIT) _wqShowPopup();
+}
+
+function _wqToast(msg) {
+  var t = document.getElementById('wqToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'wqToast';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);' +
+      'background:#1a1000;border:1px solid #f5a623;border-radius:8px;color:#f5a623;' +
+      'font-family:\'Titillium Web\',sans-serif;font-size:13px;font-weight:700;' +
+      'padding:10px 18px;z-index:99998;opacity:0;transition:opacity .3s;pointer-events:none;' +
+      'white-space:nowrap;letter-spacing:.02em;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  setTimeout(function(){ t.style.opacity = '0'; }, 4000);
+}
+
+function _wqShowPopup() {
+  var el = document.getElementById('wqLimitPopup');
+  if (el) { el.style.display = 'flex'; return; }
+}
+
+function _wqDismiss() {
+  localStorage.setItem(_WQ_DISMISSED, '1');
+  var el = document.getElementById('wqLimitPopup');
+  if (el) el.style.display = 'none';
+}
+
+async function _wqDonate() {
+  var btn = document.getElementById('wqDonateBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Opening…'; }
+  try {
+    var res = await fetch(BACKEND + '/api/create-donation', {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}',
+    });
+    var d = await res.json();
+    if (d.url) window.location.href = d.url;
+    else if (btn) { btn.disabled = false; btn.textContent = 'SUPPORT WITH $2 →'; }
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'SUPPORT WITH $2 →'; }
+  }
+}
+
+// Handle Stripe donation return
+(function() {
+  var p = new URLSearchParams(location.search);
+  if (p.get('donated') === 'true') {
+    localStorage.setItem(_WQ_KEY, '0');
+    localStorage.removeItem(_WQ_DISMISSED);
+    history.replaceState({}, '', location.pathname);
+    // Show thank-you after page loads
+    window.addEventListener('DOMContentLoaded', function() {
+      _wqToast('You legend. 10 more questions unlocked — enjoy the race! 🏁');
+    });
+  }
+})();
+
 const OWNER_KEY = 'pitwall_owner_mode';
 const INFLUENCER_KEY = 'pitwall_influencer_mode';
 
@@ -9081,6 +9181,7 @@ async function _newsArticleAsk(text) {
   const sys = 'You are an F1 expert explaining Formula 1 news to a casual fan. Use simple plain English. No jargon. Be friendly. Keep answers concise and specific to the article context.\n\n' + getStyleInstruction();
 
   try {
+    _countNextStream = true;
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -9331,6 +9432,7 @@ Never quote articles or reproduce headlines. Write only original explanations.
 
 ${styleInst}`;
   try {
+    _countNextStream = true;
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: {'content-type': 'application/json'},
@@ -9394,6 +9496,7 @@ End every answer with what to watch for next.
 ${styleInst}`;
 
   try {
+    _countNextStream = true;
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -10377,12 +10480,16 @@ async function _readTokenStream(res, onUpdate) {
       if (obj.token) { fullText += obj.token; onUpdate(fullText); }
     }
   }
+  // Count user-initiated AI calls (flag set by calling function)
+  if (_countNextStream && fullText) { _countNextStream = false; _wqIncrement(); }
+  else { _countNextStream = false; }
   return fullText;
 }
 
 async function sendMsg() {
   if (busy) return;
   if (!isLimitBypassed() && getFreeCount() >= FREE_LIMIT) return;
+  if (!_wqAllowed()) { _wqShowPopup(); return; }
 
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
@@ -10405,6 +10512,7 @@ async function sendMsg() {
   const bubble  = _appendStreamingBubble(chatBox);
 
   try {
+    _countNextStream = true;
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -10865,7 +10973,8 @@ async function _mobWjhAsk() {
 
   var sys = 'You are an F1 race analyst. Answer concisely in 2 sentences max. Plain English.\n\n' + getStyleInstruction();
   try {
-    var res = await fetch(BACKEND + '/api/chat-stream', {
+    _countNextStream = true;
+  var res = await fetch(BACKEND + '/api/chat-stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ system: sys, messages: _mobWjhHistory }),
@@ -10973,6 +11082,7 @@ async function _wjhFullAsk() {
   const bubble = aiDiv.querySelector('div');
   const sys = buildSystem('default');
   try {
+    _countNextStream = true;
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -11695,6 +11805,7 @@ async function sendDriverMsg(id) {
 ${styleInst}`;
 
   try {
+    _countNextStream = true;
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -11892,6 +12003,7 @@ async function _mobRadioAsk() {
   if (btn)  { btn.disabled = true; btn.textContent = '…'; }
   const sys = 'You are an F1 expert explaining team radio to a casual fan. Answer in 2-3 sentences, plain English.\n\n' + getStyleInstruction();
   try {
+    _countNextStream = true;
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -12420,6 +12532,7 @@ async function mobChampAsk(prompt) {
   resp.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
   const sys = 'You are an F1 championship analyst. Answer concisely in 2-3 sentences, plain English.\n\n' + getStyleInstruction();
   try {
+    _countNextStream = true;
     const res = await fetch(BACKEND + '/api/chat-stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ system: sys, messages:[{role:'user',content:q}], context:'championship' }),
@@ -12439,6 +12552,7 @@ let _mobBusy = false;
 async function mobSendMsg() {
   console.log('[mobSendMsg] called | busy:', _mobBusy, '| bypassed:', isLimitBypassed(), '| freeCount:', getFreeCount());
   if (_mobBusy) return;
+  if (!_wqAllowed()) { _wqShowPopup(); return; }
   const input = document.getElementById('mobChatInput');
   const btn   = document.getElementById('mobAskBtn');
   const resp  = document.getElementById('mobAiResponse');
@@ -12463,6 +12577,7 @@ async function mobSendMsg() {
   if (resp) { resp.style.display='block'; resp.textContent='Thinking…'; }
 
   try {
+    _countNextStream = true;
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -12563,6 +12678,7 @@ async function mobRpAskAI() {
   const styleInst = getStyleInstruction();
   const system = _RP_SYSTEM + '\n\n' + styleInst;
   try {
+    _countNextStream = true;
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -12720,6 +12836,7 @@ async function mobTmAskAI() {
   resp.textContent = 'Thinking\u2026';
 
   try {
+    _countNextStream = true;
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -12831,6 +12948,7 @@ async function rpChatSend(q) {
   msgsEl.scrollTop = msgsEl.scrollHeight;
 
   try {
+    _countNextStream = true;
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -12950,7 +13068,8 @@ async function mobWxAsk(prompt) {
   var sys = 'You are an F1 weather and strategy expert.' + wxCtx +
     ' Answer in 2-3 sentences, plain English. No jargon.\n\n' + getStyleInstruction();
   try {
-    var res = await fetch(BACKEND + '/api/chat-stream', {
+    _countNextStream = true;
+  var res = await fetch(BACKEND + '/api/chat-stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ system: sys, messages: [{ role: 'user', content: q }], context: 'race_strategy' }),
@@ -13272,6 +13391,7 @@ async function _rlSend(text, msgsId, inputId, sendId, histRef, busyRef, setBusy)
   msgsEl.appendChild(aiBubble);
   msgsEl.scrollTop = msgsEl.scrollHeight;
   try {
+    _countNextStream = true;
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -13610,6 +13730,7 @@ async function _newsRedditAsk(text) {
       concise + '\n\n' + getStyleInstruction();
 
   try {
+    _countNextStream = true;
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -13734,7 +13855,8 @@ async function rlDetailAsk(key, text) {
   var sys = 'You are an F1 rules expert explaining regulations in simple terms to new fans. Topic: ' + (detail ? detail.title : key) + '. Keep answers 3 to 5 sentences. Be specific and clear. Today is April 2026.\n\n' + getStyleInstruction();
 
   try {
-    var res = await fetch(BACKEND + '/api/chat-stream', {
+    _countNextStream = true;
+  var res = await fetch(BACKEND + '/api/chat-stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ system: sys, messages: _rlDetailHistory[key] }),
@@ -13931,7 +14053,8 @@ async function spDetailAsk(key, text) {
   var sys = 'You are answering questions about Miami GP 2026 race strategy and tyres. Topic: ' + (detail ? detail.title : key) + '. Keep answers 3 to 5 sentences. Be specific and practical. Today is April 2026.\n\n' + getStyleInstruction();
 
   try {
-    var res = await fetch(BACKEND + '/api/chat-stream', {
+    _countNextStream = true;
+  var res = await fetch(BACKEND + '/api/chat-stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ system: sys, messages: _spDetailHistory[key] }),
@@ -14691,6 +14814,21 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
+
+<!-- ── 10-question limit popup ─────────────────────── -->
+<div id="wqLimitPopup" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;font-family:'Titillium Web',sans-serif;padding:20px;box-sizing:border-box">
+  <div style="max-width:380px;width:100%;background:#0d0d0d;border:1px solid #1e1e1e;border-radius:14px;padding:28px 24px;text-align:center">
+    <img src="/atg-logo.svg" alt="ATG" style="width:140px;height:auto;margin-bottom:20px">
+    <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:10px;line-height:1.2">Thank you for using<br>Ask The Grid AI 🏁</div>
+    <div style="font-size:13px;color:#888;line-height:1.65;margin-bottom:18px">You've asked 10 questions during Miami weekend —<br>we hope it made the race more fun to watch.<br><br>This is a beta launch built by one developer.<br>Every question costs real money to answer with AI.</div>
+    <div style="background:#1a0000;border:1px solid #3a0000;border-radius:10px;padding:16px;margin-bottom:18px">
+      <div style="font-size:14px;font-weight:700;color:#f0ede8;margin-bottom:12px">Want 10 more questions for this weekend?<br><span style="color:#e10600">A $2 donation keeps the AI running.</span></div>
+      <button id="wqDonateBtn" onclick="_wqDonate()" style="width:100%;padding:14px;background:#e10600;border:none;border-radius:8px;color:#fff;font-family:'Titillium Web',sans-serif;font-size:15px;font-weight:900;letter-spacing:.5px;cursor:pointer;margin-bottom:10px">SUPPORT WITH $2 →</button>
+      <div style="font-size:10px;color:#444;line-height:1.6">No subscription. No account needed.<br>100% goes toward server costs.</div>
+    </div>
+    <button onclick="_wqDismiss()" style="background:transparent;border:none;color:#444;font-family:'Titillium Web',sans-serif;font-size:12px;cursor:pointer;text-decoration:underline">Maybe later — I'm done for now</button>
+  </div>
+</div>
 
 </body>
 </html>
