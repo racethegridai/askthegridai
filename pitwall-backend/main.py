@@ -280,7 +280,6 @@ def _blank_state() -> dict[str, Any]:
         "status_message": "",
         "drivers": [],
         "incidents": [],
-        "radio": [],
         "pit_stops": [],
         "last_updated": "",
     }

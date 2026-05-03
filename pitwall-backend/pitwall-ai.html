@@ -4059,6 +4059,7 @@
       margin-top: 5px;
       align-self: flex-start;
       color: #fff;
+      pointer-events: none;
     }
 
     /* COUNTDOWN STRIP */
@@ -6447,14 +6448,6 @@
       </div>
     </div>
 
-    <!-- RADIO FULL VIEW OVERLAY (position:absolute, triggered from right column) -->
-    <div class="radio-full-view" id="radioFullView" style="display:none">
-      <div class="radio-full-hdr">
-        <button class="radio-back-btn" onclick="closeRadioView()">&larr; Back</button>
-        <span class="radio-full-title">Team Radio &middot; Live</span>
-      </div>
-      <div class="radio-full-body" id="radioFullBody"></div>
-    </div>
 
     <!-- QUICK CHIPS — single scrollable row -->
     <div class="chips-bar">
@@ -6511,18 +6504,6 @@
   <!-- SIDE CARDS COLUMN -->
   <div class="side-cards">
 
-    <!-- 1. Team Radio Hero — red banner when live, PRE-RACE INSIGHT when idle -->
-    <div class="radio-hero" id="rightRadioHero" onclick="openRadioView()">
-      <div class="radio-hero-live">
-        <span class="radio-hero-dot"></span>
-        <span id="rightHeroLiveLabel">Team Radio &middot; Live</span>
-      </div>
-      <div class="radio-hero-msg listening" id="rightHeroMsg">Listening for team radio&hellip;</div>
-      <div class="radio-hero-meta" id="rightHeroMeta" style="display:none">
-        <div class="radio-hero-driver" id="rightHeroDriver"></div>
-        <div class="radio-translate-badge">Tap to translate &rarr;</div>
-      </div>
-    </div>
 
     <!-- PRE-RACE INSIGHT card — shown when no live session -->
     <div class="right-radio-card" id="preRaceInsightCard" style="display:none">
@@ -6533,16 +6514,6 @@
       <div id="preRaceInsightBody" style="font-size:12px;color:#aaa;line-height:1.6">Loading Miami insight…</div>
     </div>
 
-    <!-- 2. Last 3 radio calls with What This Means -->
-    <div class="right-radio-card" id="rightRadioCard">
-      <div class="card-title">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.18 19.79 19.79 0 01.1 .55 2 2 0 012.07 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.43 7.43a16 16 0 006.14 6.14l.9-.9a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg>
-        Team Radio
-      </div>
-      <div id="rightRadioBody">
-        <div class="wl-loading">Listening for radio&hellip;</div>
-      </div>
-    </div>
 
     <!-- 3. What To Watch Next -->
     <div class="watch-next-card">
@@ -7519,12 +7490,15 @@ function applyState(data) {
   }
 
   // ── Flag banner + card badges ────────────────────
-  _applyFlag(data.status, data.status_message);
-  _updateRacePulseCard();
-  _updateGapCard();
-  // WJH badge: mark UPDATED when lap advances
-  if (data.lap && data.lap !== _mobWjhLastLap) _setHubBadge('wjh', 'UPDATED', '#4caf50');
-  else _setHubBadge('wjh', null);
+  try { _applyFlag(data.status, data.status_message); } catch(e) {}
+  try { _updateRacePulseCard(); } catch(e) {}
+  try { _updateGapCard(); } catch(e) {}
+  // WJH badge: show UPDATED when 3+ new laps have passed since last WJH load
+  try {
+    if (data.lap && _mobWjhLastLap >= 0 && (data.lap - _mobWjhLastLap) >= 3) {
+      _setHubBadge('wjh', 'UPDATED', '#4caf50');
+    }
+  } catch(e) {}
 
   // ── Standings ───────────────────────────────────
   const isAnyLiveSession = data.is_live && data.drivers && data.drivers.length;
@@ -7557,7 +7531,6 @@ function applyState(data) {
 
   // ── Info cards ──────────────────────────────────
   if (data.incidents) { renderIncidents(data.incidents); renderLeftIncidents(data.incidents); }
-  if (data.radio)     { renderRadio(data.radio); renderRightRadio(data.radio); renderMobRadio(data.radio); }
   if (data.pit_stops) PitMgr.update(data.pit_stops);
 
   // ── WJH subtitle — key events count ────────────────
