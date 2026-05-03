@@ -1049,6 +1049,12 @@ async def _lifespan(app: FastAPI):
     _WAITLIST_LOCK = asyncio.Lock()
     _VISITS_LOCK   = asyncio.Lock()
     _state = _blank_state()
+    # Kick an immediate refresh so data is ready before first SSE client connects
+    try:
+        _state = await _refresh()
+        log.info("[STARTUP] Initial refresh complete: %s, live=%s", _state.get("session_name"), _state.get("is_live"))
+    except Exception as exc:
+        log.warning("[STARTUP] Initial refresh failed: %s", exc)
     task_regular  = asyncio.create_task(_poller())
     task_critical = asyncio.create_task(_poll_critical())
     task_news     = asyncio.create_task(_news_poller())
@@ -1674,6 +1680,25 @@ async def chat_stream(req: ChatRequest, request: Request):
 async def ping():
     """Keep-alive endpoint — frontend pings every 4 minutes to prevent Railway cold starts."""
     return {"ok": True}
+
+
+@app.post("/api/force-refresh")
+async def force_refresh(key: str = ""):
+    """Owner-only: clear all OpenF1 backoffs and immediately re-fetch live data."""
+    global _state
+    if key != "atgaiimamw2026":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    _backoff.clear()   # remove any rate-limit penalties
+    log.info("[FORCE-REFRESH] Backoff cleared, fetching fresh state…")
+    try:
+        new_state = await _refresh()
+        async with _lock:
+            _state = new_state
+        _broadcast(json.dumps(_state))
+        return {"ok": True, "session": new_state.get("session_name"), "is_live": new_state.get("is_live"), "drivers": len(new_state.get("drivers", []))}
+    except Exception as exc:
+        log.warning("[FORCE-REFRESH] Failed: %s", exc)
+        return {"ok": False, "error": str(exc)}
 
 
 
