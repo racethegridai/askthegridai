@@ -2286,6 +2286,22 @@
       100% { background: transparent; }
     }
     .gap-row-flash { animation: gapRowFlash 1.2s ease-out; }
+    @keyframes pulseRingOut {
+      0%   { transform: scale(.8); opacity: .55; }
+      100% { transform: scale(2.8); opacity: 0; }
+    }
+    .pulse-ring {
+      position: absolute; inset: 0; margin: auto;
+      width: 80px; height: 80px; border-radius: 50%;
+      pointer-events: none;
+    }
+    .pulse-ring-1 { animation: pulseRingOut 2s ease-out infinite; }
+    .pulse-ring-2 { animation: pulseRingOut 2s ease-out .8s infinite; }
+    .exc-bar {
+      border-radius: 3px;
+      flex-shrink: 0;
+      transition: background .4s, height .4s;
+    }
 
     /* ── LEFT COLUMN WJH COMPACT BUTTON ─────────────── */
     .left-wjh-btn {
@@ -5175,21 +5191,15 @@
   <div class="mob-page-header">
     <button class="mob-back-btn" onclick="mobClosePage('pulse')">← Back</button>
     <span class="mob-page-title">Race Pulse</span>
-    <button id="pulseRefreshBtn" onclick="_loadRacePulse(true)" style="margin-left:auto;font-size:10px;color:#555;background:transparent;border:none;cursor:pointer;padding:0 4px;font-family:inherit">↻</button>
+    <button id="pulseRefreshBtn" onclick="_loadRacePulse(true)" style="margin-left:auto;font-size:10px;color:#555;background:transparent;border:none;cursor:pointer;padding:0 6px;font-family:inherit">↻</button>
   </div>
-  <div class="mob-page-body" style="overflow-y:auto;padding:0 16px 24px">
-    <!-- Big status word -->
-    <div style="padding:28px 0 4px;text-align:center">
-      <div id="pulseStatusWord" style="font-size:42px;font-weight:900;letter-spacing:-.01em;line-height:1;color:#555">—</div>
-      <div id="pulseStatusSub" style="font-size:10px;font-weight:700;letter-spacing:.12em;color:#333;margin-top:6px;text-transform:uppercase">Race State</div>
-    </div>
-    <!-- AI one-liner -->
-    <div id="pulseExplain" style="margin:20px 0;font-size:15px;color:#d4d0ca;line-height:1.6;text-align:center;min-height:40px;font-style:italic">Tap ↻ to analyse current race state</div>
-    <!-- Recent lap summary -->
-    <div style="font-size:10px;font-weight:700;color:#333;letter-spacing:.08em;margin-bottom:8px">RECENT INCIDENTS</div>
-    <div id="pulseRecent" style="display:flex;flex-direction:column;gap:6px"></div>
-    <!-- Ask input -->
-    <div style="margin-top:20px">
+  <div class="mob-page-body" style="overflow-y:auto;padding:0 0 28px">
+    <div id="pulseHero"></div>
+    <div id="pulseSummary" style="padding:0 14px;margin-top:14px"></div>
+    <div id="pulseMomentum" style="padding:0 14px;margin-top:14px"></div>
+    <div id="pulseIncidents" style="padding:0 14px;margin-top:14px"></div>
+    <div id="pulseChips" style="padding:0 14px;margin-top:14px"></div>
+    <div style="padding:16px 14px 0">
       <div class="mob-input-row">
         <input class="mob-chat-input" id="pulseAskInput" placeholder="Ask about the race pace…"
           onkeydown="if(event.key==='Enter'){event.preventDefault();_pulseAsk();}" autocomplete="off">
@@ -12284,70 +12294,295 @@ function _updateRacePulseCard() {
   _setHubBadge('pulse', pulse, cfg.bg);
 }
 
+// ── Race Pulse helpers ────────────────────────────
+var _pulseIncsList = [];  // current incidents for inline expand
+
+var _PULSE_SUBTITLES = {
+  PROCESSIONAL: 'Steady pace, no real action',
+  BUILDING:     'Battles are developing',
+  TENSE:        'Fights on every lap',
+  CHAOS:        'Safety car territory',
+};
+
+var _PULSE_CHIPS_MAP = {
+  PROCESSIONAL: ['Why is the race so quiet?', 'Who can shake things up?', 'When will the leaders pit?', 'What is DRS?'],
+  BUILDING:     ['Which battles should I watch?', 'Who has the best tyre advantage?', 'Can anyone challenge the leader?', 'Explain undercut strategy'],
+  TENSE:        ['Who is fighting the hardest?', 'Will there be an overtake soon?', 'How does tyre deg affect battles?', 'What is DRS range?'],
+  CHAOS:        ['Why is it CHAOS right now?', 'Who benefits from the safety car?', 'Can Antonelli still win?', 'Explain blue flags'],
+};
+
+function _incFlagConfig(msg) {
+  var m = String(msg).toUpperCase();
+  if (/RED FLAG/.test(m))                      return { label:'RED FLAG',   color:'#e10600', bg:'#1a0000' };
+  if (/SAFETY CAR DEPLOYED|SC DEPLOYED/.test(m)) return { label:'SC',        color:'#f5a623', bg:'#1a0f00' };
+  if (/VIRTUAL SAFETY CAR|VSC/.test(m))        return { label:'VSC',        color:'#f5a623', bg:'#1a0f00' };
+  if (/SAFETY CAR/.test(m))                    return { label:'SC',         color:'#f5a623', bg:'#1a0f00' };
+  if (/BLUE/.test(m))                          return { label:'BLUE FLAG',  color:'#5ac8ff', bg:'#001a2a' };
+  if (/DOUBLE YELLOW|DBL YELLOW/.test(m))      return { label:'DBL YELLOW', color:'#f5c842', bg:'#1a1500' };
+  if (/YELLOW/.test(m))                        return { label:'YELLOW',     color:'#f5c842', bg:'#1a1500' };
+  if (/CHEQUERED|CHECKERED/.test(m))           return { label:'FINISH',     color:'#f0ede8', bg:'#111' };
+  if (/PENALTY|DRIVE THROUGH|STOP.GO/.test(m)) return { label:'PENALTY',    color:'#ff6600', bg:'#1a0800' };
+  return                                              { label:'NOTICE',      color:'#555',    bg:'#111' };
+}
+
+function _incHumanize(msg) {
+  var m = String(msg);
+  var blue = m.match(/WAVED?\s*BLUE(?:\s*FLAG)?\s*FOR\s*(?:CAR\s+)?(\d+)\s*\((\w+)\)/i);
+  if (blue) return blue[2] + ' must let faster cars through — blue flag shown to car ' + blue[1];
+  if (/SAFETY CAR IN THIS LAP/i.test(m)) return 'Safety car coming in this lap — racing resumes shortly';
+  if (/SAFETY CAR DEPLOYED/i.test(m))    return 'Safety car on track — all drivers must close up and hold position';
+  if (/VIRTUAL SAFETY CAR/i.test(m))    return 'Virtual Safety Car — drivers must stay above a minimum lap time';
+  if (/RED FLAG/i.test(m))              return 'Red flag — race has been stopped';
+  if (/CHEQUERED|CHECKERED/i.test(m))  return 'Chequered flag — race is over!';
+  var sec = m.match(/(\d+)\s*SECOND PENALTY.*?CAR\s+(\d+)/i);
+  if (sec) return sec[1] + '-second time penalty issued to car ' + sec[2];
+  var dt = m.match(/DRIVE.THROUGH.*?CAR\s+(\d+)/i);
+  if (dt) return 'Drive-through penalty for car ' + dt[1] + ' — must serve next pit visit';
+  var sg = m.match(/STOP.AND?.GO.*?CAR\s+(\d+)/i);
+  if (sg) return 'Stop-and-go penalty for car ' + sg[1] + ' — 10 seconds stationary in pits';
+  // Generic cleanup
+  return m.replace(/\bCAR (\d+)\b/gi, 'Car $1')
+    .replace(/_/g, ' ')
+    .replace(/\bDRS\b/g, 'DRS')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function _renderPulseHero(pulse) {
+  var cfg  = _PULSE_CFG[pulse] || _PULSE_CFG.PROCESSIONAL;
+  var sub  = _PULSE_SUBTITLES[pulse] || '';
+  var lap  = (liveData && liveData.lap) || '—';
+  var gp   = (liveData && liveData.session_name) || '';
+  var subColor = pulse === 'PROCESSIONAL' ? '#444' : '#f5a623';
+
+  // Excitement meter: 5 bars, taller each
+  var barFill = { PROCESSIONAL:1, BUILDING:2, TENSE:3, CHAOS:5 }[pulse] || 1;
+  var barColor = pulse === 'CHAOS' ? '#e10600' : pulse === 'PROCESSIONAL' ? '#333' : '#f5a623';
+  var bars = [12,16,20,24,28].map(function(h, i) {
+    var filled = i < barFill;
+    return '<div class="exc-bar" style="width:6px;height:' + h + 'px;background:' + (filled ? barColor : '#222') + '"></div>';
+  }).join('');
+
+  var ringBg = pulse === 'PROCESSIONAL' ? 'rgba(80,80,80,.25)' : 'rgba(225,6,0,.22)';
+
+  var heroEl = document.getElementById('pulseHero');
+  if (!heroEl) return;
+  heroEl.innerHTML =
+    '<div style="text-align:center;padding:32px 16px 20px;position:relative">' +
+      '<div style="position:relative;display:inline-block;width:120px;height:120px;margin-bottom:8px">' +
+        '<div class="pulse-ring pulse-ring-1" style="background:' + ringBg + '"></div>' +
+        '<div class="pulse-ring pulse-ring-2" style="background:' + ringBg + '"></div>' +
+        '<div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%">' +
+          '<div style="font-size:36px;font-weight:900;letter-spacing:-.02em;color:' + cfg.color + ';line-height:1">' + pulse + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:flex-end;justify-content:center;gap:4px;margin-bottom:10px">' + bars + '</div>' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:.12em;color:' + subColor + ';text-transform:uppercase;margin-bottom:6px">' + escapeHtml(sub) + '</div>' +
+      '<div style="font-size:10px;color:#333;letter-spacing:.06em">LAP ' + lap + (gp ? ' · ' + escapeHtml(gp.split('—')[0].trim().toUpperCase()) : '') + '</div>' +
+    '</div>';
+}
+
+function _renderPulseMomentum() {
+  var drivers   = (liveData && liveData.drivers) || [];
+  var incidents = (liveData && liveData.incidents) || [];
+  var el = document.getElementById('pulseMomentum');
+  if (!el) return;
+
+  // Leader gap (P2's gap to P1)
+  var leaderGap = drivers.length > 1 ? (drivers[1].gap || '—') : '—';
+
+  // Count battles < 2s
+  var battles = 0, hotPair = '';
+  for (var i = 1; i < drivers.length; i++) {
+    var g = _parseGapSec(drivers[i].gap);
+    if (g !== null && g < 2.0) {
+      battles++;
+      if (!hotPair) hotPair = 'P' + drivers[i-1].pos + ' vs P' + drivers[i].pos + ' hottest';
+    }
+  }
+
+  var lastIncLap = incidents.length ? 'Last: lap ' + (incidents[incidents.length-1].lap || '?') : 'None this session';
+
+  function mini(icon, title, value, sub) {
+    return '<div style="flex:1;background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:10px 8px;text-align:center">' +
+      '<div style="font-size:9px;font-weight:700;color:#444;letter-spacing:.06em;margin-bottom:4px">' + icon + ' ' + title + '</div>' +
+      '<div style="font-size:18px;font-weight:900;color:#f0ede8;line-height:1">' + escapeHtml(String(value)) + '</div>' +
+      '<div style="font-size:9px;color:#444;margin-top:4px;line-height:1.3">' + escapeHtml(sub) + '</div>' +
+    '</div>';
+  }
+
+  el.innerHTML =
+    '<div style="font-size:8px;font-weight:700;letter-spacing:.1em;color:#333;margin-bottom:8px">MOMENTUM</div>' +
+    '<div style="display:flex;gap:8px">' +
+      mini('🏁', 'LEADER GAP', leaderGap, 'P1 vs P2') +
+      mini('⚔️', 'BATTLES', battles || '0', hotPair || 'No close fights') +
+      mini('🚩', 'INCIDENTS', incidents.length, lastIncLap) +
+    '</div>';
+}
+
+function _renderPulseIncidents() {
+  var incidents = (liveData && liveData.incidents) || [];
+  var curLap    = (liveData && liveData.lap) || 0;
+  var el = document.getElementById('pulseIncidents');
+  if (!el) return;
+
+  var shown = incidents.filter(function(i) { return Math.abs((i.lap||0) - curLap) <= 10; }).slice(0, 5);
+  _pulseIncsList = shown;
+
+  if (!shown.length) {
+    el.innerHTML = '<div style="font-size:8px;font-weight:700;letter-spacing:.1em;color:#333;margin-bottom:8px">RECENT INCIDENTS</div>' +
+      '<div style="color:#444;font-size:12px">No incidents in last 10 laps</div>';
+    return;
+  }
+
+  el.innerHTML =
+    '<div style="font-size:8px;font-weight:700;letter-spacing:.1em;color:#333;margin-bottom:8px">RECENT INCIDENTS</div>' +
+    shown.map(function(inc, idx) {
+      var flagCfg = _incFlagConfig(inc.msg || '');
+      var human   = _incHumanize(inc.msg || '');
+      return '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:10px 12px;margin-bottom:8px">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+          '<span style="font-size:8px;font-weight:700;padding:2px 7px;border-radius:5px;background:' + flagCfg.bg + ';color:' + flagCfg.color + ';letter-spacing:.06em;flex-shrink:0">' + flagCfg.label + '</span>' +
+          '<span style="font-size:12px;color:#d4d0ca;flex:1;line-height:1.4">' + escapeHtml(human) + '</span>' +
+          '<span style="font-size:8px;font-weight:700;color:#444;flex-shrink:0">LAP ' + (inc.lap||'?') + '</span>' +
+        '</div>' +
+        '<button onclick="_pulseIncExpand(' + idx + ')" style="font-size:10px;padding:3px 10px;border-radius:10px;background:transparent;border:1px solid #222;color:#555;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent">What does this mean? →</button>' +
+        '<div id="pulseIncExp' + idx + '" style="display:none;margin-top:8px;font-size:12px;color:#d4d0ca;line-height:1.6;font-style:italic;border-left:2px solid #e10600;padding-left:8px"></div>' +
+      '</div>';
+    }).join('');
+}
+
+function _renderPulseChips(pulse) {
+  var el = document.getElementById('pulseChips');
+  if (!el) return;
+  var chips = _PULSE_CHIPS_MAP[pulse] || _PULSE_CHIPS_MAP.PROCESSIONAL;
+  el.innerHTML =
+    '<div style="display:flex;flex-wrap:wrap;gap:8px">' +
+    chips.map(function(c) {
+      return '<button onclick="_pulseChipClick(' + JSON.stringify(c) + ')" ' +
+        'style="font-size:11px;padding:6px 12px;border-radius:20px;background:#111;border:1px solid #222;color:#d4d0ca;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent">' +
+        escapeHtml(c) + '</button>';
+    }).join('') +
+    '</div>';
+}
+
 async function _loadRacePulse(force) {
   var lap = (liveData && liveData.lap) || 0;
   if (!force && Math.abs(lap - _racePulseLastLap) < 5) {
-    _renderRacePulseStatic();
+    _renderRacePulseAll();
     return;
   }
-  if (_racePulseBusy) { _renderRacePulseStatic(); return; }
+  if (_racePulseBusy) { _renderRacePulseAll(); return; }
   _racePulseBusy = true;
   var btn = document.getElementById('pulseRefreshBtn');
   if (btn) { btn.textContent = '…'; btn.disabled = true; }
 
-  _renderRacePulseStatic();
+  _renderRacePulseAll();
 
-  var pulse     = _calcRacePulse();
-  var incidents = (liveData && liveData.incidents) || [];
-  var curLap    = (liveData && liveData.lap) || '?';
-  var session   = (liveData && liveData.session_name) || 'race';
-  var drivers   = (liveData && liveData.drivers) || [];
-  var top5      = drivers.slice(0, 5).map(function(d) { return 'P' + d.pos + ' ' + (d.code || ''); }).join(', ');
+  var pulse   = _calcRacePulse();
+  var curLap  = (liveData && liveData.lap) || '?';
+  var session = (liveData && liveData.session_name) || 'race';
+  var drivers = (liveData && liveData.drivers) || [];
+  var top5    = drivers.slice(0, 5).map(function(d) { return 'P' + d.pos + ' ' + (d.code||'') + ' tyre:' + (d.tyre||'?'); }).join(', ');
 
-  var prompt = 'Race: ' + session + ' Lap ' + curLap + '. Pulse status: ' + pulse + '. Top 5: ' + top5 + '.'
-    + ' In exactly ONE sentence (max 20 words), explain why the race feels ' + pulse.toLowerCase() + ' right now.';
+  var prompt = 'Race: ' + session + ' Lap ' + curLap + '. Pulse status: ' + pulse + '. Top 5: ' + top5 + '. '
+    + 'Return valid JSON only: {"summary":"2-3 sentence live analysis of why the race feels ' + pulse.toLowerCase() + ' right now","chips":["short follow-up question 1","short follow-up question 2","short follow-up question 3"]}';
 
   try {
     var res = await fetch(BACKEND + '/api/chat', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        system: 'You are an F1 commentator. Reply with exactly one punchy sentence, no quotes, no disclaimer.',
+        system: 'You are an F1 live commentator. Return ONLY valid JSON, no markdown.',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 80,
+        max_tokens: 220,
       }),
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(18000),
     });
-    var data = await res.json();
-    var explain = document.getElementById('pulseExplain');
-    if (explain) explain.textContent = data.reply || '';
+    var data  = await res.json();
+    var raw   = (data.reply || '').replace(/```json|```/g, '').trim();
+    var parsed = JSON.parse(raw);
+    _renderPulseSummaryCard(parsed.summary || '', parsed.chips || []);
     _racePulseLastLap = lap;
-  } catch(e) { /* silent — static render still shows */ }
+  } catch(e) {
+    _renderPulseSummaryCard('', []);
+  }
   finally {
     _racePulseBusy = false;
     if (btn) { btn.textContent = '↻'; btn.disabled = false; }
   }
 }
 
-function _renderRacePulseStatic() {
-  var pulse   = _calcRacePulse();
-  var cfg     = _PULSE_CFG[pulse] || _PULSE_CFG.PROCESSIONAL;
-  var word    = document.getElementById('pulseStatusWord');
-  var sub     = document.getElementById('pulseStatusSub');
-  var recent  = document.getElementById('pulseRecent');
-  if (word) { word.textContent = pulse; word.style.color = cfg.color; }
-  if (sub)  sub.textContent = { PROCESSIONAL:'Steady pace, no action', BUILDING:'Battles developing', TENSE:'Fights on every lap', CHAOS:'Safety car territory' }[pulse] || '';
-  if (recent) {
-    var incidents = (liveData && liveData.incidents) || [];
-    var curLap    = (liveData && liveData.lap) || 0;
-    var shown     = incidents.filter(function(i) { return Math.abs((i.lap||0) - curLap) <= 5; }).slice(0, 4);
-    recent.innerHTML = shown.length
-      ? shown.map(function(i) {
-          return '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:8px 12px;font-size:12px;color:#d4d0ca">'
-            + '<span style="color:#e10600;font-weight:700;margin-right:8px">LAP ' + (i.lap||'?') + '</span>' + escapeHtml(i.msg||'') + '</div>';
-        }).join('')
-      : '<div style="color:#444;font-size:12px">No incidents in last 5 laps</div>';
-  }
+function _renderRacePulseAll() {
+  var pulse = _calcRacePulse();
+  _renderPulseHero(pulse);
+  _renderPulseSummaryCard('', []);
+  _renderPulseMomentum();
+  _renderPulseIncidents();
+  _renderPulseChips(pulse);
 }
+
+function _renderPulseSummaryCard(summary, chips) {
+  var el = document.getElementById('pulseSummary');
+  if (!el) return;
+  if (!summary) {
+    el.innerHTML =
+      '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-left:3px solid #e10600;border-radius:10px;padding:12px 14px">' +
+        '<div style="font-size:8px;font-weight:700;color:#e10600;letter-spacing:.1em;margin-bottom:8px">GRID AI · LIVE ANALYSIS</div>' +
+        '<div style="font-size:13px;color:#444;font-style:italic">Analysing race state…</div>' +
+      '</div>';
+    return;
+  }
+  var chipsHtml = chips.length
+    ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">' +
+      chips.map(function(c) {
+        return '<button onclick="_pulseChipClick(' + JSON.stringify(c) + ')" ' +
+          'style="font-size:10px;padding:4px 10px;border-radius:14px;background:#111;border:1px solid #1e1e1e;color:#888;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent">' +
+          escapeHtml(c) + '</button>';
+      }).join('') + '</div>'
+    : '';
+  el.innerHTML =
+    '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-left:3px solid #e10600;border-radius:10px;padding:12px 14px">' +
+      '<div style="font-size:8px;font-weight:700;color:#e10600;letter-spacing:.1em;margin-bottom:8px">GRID AI · LIVE ANALYSIS</div>' +
+      '<div style="font-size:14px;color:#f0ede8;line-height:1.65">' + escapeHtml(summary) + '</div>' +
+      chipsHtml +
+    '</div>';
+}
+
+var _pulseIncBusy = {};
+async function _pulseIncExpand(idx) {
+  var panel = document.getElementById('pulseIncExp' + idx);
+  if (!panel) return;
+  if (panel.style.display !== 'none' && panel.textContent) {
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = 'block';
+  if (_pulseIncBusy[idx] || panel.textContent) return;
+  _pulseIncBusy[idx] = true;
+  panel.textContent = 'Thinking…';
+  var inc = _pulseIncsList[idx];
+  if (!inc) { panel.textContent = ''; return; }
+  var q = 'In the ' + ((liveData && liveData.session_name) || 'race') + ': "' + (inc.msg || '') + '". In one sentence, explain what this means for casual F1 fans.';
+  try {
+    var res = await fetch(BACKEND + '/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: 'You are an F1 expert. Reply with exactly one clear, jargon-free sentence.', messages: [{ role:'user', content: q }], max_tokens: 80 }),
+      signal: AbortSignal.timeout(12000),
+    });
+    var data = await res.json();
+    panel.textContent = data.reply || '—';
+  } catch(e) { panel.textContent = '⚠ Could not reach AI.'; }
+  finally { _pulseIncBusy[idx] = false; }
+}
+
+function _pulseChipClick(q) {
+  var input = document.getElementById('pulseAskInput');
+  var resp  = document.getElementById('pulseAskResp');
+  if (input) { input.value = q; }
+  _pulseAsk();
+}
+
+function _renderRacePulseStatic() { _renderRacePulseAll(); }
 
 async function _pulseAsk() {
   var input = document.getElementById('pulseAskInput');
