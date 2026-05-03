@@ -14883,8 +14883,8 @@ window.spAsk = function(prompt) {
   tick(); setInterval(tick, 1000);
 
   var ol = document.getElementById('wl-overlay');
-  if(localStorage.getItem('atgai_access') === 'true'){ ol.style.display='none'; }
-  else { ol.style.display='block'; }
+  if(ol) ol.style.display='none';
+  localStorage.setItem('atgai_access','true');
 
   window.wlSubmit = function(){
     var name = document.getElementById('wl-name').value.trim();
