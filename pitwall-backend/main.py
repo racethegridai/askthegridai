@@ -423,10 +423,16 @@ async def _refresh() -> dict[str, Any]:
         # Determine if session is currently live
         now = datetime.now(timezone.utc)
         try:
-            date_start = datetime.fromisoformat(sess["date_start"])
-            date_end   = datetime.fromisoformat(sess["date_end"])
-            s["is_live"] = date_start <= now <= date_end
-        except Exception:
+            date_start = datetime.fromisoformat(str(sess["date_start"]).replace("Z", "+00:00"))
+            date_end_raw = sess.get("date_end")
+            if date_end_raw:
+                date_end = datetime.fromisoformat(str(date_end_raw).replace("Z", "+00:00"))
+                s["is_live"] = date_start <= now <= date_end
+            else:
+                # date_end is None → session started but hasn't ended yet → LIVE
+                s["is_live"] = date_start <= now
+        except Exception as exc:
+            log.warning("[REFRESH] is_live parse failed: %s", exc)
             s["is_live"] = False
 
         # ── Parallel fetches ──────────────────────────
@@ -624,7 +630,9 @@ async def _poller():
     while True:
         try:
             is_live = _state.get("is_live", False)
-            interval = POLL_INTERVAL_LIVE if is_live else POLL_INTERVAL_IDLE
+            # Also poll fast if session_key is set (session exists, may be live)
+            session_active = bool(_state.get("session_key"))
+            interval = POLL_INTERVAL_LIVE if (is_live or session_active) else POLL_INTERVAL_IDLE
             log.info("Fetching race data (session_key=latest, live=%s, next=%ds)…", is_live, interval)
             new_state = await _refresh()
             async with _lock:

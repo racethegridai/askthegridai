@@ -7553,13 +7553,21 @@ function applyState(data) {
   _applyFlag(data.status, data.status_message);
 
   // ── Standings ───────────────────────────────────
-  if (data.is_race && data.is_live && data.drivers && data.drivers.length) {
+  const isAnyLiveSession = data.is_live && data.drivers && data.drivers.length;
+  if (data.is_race && isAnyLiveSession) {
     _liveRaceActive = true;
     _setStandingsHeaders('race');
     renderStandings(data.drivers);
     renderStratCard(data.drivers.slice(0, 5));
     _startOpenF1Poll();
     _startTyrePoller();
+  } else if (isAnyLiveSession) {
+    // Qualifying / Practice — show live positions but no race-specific features
+    _liveRaceActive = false;
+    _stopOpenF1Poll();
+    _setStandingsHeaders('race');
+    renderStandings(data.drivers);
+    if (data.drivers && data.drivers.length) renderStratCard(data.drivers.slice(0, 5));
   } else {
     _stopOpenF1Poll();
     _stopTyrePoller();
