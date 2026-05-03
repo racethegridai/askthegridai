@@ -229,7 +229,6 @@ FALLBACK_STANDINGS = [
 CACHE_TTL: dict[str, float] = {
     "/position":     10.0,   # race positions
     "/intervals":    10.0,   # gaps between cars
-    "/team_radio":    5.0,   # team radio clips
     "/race_control": 15.0,   # race incidents / flags
     "/pit":          15.0,   # pit stops
     "/sessions":     30.0,   # session metadata
@@ -492,7 +491,6 @@ async def _refresh() -> dict[str, Any]:
             intervals_raw,
             stints_raw,
             rc_raw,
-            radio_raw,
             pits_raw,
         ) = await asyncio.gather(
             _of1(client, "/drivers",      {"session_key": session_key}),
@@ -500,7 +498,6 @@ async def _refresh() -> dict[str, Any]:
             _of1(client, "/intervals",    {"session_key": session_key}),
             _of1(client, "/stints",       {"session_key": session_key}),
             _of1(client, "/race_control", {"session_key": session_key}),
-            _of1(client, "/team_radio",   {"session_key": session_key}),
             _of1(client, "/pit",          {"session_key": session_key}),
         )
 
@@ -552,20 +549,6 @@ async def _refresh() -> dict[str, Any]:
         # ── Race incidents (last 6 significant events) ─
         s["incidents"] = _build_incidents(rc_raw)
 
-        # ── Team Radio (most recent 3 clips) ──────────
-        radio_entries = []
-        for r in reversed(radio_raw):
-            dn   = r.get("driver_number")
-            meta = driver_meta.get(dn, {})
-            radio_entries.append({
-                "driver":  meta.get("name_acronym", str(dn)),
-                "team":    meta.get("team_name", ""),
-                "url":     r.get("recording_url", ""),
-                "date":    r.get("date", ""),
-            })
-            if len(radio_entries) >= 3:
-                break
-        s["radio"] = radio_entries
 
         # ── Positions ─────────────────────────────────
         latest_pos  = _latest_per_driver(positions_raw,  "date")
@@ -1402,11 +1385,6 @@ def _build_dynamic_context() -> str:
         ) if top5 else "—"
         live_summary = f"{name} Lap {lap}/{total} | {top5_str} | Status:{status}"
         sections.append(f"RACE: {live_summary[:200]}")
-        radio = state.get("radio", [])
-        if radio:
-            last = radio[-1]
-            msg  = last.get("msg", last.get("message", ""))[:80]
-            sections.append(f"LAST RADIO: {last.get('driver','?')}: {msg}")
 
     # Weather for next race (if cached)
     wd = _weather_cache.get("data")

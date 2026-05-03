@@ -4050,6 +4050,16 @@
       color: var(--gray);
       line-height: 1.3;
     }
+    .mob-hub-badge {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      padding: 2px 6px;
+      border-radius: 8px;
+      margin-top: 5px;
+      align-self: flex-start;
+      color: #fff;
+    }
 
     /* COUNTDOWN STRIP */
     .mob-countdown-strip {
@@ -5094,26 +5104,37 @@
 
     <!-- 2×3 HUB GRID -->
     <div class="mob-hub-grid">
-      <div class="mob-hub-card" onclick="mobOpenPage('radio')">
-        <div class="mob-hub-icon" style="background:rgba(225,6,0,.15);color:#e10600">📻</div>
-        <div class="mob-hub-card-title">Team Radio</div>
-        <div class="mob-hub-card-sub">Live calls translated</div>
+      <!-- Row 1: Race Pulse | Gap Tracker -->
+      <div class="mob-hub-card" id="hubCard-pulse" onclick="mobOpenPage('pulse')">
+        <div class="mob-hub-icon" style="background:rgba(225,6,0,.15);color:#e10600">
+          <svg width="22" height="16" viewBox="0 0 22 16" fill="none" style="display:block"><polyline points="0,8 4,8 6,2 8,14 10,5 12,11 14,8 22,8" stroke="#e10600" stroke-width="1.8" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        </div>
+        <div class="mob-hub-card-title">Race Pulse</div>
+        <div class="mob-hub-card-sub" id="hubSub-pulse">Race momentum</div>
+        <div class="mob-hub-badge" id="hubBadge-pulse" style="display:none"></div>
       </div>
-      <div class="mob-hub-card" onclick="mobOpenPage('leaders')">
-        <div class="mob-hub-icon" style="background:rgba(0,216,75,.12);color:#00d84b">🏁</div>
-        <div class="mob-hub-card-title">Leaderboard</div>
-        <div class="mob-hub-card-sub">Live race positions</div>
+      <div class="mob-hub-card" id="hubCard-gaps" onclick="mobOpenPage('gaps')">
+        <div class="mob-hub-icon" style="background:rgba(90,200,255,.12);color:#5ac8ff">
+          <svg width="22" height="16" viewBox="0 0 22 16" fill="none" style="display:block"><circle cx="3" cy="8" r="2.5" fill="#5ac8ff"/><circle cx="19" cy="8" r="2.5" fill="#5ac8ff"/><line x1="7" y1="8" x2="15" y2="8" stroke="#5ac8ff" stroke-width="1.4"/><polyline points="12,5 15,8 12,11" stroke="#5ac8ff" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        </div>
+        <div class="mob-hub-card-title">Gap Tracker</div>
+        <div class="mob-hub-card-sub" id="hubSub-gaps">Closest battle</div>
+        <div class="mob-hub-badge" id="hubBadge-gaps" style="display:none"></div>
       </div>
-      <div class="mob-hub-card" onclick="mobOpenPage('wjh')">
+      <!-- Row 2: What Happened? | Race Incidents -->
+      <div class="mob-hub-card" id="hubCard-wjh" onclick="mobOpenPage('wjh')">
         <div class="mob-hub-icon" style="background:rgba(245,200,66,.12);color:#f5c842">⚡</div>
         <div class="mob-hub-card-title">What Happened?</div>
         <div class="mob-hub-card-sub">Last 5 minutes</div>
+        <div class="mob-hub-badge" id="hubBadge-wjh" style="display:none"></div>
       </div>
-      <div class="mob-hub-card" onclick="mobOpenPage('incidents')">
+      <div class="mob-hub-card" id="hubCard-incidents" onclick="mobOpenPage('incidents')">
         <div class="mob-hub-icon" style="background:rgba(60,110,220,.15);color:#5b8df5">🚩</div>
         <div class="mob-hub-card-title">Race Incidents</div>
         <div class="mob-hub-card-sub">Flags and penalties</div>
+        <div class="mob-hub-badge" id="hubBadge-incidents" style="display:none"></div>
       </div>
+      <!-- Row 3: Drivers | Championship -->
       <div class="mob-hub-card" onclick="mobOpenPage('drivers')">
         <div class="mob-hub-icon" style="background:rgba(160,80,220,.15);color:#b060e8">🪖</div>
         <div class="mob-hub-card-title">Drivers</div>
@@ -5143,70 +5164,47 @@
 
 <!-- ── MOBILE FULL-SCREEN PAGES ── -->
 
-<!-- Team Radio page -->
-<div class="mob-page" id="mob-page-radio">
+<!-- Race Pulse page -->
+<div class="mob-page" id="mob-page-pulse">
   <div class="mob-page-header">
-    <button class="mob-back-btn" onclick="mobClosePage('radio')">← Back</button>
-    <span class="mob-page-title">Team Radio</span>
-    <span class="mob-radio-live-pill" id="mobRadioLivePill">● LIVE</span>
+    <button class="mob-back-btn" onclick="mobClosePage('pulse')">← Back</button>
+    <span class="mob-page-title">Race Pulse</span>
+    <button id="pulseRefreshBtn" onclick="_loadRacePulse(true)" style="margin-left:auto;font-size:10px;color:#555;background:transparent;border:none;cursor:pointer;padding:0 4px;font-family:inherit">↻</button>
   </div>
-  <div class="mob-page-body" style="padding:0;overflow-y:auto">
-
-    <!-- Latest call hero -->
-    <div class="mob-radio-hero" id="mobRadioHero" onclick="_mobToggleHeroTrans()">
-      <div class="mob-radio-hero-top">
-        <span class="mob-radio-dot"></span>
-        <span class="mob-radio-hero-label" id="mobRadioHeroLabel">Latest call · Just now</span>
-      </div>
-      <div class="mob-radio-hero-quote" id="mobRadioHeroQuote">Listening for team radio…</div>
-      <div class="mob-radio-hero-footer" id="mobRadioHeroFooter" style="display:none">
-        <span class="mob-radio-hero-driver" id="mobRadioHeroDriver"></span>
-        <span class="mob-radio-tap-badge">Tap to translate ›</span>
-      </div>
+  <div class="mob-page-body" style="overflow-y:auto;padding:0 16px 24px">
+    <!-- Big status word -->
+    <div style="padding:28px 0 4px;text-align:center">
+      <div id="pulseStatusWord" style="font-size:42px;font-weight:900;letter-spacing:-.01em;line-height:1;color:#555">—</div>
+      <div id="pulseStatusSub" style="font-size:10px;font-weight:700;letter-spacing:.12em;color:#333;margin-top:6px;text-transform:uppercase">Race State</div>
     </div>
-
-    <!-- Hero translation panel (hidden until tapped) -->
-    <div class="mob-radio-trans" id="mobRadioHeroTrans" style="display:none">
-      <div class="mob-radio-section">
-        <div class="mob-radio-section-num" style="color:var(--red)">1</div>
-        <div>
-          <div class="mob-radio-section-lbl">What it means</div>
-          <div class="mob-radio-section-txt" id="mobRadioTransWhat">…</div>
-        </div>
-      </div>
-      <div class="mob-radio-section">
-        <div class="mob-radio-section-num" style="color:var(--yellow)">2</div>
-        <div>
-          <div class="mob-radio-section-lbl">Why it matters</div>
-          <div class="mob-radio-section-txt" id="mobRadioTransWhy">…</div>
-        </div>
-      </div>
-      <div class="mob-radio-section">
-        <div class="mob-radio-section-num" style="color:#22c55e">3</div>
-        <div>
-          <div class="mob-radio-section-lbl">What happens next</div>
-          <div class="mob-radio-section-txt" id="mobRadioTransNext">…</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Earlier calls -->
-    <div class="mob-section-label" style="margin-top:4px">Earlier calls this race</div>
-    <div id="mobRadioList" style="padding:0 16px"></div>
-
-    <!-- AI input -->
-    <div style="padding:12px 16px 20px">
-      <div style="font-size:10px;color:#555;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Ask about any radio call</div>
-      <div id="mobRadioAiResp" style="display:none;margin-bottom:10px;background:#111;border-left:3px solid var(--red);border-radius:6px;padding:10px 12px;font-size:13px;color:#f0ede8;line-height:1.6"></div>
+    <!-- AI one-liner -->
+    <div id="pulseExplain" style="margin:20px 0;font-size:15px;color:#d4d0ca;line-height:1.6;text-align:center;min-height:40px;font-style:italic">Tap ↻ to analyse current race state</div>
+    <!-- Recent lap summary -->
+    <div style="font-size:10px;font-weight:700;color:#333;letter-spacing:.08em;margin-bottom:8px">RECENT INCIDENTS</div>
+    <div id="pulseRecent" style="display:flex;flex-direction:column;gap:6px"></div>
+    <!-- Ask input -->
+    <div style="margin-top:20px">
       <div class="mob-input-row">
-        <input class="mob-chat-input" id="mobRadioInput"
-          placeholder="Why did they say that?"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();_mobRadioAsk();}"
-          autocomplete="off">
-        <button class="mob-ask-btn" id="mobRadioAskBtn" onclick="_mobRadioAsk()">Ask</button>
+        <input class="mob-chat-input" id="pulseAskInput" placeholder="Ask about the race pace…"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();_pulseAsk();}" autocomplete="off">
+        <button class="mob-ask-btn" onclick="_pulseAsk()">Ask</button>
       </div>
+      <div id="pulseAskResp" style="display:none;margin-top:10px;background:#111;border-left:3px solid #e10600;border-radius:6px;padding:10px 12px;font-size:13px;color:#f0ede8;line-height:1.6"></div>
     </div>
+  </div>
+</div>
 
+<!-- Gap Tracker page -->
+<div class="mob-page" id="mob-page-gaps">
+  <div class="mob-page-header">
+    <button class="mob-back-btn" onclick="mobClosePage('gaps')">← Back</button>
+    <span class="mob-page-title">Gap Tracker</span>
+  </div>
+  <div class="mob-page-body" style="overflow-y:auto;padding:0">
+    <!-- AI battle analysis -->
+    <div id="gapsAiText" style="padding:14px 16px;font-size:14px;color:#d4d0ca;line-height:1.6;border-bottom:1px solid #111;font-style:italic;min-height:44px"></div>
+    <!-- Gap list -->
+    <div id="gapsList" style="padding:10px 14px;display:flex;flex-direction:column;gap:4px"></div>
   </div>
 </div>
 
@@ -7520,8 +7518,13 @@ function applyState(data) {
     }
   }
 
-  // ── Flag banner ─────────────────────────────────
+  // ── Flag banner + card badges ────────────────────
   _applyFlag(data.status, data.status_message);
+  _updateRacePulseCard();
+  _updateGapCard();
+  // WJH badge: mark UPDATED when lap advances
+  if (data.lap && data.lap !== _mobWjhLastLap) _setHubBadge('wjh', 'UPDATED', '#4caf50');
+  else _setHubBadge('wjh', null);
 
   // ── Standings ───────────────────────────────────
   const isAnyLiveSession = data.is_live && data.drivers && data.drivers.length;
@@ -7588,30 +7591,39 @@ function applyState(data) {
   _mobOnDataUpdate();
 }
 
+var _incFlashTimer = null;
 function _applyFlag(status, message) {
-  const banner = document.getElementById('incidentBanner');
-  const inner  = document.getElementById('bannerInner');
-  const pill   = document.getElementById('bannerPill');
-  const textEl = document.getElementById('bannerText');
+  // Always hide the old full-screen banner — incidents surface via card badges only
+  var banner = document.getElementById('incidentBanner');
+  if (banner) banner.classList.remove('visible');
 
-  const MAP = {
-    yellow:        { cls: 'yellow',   label: 'YELLOW FLAG' },
-    double_yellow: { cls: 'yellow',   label: 'DOUBLE YELLOW' },
-    sc:            { cls: 'sc',       label: 'SAFETY CAR' },
-    vsc:           { cls: 'sc',       label: 'VIRTUAL SC' },
-    red:           { cls: 'red-flag', label: 'RED FLAG' },
+  var card = document.getElementById('hubCard-incidents');
+
+  var FLAG_MAP = {
+    yellow:        { badge: 'YELLOW',     bg: '#c8a000', border: '#f5a623' },
+    double_yellow: { badge: 'DBL YELLOW', bg: '#c8a000', border: '#f5a623' },
+    sc:            { badge: 'SC DEPLOYED',bg: '#e10600', border: '#e10600' },
+    vsc:           { badge: 'VIRTUAL SC', bg: '#e10600', border: '#e10600' },
+    red:           { badge: 'RED FLAG',   bg: '#e10600', border: '#e10600' },
   };
 
-  const cfg = MAP[status];
+  var cfg = FLAG_MAP[status];
   if (!cfg) {
-    banner.classList.remove('visible');
+    _setHubBadge('incidents', null);
+    if (card) card.style.boxShadow = '';
     return;
   }
 
-  inner.className    = `banner-inner ${cfg.cls}`;
-  pill.textContent   = cfg.label;
-  textEl.textContent = message || cfg.label;
-  banner.classList.add('visible');
+  _setHubBadge('incidents', cfg.badge, cfg.bg);
+
+  // Flash red border for 5 seconds on SC/red flag
+  if (status === 'sc' || status === 'vsc' || status === 'red') {
+    if (card) card.style.boxShadow = '0 0 0 2px ' + cfg.border;
+    if (_incFlashTimer) clearTimeout(_incFlashTimer);
+    _incFlashTimer = setTimeout(function() {
+      if (card) card.style.boxShadow = '';
+    }, 5000);
+  }
 }
 
 /* ──────────────────────────────────────────────────
@@ -12190,14 +12202,14 @@ function mobOpenPage(name) {
   const page = document.getElementById(`mob-page-${name}`);
   if (page) {
     page.classList.add('open');
-    // Sync data into the page when opened
-    if (name === 'radio')        _mobSyncRadio();
     if (name === 'leaders')      _mobSyncStandings();
     if (name === 'incidents')    _mobSyncIncidents();
     if (name === 'drivers')      _mobSyncDrivers();
     if (name === 'championship') _mobSyncChampionship();
     if (name === 'news')         loadTrendingData();
     if (name === 'wjh')          _loadMobWjh();
+    if (name === 'pulse')        _loadRacePulse();
+    if (name === 'gaps')         _openGapTracker();
   }
 }
 
@@ -12235,30 +12247,238 @@ function _mobUpdateStrip() {
   if (cd) cd.style.display = isLive ? 'none' : 'flex';
 }
 
-// ── Sync radio page ──────────────────────────────
-function _mobSyncRadio() {
-  renderMobRadio(liveData.radio);
+// ── Hub card badge system ──────────────────────────
+function _setHubBadge(id, text, bg) {
+  var el = document.getElementById('hubBadge-' + id);
+  if (!el) return;
+  if (text) {
+    el.textContent = text;
+    el.style.background = bg || '#e10600';
+    el.style.display = 'inline-block';
+  } else {
+    el.style.display = 'none';
+  }
 }
 
-let _mobHeroTransOpen = false;
+// ── Race Pulse ────────────────────────────────────
+var _racePulseLastLap = -99;
+var _racePulseBusy = false;
 
-function _mobToggleHeroTrans() {
-  _mobHeroTransOpen = !_mobHeroTransOpen;
-  const el = document.getElementById('mobRadioHeroTrans');
-  if (el) el.style.display = _mobHeroTransOpen ? 'flex' : 'none';
+var _PULSE_CFG = {
+  PROCESSIONAL: { color: '#555',    bg: '#e10600' },
+  BUILDING:     { color: '#f5a623', bg: '#f5a623' },
+  TENSE:        { color: '#ff6600', bg: '#ff6600' },
+  CHAOS:        { color: '#e10600', bg: '#e10600' },
+};
+
+function _calcRacePulse() {
+  var status    = (liveData && liveData.status) || 'none';
+  var incidents = (liveData && liveData.incidents) || [];
+  var drivers   = (liveData && liveData.drivers)   || [];
+  var curLap    = (liveData && liveData.lap)        || 0;
+
+  var recentInc = incidents.filter(function(i) { return Math.abs((i.lap || 0) - curLap) <= 5; });
+  var battles1s = 0, battles2s = 0;
+  for (var i = 0; i < drivers.length - 1; i++) {
+    var g = _parseGapSec(drivers[i + 1] && drivers[i + 1].gap);
+    if (g !== null) { if (g < 1.0) battles1s++; if (g < 2.0) battles2s++; }
+  }
+
+  if (status === 'sc' || status === 'vsc' || status === 'red' || recentInc.length >= 3) return 'CHAOS';
+  if (recentInc.length >= 2 || battles1s >= 2) return 'TENSE';
+  if (battles2s >= 2 || recentInc.length >= 1) return 'BUILDING';
+  return 'PROCESSIONAL';
 }
 
-async function _mobRadioAsk() {
-  const input = document.getElementById('mobRadioInput');
-  const resp  = document.getElementById('mobRadioAiResp');
-  const btn   = document.getElementById('mobRadioAskBtn');
-  if (!input) return;
-  const q = input.value.trim();
-  if (!q) return;
+function _updateRacePulseCard() {
+  var pulse = _calcRacePulse();
+  var cfg   = _PULSE_CFG[pulse] || _PULSE_CFG.PROCESSIONAL;
+  var sub   = document.getElementById('hubSub-pulse');
+  if (sub) { sub.textContent = pulse; sub.style.color = cfg.color; }
+  _setHubBadge('pulse', pulse, cfg.bg);
+}
+
+async function _loadRacePulse(force) {
+  var lap = (liveData && liveData.lap) || 0;
+  if (!force && Math.abs(lap - _racePulseLastLap) < 5) {
+    _renderRacePulseStatic();
+    return;
+  }
+  if (_racePulseBusy) { _renderRacePulseStatic(); return; }
+  _racePulseBusy = true;
+  var btn = document.getElementById('pulseRefreshBtn');
+  if (btn) { btn.textContent = '…'; btn.disabled = true; }
+
+  _renderRacePulseStatic();
+
+  var pulse     = _calcRacePulse();
+  var incidents = (liveData && liveData.incidents) || [];
+  var curLap    = (liveData && liveData.lap) || '?';
+  var session   = (liveData && liveData.session_name) || 'race';
+  var drivers   = (liveData && liveData.drivers) || [];
+  var top5      = drivers.slice(0, 5).map(function(d) { return 'P' + d.pos + ' ' + (d.code || ''); }).join(', ');
+
+  var prompt = 'Race: ' + session + ' Lap ' + curLap + '. Pulse status: ' + pulse + '. Top 5: ' + top5 + '.'
+    + ' In exactly ONE sentence (max 20 words), explain why the race feels ' + pulse.toLowerCase() + ' right now.';
+
+  try {
+    var res = await fetch(BACKEND + '/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'You are an F1 commentator. Reply with exactly one punchy sentence, no quotes, no disclaimer.',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 80,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+    var data = await res.json();
+    var explain = document.getElementById('pulseExplain');
+    if (explain) explain.textContent = data.reply || '';
+    _racePulseLastLap = lap;
+  } catch(e) { /* silent — static render still shows */ }
+  finally {
+    _racePulseBusy = false;
+    if (btn) { btn.textContent = '↻'; btn.disabled = false; }
+  }
+}
+
+function _renderRacePulseStatic() {
+  var pulse   = _calcRacePulse();
+  var cfg     = _PULSE_CFG[pulse] || _PULSE_CFG.PROCESSIONAL;
+  var word    = document.getElementById('pulseStatusWord');
+  var sub     = document.getElementById('pulseStatusSub');
+  var recent  = document.getElementById('pulseRecent');
+  if (word) { word.textContent = pulse; word.style.color = cfg.color; }
+  if (sub)  sub.textContent = { PROCESSIONAL:'Steady pace, no action', BUILDING:'Battles developing', TENSE:'Fights on every lap', CHAOS:'Safety car territory' }[pulse] || '';
+  if (recent) {
+    var incidents = (liveData && liveData.incidents) || [];
+    var curLap    = (liveData && liveData.lap) || 0;
+    var shown     = incidents.filter(function(i) { return Math.abs((i.lap||0) - curLap) <= 5; }).slice(0, 4);
+    recent.innerHTML = shown.length
+      ? shown.map(function(i) {
+          return '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:8px 12px;font-size:12px;color:#d4d0ca">'
+            + '<span style="color:#e10600;font-weight:700;margin-right:8px">LAP ' + (i.lap||'?') + '</span>' + escapeHtml(i.msg||'') + '</div>';
+        }).join('')
+      : '<div style="color:#444;font-size:12px">No incidents in last 5 laps</div>';
+  }
+}
+
+async function _pulseAsk() {
+  var input = document.getElementById('pulseAskInput');
+  var resp  = document.getElementById('pulseAskResp');
+  if (!input || !input.value.trim()) return;
+  var q = input.value.trim();
   input.value = '';
   if (resp) { resp.style.display = 'block'; resp.textContent = 'Thinking…'; }
-  if (btn)  { btn.disabled = true; btn.textContent = '…'; }
-  const sys = 'You are an F1 expert explaining team radio to a casual fan. Answer in 2-3 sentences, plain English.\n\n' + getStyleInstruction();
+  try {
+    _countNextStream = true;
+    var res = await fetch(BACKEND + '/api/chat-stream', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: buildSystem('default'), messages: [{ role:'user', content: q }] }),
+      signal: AbortSignal.timeout(20000),
+    });
+    var reply = await _readTokenStream(res, function(txt) { if (resp) resp.innerHTML = _renderBold(txt); });
+    var parsed = parseFollowups(reply || '');
+    if (resp) resp.innerHTML = _renderBold(parsed.text || reply);
+  } catch(e) { if (resp) resp.textContent = '⚠ Could not reach AI.'; }
+}
+
+// ── Gap Tracker ───────────────────────────────────
+var _gapAiBusy = false;
+
+function _calcAllGaps() {
+  var drivers = (liveData && liveData.drivers) || [];
+  var out = [];
+  for (var i = 0; i < drivers.length - 1; i++) {
+    var a = drivers[i], b = drivers[i + 1];
+    out.push({ ahead: a, behind: b, gapSec: _parseGapSec(b && b.gap) });
+  }
+  return out;
+}
+
+function _updateGapCard() {
+  var gaps = _calcAllGaps();
+  var closest = null;
+  gaps.forEach(function(g) {
+    if (g.gapSec !== null && (closest === null || g.gapSec < closest.gapSec)) closest = g;
+  });
+  var sub = document.getElementById('hubSub-gaps');
+  if (closest && closest.gapSec !== null) {
+    var txt = (closest.behind.code || '?') + ' → ' + (closest.ahead.code || '?') + ' · ' + closest.gapSec.toFixed(1) + 's';
+    if (sub) sub.textContent = txt;
+    if (closest.gapSec < 1.0) {
+      _setHubBadge('gaps', 'BATTLE', '#f5a623');
+    } else {
+      _setHubBadge('gaps', null);
+    }
+  } else {
+    if (sub) sub.textContent = 'Closest battle';
+    _setHubBadge('gaps', null);
+  }
+}
+
+async function _openGapTracker() {
+  var gaps   = _calcAllGaps();
+  var listEl = document.getElementById('gapsList');
+  var aiEl   = document.getElementById('gapsAiText');
+  if (!listEl) return;
+
+  // Render gap list immediately
+  if (!gaps.length) {
+    listEl.innerHTML = '<div style="color:#444;font-size:13px;padding:8px 0">No gap data available</div>';
+  } else {
+    listEl.innerHTML = gaps.map(function(g) {
+      var sec = g.gapSec;
+      var color = sec === null ? '#444' : sec < 1.0 ? '#e10600' : sec < 2.0 ? '#f5a623' : '#555';
+      var badge = sec !== null && sec < 1.0 ? ' <span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;background:#e10600;color:#fff;margin-left:4px">BATTLE</span>' : '';
+      return '<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #111">'
+        + '<span style="font-size:11px;font-weight:700;color:#7090ff;width:26px;flex-shrink:0">P' + g.ahead.pos + '</span>'
+        + '<span style="font-size:13px;font-weight:700;color:#f0ede8;flex:1">' + escapeHtml(g.ahead.code || '') + '</span>'
+        + '<span style="font-size:11px;color:#666">' + escapeHtml(g.ahead.tyre || '?') + '</span>'
+        + '<span style="font-size:11px;color:' + color + ';font-weight:700;margin-left:10px;min-width:48px;text-align:right">'
+        + (sec !== null ? '+' + sec.toFixed(1) + 's' : '—') + badge + '</span>'
+        + '</div>'
+        + '<div style="display:flex;align-items:center;padding:4px 0 8px;border-bottom:1px solid #1a1a1a">'
+        + '<span style="font-size:11px;font-weight:700;color:#7090ff;width:26px;flex-shrink:0">P' + g.behind.pos + '</span>'
+        + '<span style="font-size:13px;color:#888;flex:1">' + escapeHtml(g.behind.code || '') + '</span>'
+        + '<span style="font-size:11px;color:#666">' + escapeHtml(g.behind.tyre || '?') + '</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  if (aiEl) aiEl.textContent = 'Analysing battles…';
+  if (_gapAiBusy) return;
+  _gapAiBusy = true;
+
+  // Find closest battle for AI
+  var closest = null;
+  gaps.forEach(function(g) { if (g.gapSec !== null && (closest === null || g.gapSec < closest.gapSec)) closest = g; });
+  if (!closest) { if (aiEl) aiEl.textContent = ''; _gapAiBusy = false; return; }
+
+  var prompt = 'In the ' + ((liveData && liveData.session_name) || 'race') + ', the closest battle is '
+    + (closest.behind.code || '?') + ' (P' + closest.behind.pos + ', ' + (closest.behind.tyre || '?') + ') '
+    + 'chasing ' + (closest.ahead.code || '?') + ' (P' + closest.ahead.pos + ', ' + (closest.ahead.tyre || '?') + ') '
+    + 'with a gap of ' + (closest.gapSec !== null ? closest.gapSec.toFixed(1) + 's' : '?') + '.'
+    + ' In one sentence, explain whether an overtake is likely and why.';
+  try {
+    var res = await fetch(BACKEND + '/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'You are an F1 analyst. Reply with exactly one sentence, confident and specific.',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 80,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+    var data = await res.json();
+    if (aiEl) aiEl.textContent = data.reply || '';
+  } catch(e) { if (aiEl) aiEl.textContent = ''; }
+  finally { _gapAiBusy = false; }
+}
+
+// Temporary stubs so old calls don't throw (radio page removed)
+function _mobToggleHeroTrans() {}
+async function _mobRadioAsk() {}
   try {
     _countNextStream = true;
     const res = await fetch(`${BACKEND}/api/chat-stream`, {
