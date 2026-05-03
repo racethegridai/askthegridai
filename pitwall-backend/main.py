@@ -284,12 +284,18 @@ async def _of1(client: httpx.AsyncClient, path: str, params: dict | None = None)
                 log.debug("OpenF1 %s — in backoff, returning cached (%d records)", path, len(cached_data))
                 return cached_data
 
+        of1_key = os.getenv("OPENF1_API_KEY", "")
+        headers = {"Authorization": f"Bearer {of1_key}"} if of1_key else {}
         try:
             r = await client.get(
                 f"{OPENF1}{path}",
                 params=params or {},
+                headers=headers,
                 timeout=OPENF1_TIMEOUT,
             )
+            if r.status_code == 401:
+                log.warning("OpenF1 %s 401 — API key required during live session. Set OPENF1_API_KEY env var.", path)
+                return _cache.get(key, {}).get("data", [])
             if r.status_code == 429:
                 new_delay = min(_backoff[path][1] * 2, BACKOFF_MAX) if path in _backoff else BACKOFF_BASE
                 _backoff[path] = (now_mono + new_delay, new_delay)
