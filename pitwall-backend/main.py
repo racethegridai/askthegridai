@@ -84,6 +84,48 @@ BACKOFF_MAX  = 120.0          # cap backoff at 2 minutes
 
 # Demo mode removed April 2026
 
+# ── OpenF1 auth token (auto-refreshes) ───────────────
+_of1_token: str = os.getenv("OPENF1_API_KEY", "")  # static key takes priority
+_of1_token_expires: float = 0.0                      # monotonic time when token expires
+_of1_token_lock: asyncio.Lock | None = None          # initialised in _lifespan
+
+async def _get_of1_token() -> str:
+    """Return a valid OpenF1 bearer token, refreshing if needed."""
+    global _of1_token, _of1_token_expires
+    # Static API key set via env var — use as-is
+    static = os.getenv("OPENF1_API_KEY", "")
+    if static:
+        return static
+    username = os.getenv("OPENF1_USERNAME", "")
+    password = os.getenv("OPENF1_PASSWORD", "")
+    if not username or not password:
+        return ""
+    # Refresh if missing or expiring within 60 s
+    if _of1_token and time.monotonic() < (_of1_token_expires - 60):
+        return _of1_token
+    if _of1_token_lock is None:
+        return _of1_token
+    async with _of1_token_lock:
+        # Re-check inside lock
+        if _of1_token and time.monotonic() < (_of1_token_expires - 60):
+            return _of1_token
+        try:
+            async with httpx.AsyncClient(timeout=10) as cl:
+                r = await cl.post(
+                    "https://api.openf1.org/token",
+                    data={"username": username, "password": password},
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                )
+                r.raise_for_status()
+                d = r.json()
+                _of1_token = d.get("access_token", "")
+                expires_in = float(d.get("expires_in", 3600))
+                _of1_token_expires = time.monotonic() + expires_in
+                log.info("[OF1-AUTH] Token refreshed, expires in %.0fs", expires_in)
+        except Exception as exc:
+            log.warning("[OF1-AUTH] Token refresh failed: %s", exc)
+    return _of1_token
+
 # ── AI model constants ───────────────────────────────
 # User-facing chat uses Sonnet (set directly on each endpoint — do not change).
 HAIKU_MODEL = "claude-haiku-4-5"  # background summarization tasks only
@@ -284,8 +326,10 @@ async def _of1(client: httpx.AsyncClient, path: str, params: dict | None = None)
                 log.debug("OpenF1 %s — in backoff, returning cached (%d records)", path, len(cached_data))
                 return cached_data
 
-        of1_key = os.getenv("OPENF1_API_KEY", "")
-        headers = {"Authorization": f"Bearer {of1_key}"} if of1_key else {}
+        headers = {}
+        tok = await _get_of1_token()
+        if tok:
+            headers["Authorization"] = f"Bearer {tok}"
         try:
             r = await client.get(
                 f"{OPENF1}{path}",
@@ -1050,10 +1094,11 @@ async def _news_poller():
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
-    global _state, _log_lock, _WAITLIST_LOCK, _VISITS_LOCK
-    _log_lock      = asyncio.Lock()
-    _WAITLIST_LOCK = asyncio.Lock()
-    _VISITS_LOCK   = asyncio.Lock()
+    global _state, _log_lock, _WAITLIST_LOCK, _VISITS_LOCK, _of1_token_lock
+    _log_lock        = asyncio.Lock()
+    _WAITLIST_LOCK   = asyncio.Lock()
+    _VISITS_LOCK     = asyncio.Lock()
+    _of1_token_lock  = asyncio.Lock()
     _state = _blank_state()
     # Kick an immediate refresh so data is ready before first SSE client connects
     try:
