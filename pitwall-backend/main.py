@@ -1269,25 +1269,32 @@ When answering questions about current F1 news or events:
 
 
 _CRITICAL_CONTEXT = """CRITICAL CONTEXT — READ FIRST:
-Today's date is April 2026.
-The 2026 F1 season is currently underway with 4 races completed.
+Today's date is May 2026. The 2026 F1 season is underway with 5 races completed including Miami.
 This is NOT 2024 or 2025.
 
-Lewis Hamilton is NOW at Ferrari.
-He LEFT Mercedes after 2024.
-He signed with Ferrari for 2026.
-This already happened.
-
+Lewis Hamilton is NOW at Ferrari. He LEFT Mercedes after 2024. He signed with Ferrari for 2026. This already happened.
 Kimi Antonelli replaced Hamilton at Mercedes for 2026 and is currently leading the championship.
-
-When anyone asks about Hamilton at Ferrari treat this as current fact not future speculation.
-When anyone asks about Antonelli at Mercedes treat this as current fact not future speculation.
-
-Never say 'Hamilton might move to Ferrari' or 'if Hamilton joins Ferrari'.
-He is already there. It already happened.
-
+Never say 'Hamilton might move to Ferrari' — he is already there.
 Never reference 2024 season results as the most recent season.
-The most recent completed races are from the 2026 season."""
+
+MIAMI GP 2026 — RACE RESULT (completed today, 57 laps):
+P1 Kimi Antonelli (Mercedes) — dominant win
+P2 Lando Norris (McLaren)
+P3 Oscar Piastri (McLaren)
+P4 George Russell (Mercedes)
+P5 Max Verstappen (Red Bull) — finished despite ongoing engine reliability issues
+
+DNFs / DID NOT FINISH:
+- Pierre Gasly (Alpine) — dramatic crash, flipped car
+- Isack Hadjar (RB) — crashed out
+- Additional retirements occurred earlier in the race
+
+KEY FACTS:
+- Race ran full 57-lap distance with no late safety car chaos
+- Antonelli dominant from front, McLaren 2-3 strong afternoon
+- Verstappen salvaged P5 despite Red Bull's engine struggles
+- Gasly's flip was the headline incident of the race
+- When asked about DNFs or who crashed, always state Gasly and Hadjar as confirmed DNFs without saying you lack data"""
 
 
 class ChatRequest(BaseModel):
