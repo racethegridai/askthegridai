@@ -12449,33 +12449,9 @@ async function _openGapTracker() {
   finally { _gapAiBusy = false; }
 }
 
-// Temporary stubs so old calls don't throw (radio page removed)
+// Stubs so any residual onclick references don't throw
 function _mobToggleHeroTrans() {}
-async function _mobRadioAsk() {}
-  try {
-    _countNextStream = true;
-    const res = await fetch(`${BACKEND}/api/chat-stream`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ system: sys, messages: [{ role: 'user', content: q }] }),
-      signal: AbortSignal.timeout(20000),
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const reply = await _readTokenStream(res, txt => {
-      if (resp) resp.innerHTML = _renderBold(txt);
-    });
-    const parsed = parseFollowups(reply || '');
-    if (resp) { resp.innerHTML = _renderBold(parsed.text || reply); }
-    renderFollowups(parsed.followups, resp, function(fq) {
-      document.getElementById('mobRadioInput').value = fq;
-      _mobRadioAsk();
-    });
-  } catch(e) {
-    if (resp) resp.textContent = '⚠ Could not reach AI. Try again.';
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Ask'; }
-  }
-}
+function _mobRadioAsk() {}
 
 function renderMobRadio(radio) {
   const heroEl    = document.getElementById('mobRadioHero');
