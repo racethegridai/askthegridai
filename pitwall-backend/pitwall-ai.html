@@ -12298,7 +12298,7 @@ function _incCardHtml(inc, isNew) {
   var lap     = inc.lap || '';
   var cfg     = _INC_FLAG(msg);
   var safeMsg = escapeHtml(msg);
-  var safeQ   = JSON.stringify(msg);
+  var safeQ   = JSON.stringify(msg).replace(/"/g, '&quot;');
   return '<div class="' + (isNew ? 'inc-card-new' : '') + '" ' +
     'style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:12px 14px;flex-shrink:0">' +
     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
