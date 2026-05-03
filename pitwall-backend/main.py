@@ -1298,11 +1298,12 @@ KEY FACTS:
 
 
 class ChatRequest(BaseModel):
-    system:   str
-    messages: list[dict]
-    driver:   str | None = None   # set when user is on a driver profile page
-    model:    str | None = None   # 'haiku' → force Haiku; None → auto-route
-    context:  str | None = None   # semantic context for model routing
+    system:     str
+    messages:   list[dict]
+    driver:     str | None = None   # set when user is on a driver profile page
+    model:      str | None = None   # 'haiku' → force Haiku; None → auto-route
+    context:    str | None = None   # semantic context for model routing
+    max_tokens: int | None = None   # optional override (WJH needs ~700)
 
 
 _HAIKU_CONTEXTS = {
@@ -1560,7 +1561,8 @@ async def chat(req: ChatRequest, request: Request):
 
     _chat_model = _select_model(req)
     # Shorter questions need fewer tokens — cap at 300 for speed, 400 globally
-    _max_tok = 300 if len(last_user_msg) < 60 else 400
+    # Callers may pass max_tokens to override (e.g. WJH needs ~700 for large JSON)
+    _max_tok = req.max_tokens if req.max_tokens else (300 if len(last_user_msg) < 60 else 400)
 
     async def _call_anthropic() -> str:
         response = await client.messages.create(

@@ -10927,6 +10927,7 @@ function wjhClick() {
 let _mobWjhBusy      = false;
 let _mobWjhLastLap   = -1;
 let _mobWjhHistory   = [];
+var _wjhShareTexts   = {};
 
 function _first(str) {
   if (!str) return '';
@@ -10943,36 +10944,48 @@ async function _loadMobWjh(force) {
 
   var cards = document.getElementById('mobWjhCards');
   var btn   = document.getElementById('wjhRefreshBtn');
-  if (cards) cards.innerHTML = '<div style="text-align:center;padding:32px 0;color:#555;font-size:13px">Analysing the last 5 minutes…</div>';
+  if (cards) cards.innerHTML = '<div style="text-align:center;padding:32px 0;color:#555;font-size:13px">Analysing the race…</div>';
   if (btn)   { btn.textContent = '…'; btn.disabled = true; }
 
-  var drivers   = (liveData && liveData.drivers)   || [];
-  var incidents = (liveData && liveData.incidents)  || [];
-  var curLap    = (liveData && liveData.lap)        || '?';
-  var session   = (liveData && liveData.session_name) || 'race';
-  var top5 = drivers.slice(0, 5).map(function(d) {
-    return 'P' + d.pos + ' ' + (d.code || '') + ' +' + (d.gap || '0') + ' tyre:' + (d.tyre || '?');
+  var drivers    = (liveData && liveData.drivers)      || [];
+  var incidents  = (liveData && liveData.incidents)    || [];
+  var curLap     = (liveData && liveData.lap)          || '?';
+  var totalLaps  = (liveData && liveData.total_laps)   || '?';
+  var session    = (liveData && liveData.session_name) || 'race';
+
+  var top10 = drivers.slice(0, 10).map(function(d) {
+    return 'P' + d.pos + ' ' + (d.code || '') + ' gap:' + (d.gap || '0') + ' tyre:' + (d.tyre || '?') + ' ' + (d.stintLap || 0) + 'L';
   }).join(', ');
   var incStr = incidents.slice(0, 4).map(function(i) { return 'Lap ' + i.lap + ': ' + i.msg; }).join(' | ');
 
-  var prompt = 'Race: ' + session + ' Lap ' + curLap + '. Top 5: ' + top5 + (incStr ? '. Recent: ' + incStr : '') + '.' +
-    ' Return ONLY a JSON object with these exact keys:' +
-    ' leader (1 short sentence on P1 situation),' +
-    ' positions (array of max 3 short strings about position battles or changes),' +
-    ' incidents (array of max 2 short strings about incidents/issues),' +
-    ' tyres (1 short sentence on tyre situation),' +
-    ' next_watch (1 short sentence on what to watch next).' +
-    ' No extra text. Just the JSON.';
+  var prompt = 'Race: ' + session + ' Lap ' + curLap + '/' + totalLaps + '. ' +
+    'Positions: ' + (top10 || 'no data') + '. ' +
+    (incStr ? 'Incidents: ' + incStr + '. ' : '') +
+    'Return ONLY a valid JSON object with EXACTLY these keys — no markdown, no extra text: ' +
+    '"voice" (one bold newspaper-headline sentence for the whole race story, max 15 words), ' +
+    '"leader" (1 sentence on race leader situation), ' +
+    '"leader_deep" (2 sentences: championship significance of this result), ' +
+    '"positions" (array of max 3 short strings about battles or position changes), ' +
+    '"positions_deep" (2 sentences: who gained most today, who had worst race), ' +
+    '"incidents" (array of max 2 short factual incident strings), ' +
+    '"incident_emotion" (array same length as incidents — 1 emotional context sentence per incident), ' +
+    '"tyres" (1 sentence on overall tyre situation), ' +
+    '"tyres_deep" (2 sentences: who has best tyre life, strategy implications), ' +
+    '"best_moment" (1 sentence on most dramatic specific moment of last 5 laps, include lap number), ' +
+    '"championship_impact" (array of 3 strings with ▲ or ▼ prefix on standings changes today), ' +
+    '"next_watch" (1 sentence what to watch). ' +
+    'JSON only. No text before or after.';
 
   try {
     var res = await fetch(BACKEND + '/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        system: 'You are an F1 race analyst. Return only valid JSON, no markdown.',
+        system: 'You are an F1 race analyst. Return ONLY valid JSON, no markdown, no code fences.',
         messages: [{ role: 'user', content: prompt }],
+        max_tokens: 750,
       }),
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(30000),
     });
     var data = await res.json();
     var raw  = (data.reply || '').replace(/```json|```/g, '').trim();
@@ -10990,43 +11003,180 @@ async function _loadMobWjh(force) {
 function _renderWjhCards(d, lap) {
   var cards = document.getElementById('mobWjhCards');
   if (!cards) return;
-  var ts = lap ? '<span style="font-size:9px;color:#444;margin-left:auto">Lap ' + lap + '</span>' : '';
-  var posHtml = (Array.isArray(d.positions) ? d.positions.slice(0,3) : []).map(function(p) {
-    var up = String(p).match(/pass|overtake|up|gained/i) ? '▲' : '▼';
-    var col = up === '▲' ? '#4caf50' : '#e10600';
-    return '<div style="padding:5px 0;border-bottom:1px solid #1a1a1a;font-size:13px;color:#e0ddd8">' +
-      '<span style="color:' + col + ';margin-right:6px;font-size:11px">' + up + '</span>' + escapeHtml(_first(p)) + '</div>';
-  }).join('');
-  var incHtml = (Array.isArray(d.incidents) ? d.incidents.slice(0,2) : []).map(function(i) {
-    return '<div style="padding:4px 0;font-size:13px;color:#f5a623">' + escapeHtml(_first(i)) + '</div>';
+  var drivers = (liveData && liveData.drivers) || [];
+
+  // ── Share text registry (avoids escaping issues in onclick) ──
+  var session = (liveData && liveData.session_name) || 'Miami 2026';
+  _wjhShareTexts = {
+    leader:    'P1 at ' + session + ' — I followed every lap with @askthegridai 🏁 askthegridai.com',
+    positions: 'Tracking every position battle at ' + session + ' with @askthegridai 🏎 askthegridai.com',
+    incidents: 'Drama at ' + session + ' — following live with @askthegridai 🚨 askthegridai.com',
+    tyres:     'Tyre strategies unfolding at ' + session + ' — live with @askthegridai 🔴 askthegridai.com',
+    champ:     session + ' shakes up the championship — see the full standings at @askthegridai 🏆 askthegridai.com',
+    best:      d.best_moment ? 'Best moment of ' + session + ': ' + String(d.best_moment).substring(0, 90) + ' — @askthegridai askthegridai.com' : '',
+  };
+
+  // ── Inner helpers ────────────────────────────────────────────
+  function shareBtn(key) {
+    return '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #1a1a1a">'
+      + '<button onclick="_wjhShare(\'' + key + '\')" style="font-size:10px;padding:4px 10px;border-radius:12px;background:transparent;border:1px solid #2a2a2a;color:#555;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent">Share this ↗</button>'
+      + '</div>';
+  }
+
+  function expandCard(id, labelHtml, collapsed, expanded, shareKey) {
+    return '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:12px 14px;margin-bottom:10px">'
+      + '<div onclick="_wjhToggle(\'' + id + '\')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:8px;-webkit-tap-highlight-color:transparent">'
+      +   labelHtml
+      +   '<span id="wjh-more-' + id + '" style="font-size:9px;color:#444;font-weight:600;flex-shrink:0;margin-left:8px">+ more</span>'
+      + '</div>'
+      + collapsed
+      + '<div id="wjh-expand-' + id + '" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #1a1a1a">'
+      + (expanded || '')
+      + '</div>'
+      + (shareKey ? shareBtn(shareKey) : '')
+      + '</div>';
+  }
+
+  // ── VOICE OF THE RACE ────────────────────────────────────────
+  var voiceHtml = d.voice
+    ? '<div style="font-size:16px;font-weight:900;color:#f0ede8;line-height:1.3;padding:10px 2px 12px;border-bottom:1px solid #1e1e1e;margin-bottom:12px;text-align:center">'
+      + escapeHtml(d.voice) + '</div>'
+    : '';
+
+  // ── AUTO-REFRESH INDICATOR ───────────────────────────────────
+  var tsHtml = '<div style="text-align:center;font-size:9px;color:#383838;letter-spacing:.06em;margin-bottom:14px">'
+    + (lap ? 'UPDATED LAP ' + lap : 'UPDATED') + ' &nbsp;·&nbsp; REFRESHES EVERY 3 LAPS</div>';
+
+  // ── LEADER card ──────────────────────────────────────────────
+  var leaderLabel = '<span style="font-size:10px;font-weight:700;color:#e10600;letter-spacing:.08em">🏁 LEADER</span>';
+  var leaderBody  = '<div style="font-size:15px;font-weight:700;color:#f0ede8;line-height:1.3">' + escapeHtml(_first(d.leader || '—')) + '</div>';
+  var leaderDeep  = d.leader_deep ? '<div style="font-size:13px;color:#d4d0ca;line-height:1.6">' + escapeHtml(d.leader_deep) + '</div>' : '';
+  var leaderCard  = expandCard('leader', leaderLabel, leaderBody, leaderDeep, 'leader');
+
+  // ── POSITIONS card — tappable driver rows ────────────────────
+  var drvRows = drivers.slice(0, 8).map(function(dr) {
+    var code = (dr.code || '').replace(/[^A-Z0-9]/g, '');
+    var gapTxt = (dr.gap && dr.gap !== '0') ? '+' + dr.gap : 'LEAD';
+    return '<div onclick="_wjhDrvToggle(\'' + code + '\')" style="display:flex;align-items:center;padding:7px 0;border-bottom:1px solid #141414;cursor:pointer;-webkit-tap-highlight-color:transparent">'
+      + '<span style="font-size:11px;font-weight:700;color:#7090ff;width:26px;flex-shrink:0">P' + dr.pos + '</span>'
+      + '<span style="font-size:13px;font-weight:700;color:#f0ede8;flex:1">' + escapeHtml(dr.code || '') + '</span>'
+      + '<span style="font-size:11px;color:#888">' + escapeHtml(dr.tyre || '?') + '</span>'
+      + '<span style="font-size:11px;color:#555;margin-left:8px">' + escapeHtml(gapTxt) + '</span>'
+      + '<span style="font-size:13px;color:#2a2a2a;margin-left:6px">›</span>'
+      + '</div>'
+      + '<div id="wjh-dri-' + code + '" style="display:none;padding:8px 4px 6px;border-bottom:1px solid #141414">'
+      + '<button onclick="(function(){var i=document.getElementById(\'mobChatInput\');if(i){i.value=\'How did ' + escapeHtml(dr.code || '') + ' race at Miami today?\';mobClosePage(\'wjh\');setTimeout(mobSendMsg,80);}})();" '
+      + 'style="font-size:10px;padding:4px 12px;border-radius:12px;background:transparent;border:1px solid #333;color:#7090ff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent">Ask more about ' + escapeHtml(dr.code || '') + ' →</button>'
+      + '</div>';
   }).join('');
 
-  cards.innerHTML =
-    // LEADER card
-    '<div style="background:#0f0f0f;border-top:2px solid #e10600;border:1px solid #1e1e1e;border-radius:10px;padding:12px 14px;margin-bottom:10px">' +
-      '<div style="display:flex;align-items:center;margin-bottom:6px">' +
-        '<span style="font-size:10px;font-weight:700;color:#e10600;letter-spacing:.08em">🏁 LEADER</span>' + ts +
-      '</div>' +
-      '<div style="font-size:15px;font-weight:700;color:#f0ede8;line-height:1.3">' + escapeHtml(_first(d.leader || '—')) + '</div>' +
-    '</div>' +
-    // POSITIONS card
-    (posHtml ? '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:12px 14px;margin-bottom:10px">' +
-      '<div style="font-size:10px;font-weight:700;color:#7090ff;letter-spacing:.08em;margin-bottom:8px">📊 POSITIONS</div>' +
-      posHtml + '</div>' : '') +
-    // INCIDENTS card
-    (incHtml ? '<div style="background:#0f0f0f;border-left:3px solid #f5a623;border:1px solid #1e1e1e;border-left:3px solid #f5a623;border-radius:10px;padding:12px 14px;margin-bottom:10px">' +
-      '<div style="font-size:10px;font-weight:700;color:#f5a623;letter-spacing:.08em;margin-bottom:6px">⚠️ INCIDENTS</div>' +
-      incHtml + '</div>' : '') +
-    // TYRES card
-    (d.tyres ? '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:12px 14px;margin-bottom:10px">' +
-      '<div style="font-size:10px;font-weight:700;color:#888;letter-spacing:.08em;margin-bottom:6px">🔴 TYRES</div>' +
-      '<div style="font-size:13px;color:#d4d0ca">' + escapeHtml(_first(d.tyres)) + '</div>' +
-    '</div>' : '') +
-    // WATCH NEXT card
-    (d.next_watch ? '<div style="background:#1a0000;border:1px solid #3a0000;border-radius:10px;padding:14px;margin-bottom:10px">' +
-      '<div style="font-size:10px;font-weight:700;color:#e10600;letter-spacing:.08em;margin-bottom:6px">👀 WATCH NEXT</div>' +
-      '<div style="font-size:14px;font-weight:700;color:#f0ede8">' + escapeHtml(_first(d.next_watch)) + '</div>' +
-    '</div>' : '');
+  var posDeepHtml = '';
+  if (d.positions_deep) posDeepHtml += '<div style="font-size:13px;color:#d4d0ca;line-height:1.6;margin-bottom:8px">' + escapeHtml(d.positions_deep) + '</div>';
+  if (Array.isArray(d.positions)) {
+    posDeepHtml += d.positions.map(function(p) {
+      var up = /pass|overtake|\bup\b|gain|ahead|climb/i.test(String(p));
+      return '<div style="padding:4px 0;font-size:13px;color:' + (up ? '#4caf50' : '#d4d0ca') + '">'
+        + (up ? '▲ ' : '') + escapeHtml(_first(p)) + '</div>';
+    }).join('');
+  }
+  var posLabel = '<span style="font-size:10px;font-weight:700;color:#7090ff;letter-spacing:.08em">📊 POSITIONS</span>';
+  var posCard  = expandCard('positions', posLabel, drvRows || '<div style="color:#555;font-size:13px">No data</div>', posDeepHtml, 'positions');
+
+  // ── INCIDENTS card — with emotional context ──────────────────
+  var incArr = Array.isArray(d.incidents)        ? d.incidents.slice(0, 3) : [];
+  var emoArr = Array.isArray(d.incident_emotion) ? d.incident_emotion       : [];
+  var incBodyHtml = incArr.map(function(inc, i) {
+    var emo = emoArr[i] || '';
+    return '<div style="padding:6px 0;border-bottom:1px solid #1a1a1a">'
+      + '<div style="font-size:13px;color:#f5a623">' + escapeHtml(_first(inc)) + '</div>'
+      + (emo ? '<div style="font-size:12px;color:#888;margin-top:3px;font-style:italic">' + escapeHtml(emo) + '</div>' : '')
+      + '</div>';
+  }).join('');
+  var incCard = incBodyHtml
+    ? '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-left:3px solid #f5a623;border-radius:10px;padding:12px 14px;margin-bottom:10px">'
+      + '<div style="font-size:10px;font-weight:700;color:#f5a623;letter-spacing:.08em;margin-bottom:8px">⚠️ INCIDENTS</div>'
+      + incBodyHtml
+      + shareBtn('incidents')
+      + '</div>'
+    : '';
+
+  // ── TYRES card ───────────────────────────────────────────────
+  var tyreLabel = '<span style="font-size:10px;font-weight:700;color:#888;letter-spacing:.08em">🔴 TYRES</span>';
+  var tyreBody  = d.tyres ? '<div style="font-size:13px;color:#d4d0ca">' + escapeHtml(_first(d.tyres)) + '</div>' : '';
+  var tyreDeep  = d.tyres_deep ? '<div style="font-size:13px;color:#d4d0ca;line-height:1.6">' + escapeHtml(d.tyres_deep) + '</div>' : '';
+  var tyreCard  = tyreBody ? expandCard('tyres', tyreLabel, tyreBody, tyreDeep, 'tyres') : '';
+
+  // ── CHAMPIONSHIP IMPACT card ─────────────────────────────────
+  var champArr = Array.isArray(d.championship_impact) ? d.championship_impact : [];
+  var champBodyHtml = champArr.map(function(line) {
+    var isUp = String(line).indexOf('▲') !== -1;
+    return '<div style="padding:5px 0;border-bottom:1px solid #0a2a0a;font-size:13px;color:' + (isUp ? '#4caf50' : '#e10600') + '">'
+      + escapeHtml(String(line)) + '</div>';
+  }).join('');
+  var champCard = champBodyHtml
+    ? '<div style="background:#050f05;border:1px solid #1a3a1a;border-radius:10px;padding:12px 14px;margin-bottom:10px">'
+      + '<div style="font-size:10px;font-weight:700;color:#4caf50;letter-spacing:.08em;margin-bottom:8px">🏆 CHAMPIONSHIP IMPACT</div>'
+      + champBodyHtml
+      + shareBtn('champ')
+      + '</div>'
+    : '';
+
+  // ── BEST MOMENT card ─────────────────────────────────────────
+  var bestCard = d.best_moment
+    ? '<div style="background:#08080f;border:1px solid #252540;border-radius:10px;padding:12px 14px;margin-bottom:10px">'
+      + '<div style="font-size:10px;font-weight:700;color:#a090ff;letter-spacing:.08em;margin-bottom:8px">⚡ BEST MOMENT</div>'
+      + '<div style="font-size:14px;font-weight:600;color:#f0ede8;line-height:1.4;font-style:italic">"' + escapeHtml(d.best_moment) + '"</div>'
+      + shareBtn('best')
+      + '</div>'
+    : '';
+
+  // ── WATCH NEXT card ──────────────────────────────────────────
+  var watchCard = d.next_watch
+    ? '<div style="background:#1a0000;border:1px solid #3a0000;border-radius:10px;padding:14px;margin-bottom:10px">'
+      + '<div style="font-size:10px;font-weight:700;color:#e10600;letter-spacing:.08em;margin-bottom:6px">👀 WATCH NEXT</div>'
+      + '<div style="font-size:14px;font-weight:700;color:#f0ede8;line-height:1.4">' + escapeHtml(_first(d.next_watch)) + '</div>'
+      + '</div>'
+    : '';
+
+  cards.innerHTML = voiceHtml + tsHtml + leaderCard + posCard + incCard + tyreCard + champCard + bestCard + watchCard;
+}
+
+// ── WJH helper functions ──────────────────────────────────────
+function _wjhToggle(id) {
+  var el  = document.getElementById('wjh-expand-' + id);
+  var btn = document.getElementById('wjh-more-' + id);
+  if (!el) return;
+  var open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if (btn) btn.textContent = open ? '+ more' : '− less';
+}
+
+function _wjhDrvToggle(code) {
+  var el = document.getElementById('wjh-dri-' + code);
+  if (!el) return;
+  var isOpen = el.style.display !== 'none';
+  document.querySelectorAll('[id^="wjh-dri-"]').forEach(function(p) { p.style.display = 'none'; });
+  if (!isOpen) el.style.display = 'block';
+}
+
+function _wjhShare(key) {
+  var text = _wjhShareTexts[key] || key;
+  if (!text) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      showToast('Copied to clipboard!', 2000);
+    }).catch(function() { _wjhShareFb(text); });
+  } else { _wjhShareFb(text); }
+}
+
+function _wjhShareFb(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); showToast('Copied!', 2000); } catch(e) {}
+  document.body.removeChild(ta);
 }
 
 var _mobWjhAskBusy = false;
