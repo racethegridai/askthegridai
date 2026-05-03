@@ -7435,38 +7435,9 @@ function _stopPolling() {
   if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
 }
 
-/* ── OPENF1 LIVE POSITION POLL (10s during live race) ── */
+/* ── OPENF1 LIVE POSITION POLL — served via backend SSE, no direct OpenF1 calls ── */
 let _openF1PollTimer = null;
-
-async function _fetchOpenF1Positions() {
-  if (!liveData.is_live || !liveData.is_race) { _stopOpenF1Poll(); return; }
-  try {
-    const r = await fetch('https://api.openf1.org/v1/position?session_key=latest', {
-      signal: AbortSignal.timeout(5000)
-    });
-    if (!r.ok) return;
-    const positions = await r.json();
-    if (!positions || !positions.length || !liveData.drivers || !liveData.drivers.length) return;
-    // Get latest position per driver_number (last entry wins)
-    const latestPos = {};
-    positions.forEach(p => { latestPos[p.driver_number] = p.position; });
-    // Merge into existing driver objects (preserves name/team/tyre/gap)
-    liveData.drivers.forEach(d => {
-      if (latestPos[d.number] !== undefined) d.pos = latestPos[d.number];
-    });
-    liveData.drivers.sort((a, b) => a.pos - b.pos);
-    renderStandings(liveData.drivers);
-  } catch(e) {
-    console.warn('OpenF1 positions fetch failed:', e.message);
-  }
-}
-
-function _startOpenF1Poll() {
-  if (_openF1PollTimer) return;
-  _fetchOpenF1Positions();
-  _openF1PollTimer = setInterval(_fetchOpenF1Positions, 10_000);
-}
-
+function _startOpenF1Poll() { /* no-op: positions come from backend SSE */ }
 function _stopOpenF1Poll() {
   if (_openF1PollTimer) { clearInterval(_openF1PollTimer); _openF1PollTimer = null; }
 }
@@ -9893,27 +9864,12 @@ const _TYRE_INITIAL = { S:'S', SOFT:'S', M:'M', MEDIUM:'M', H:'H', HARD:'H',
                          I:'I', INTERMEDIATE:'I', INTER:'I', W:'W', WET:'W' };
 
 async function _fetchLiveTyres() {
-  if (!liveData || !liveData.is_live) return;
-  try {
-    const res = await fetch('https://api.openf1.org/v1/stints?session_key=latest',
-      { signal: AbortSignal.timeout(8000) });
-    if (!res.ok) return;
-    const stints = await res.json();
-    const now = {};
-    stints.forEach(function(s) {
-      if (s.lap_end !== null && s.lap_end !== undefined) return; // already ended
-      const raw  = (s.compound || '').toUpperCase();
-      const code = _TYRE_INITIAL[raw] || raw.charAt(0) || '?';
-      now[s.driver_number] = { tyre: code, laps: s.lap_start ? 0 : 0 };
-    });
-    if (Object.keys(now).length) _liveTyres = now;
-    if (liveData.drivers) {
-      liveData.drivers.forEach(function(d) {
-        const t = _liveTyres[d.number];
-        if (t) d.tyre = t.tyre;
-      });
-    }
-  } catch(e) { /* silent — fall back to backend tyre data */ }
+  /* Tyre data comes from backend SSE state — no direct OpenF1 call needed */
+  if (!liveData || !liveData.drivers) return;
+  liveData.drivers.forEach(function(d) {
+    const t = _liveTyres[d.number];
+    if (t) d.tyre = t.tyre;
+  });
 }
 
 function _startTyrePoller() {
@@ -14534,8 +14490,6 @@ window.spAsk = function(prompt) {
 (function () {
   "use strict";
 
-  const OPENF1_BASE = "https://api.openf1.org/v1";
-
   const TRIVIA = [
     { fact: "Ayrton Senna won at Monaco 6 times. He once lapped the entire field — a feat never repeated.", chips: ["Tell me about Senna's Monaco record", "Who else dominated Monaco?"] },
     { fact: "The Monaco Grand Prix is the only race where the safety car can lap faster than the maximum pit lane speed limit.", chips: ["How does the safety car work?", "What are pit lane speed limits?"] },
@@ -14550,16 +14504,14 @@ window.spAsk = function(prompt) {
 
   async function detectRaceState() {
     try {
-      const res = await fetch(`${OPENF1_BASE}/sessions?session_key=latest`);
-      if (!res.ok) throw new Error("OpenF1 unavailable");
-      const sessions = await res.json();
-      const latest = sessions[0];
-      if (!latest) return { mode: "HYPE", session: null, nextRace: null };
-      const endTime = latest.date_end ? new Date(latest.date_end) : null;
+      const res = await fetch(`${BACKEND}/api/state`, { signal: AbortSignal.timeout(6000) });
+      if (!res.ok) throw new Error("Backend unavailable");
+      const state = await res.json();
+      const isLive = !!state.is_live;
       const now = new Date();
-      const isLive = !endTime;
-      const isRecent = endTime && now - endTime < RACE_WEEKEND_THRESHOLD_MS;
-      if (isLive || isRecent) return { mode: "RACE_WEEKEND", session: latest, nextRace: null };
+      const dateEnd = state.date_end ? new Date(state.date_end) : null;
+      const isRecent = dateEnd && now - dateEnd < RACE_WEEKEND_THRESHOLD_MS;
+      if (isLive || isRecent) return { mode: "RACE_WEEKEND", session: { session_name: state.session_name }, nextRace: null };
       const nextRace = await fetchNextRace();
       return { mode: "HYPE", session: null, nextRace };
     } catch {
@@ -14571,12 +14523,15 @@ window.spAsk = function(prompt) {
   async function fetchNextRace() {
     try {
       const year = new Date().getFullYear();
-      const res = await fetch(`${OPENF1_BASE}/meetings?year=${year}`);
+      const res = await fetch(`https://api.jolpi.ca/ergast/f1/${year}/races/`, { signal: AbortSignal.timeout(6000) });
       if (!res.ok) throw null;
-      const meetings = await res.json();
+      const data = await res.json();
+      const races = data?.MRData?.RaceTable?.Races || [];
       const now = new Date();
-      const upcoming = meetings.filter(m => new Date(m.date_start) > now).sort((a, b) => new Date(a.date_start) - new Date(b.date_start));
-      return upcoming[0] || null;
+      const upcoming = races.filter(r => new Date(r.date) > now).sort((a, b) => new Date(a.date) - new Date(b.date));
+      const next = upcoming[0];
+      if (!next) return null;
+      return { location: next.raceName, date_start: next.date };
     } catch { return null; }
   }
 
