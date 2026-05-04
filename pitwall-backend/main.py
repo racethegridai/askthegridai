@@ -181,6 +181,10 @@ _state: dict[str, Any] = {}
 _lock = asyncio.Lock()
 _subscribers: list[asyncio.Queue] = []
 
+# ── Post-race review store ────────────────────────────
+_post_race_reviews: dict[str, Any] = {}        # session_key_str → review dict
+_race_completed_notified: set[str] = set()     # session keys already queued for review gen
+
 # ── Championship standings cache ──────────────────────
 _standings_cache: dict[str, Any] = {"data": None, "timestamp": 0.0}
 
@@ -655,6 +659,74 @@ async def _refresh() -> dict[str, Any]:
     return s
 
 
+# ── Post-race review generator ────────────────────────
+
+async def _generate_post_race_review(state: dict[str, Any]) -> None:
+    """Generate a post-race review via Claude Sonnet and cache it."""
+    session_key = state.get("session_key")
+    if not session_key:
+        return
+    key_str = str(session_key)
+    if key_str in _post_race_reviews:
+        return  # already have one
+
+    session_name = state.get("session_name", "Race")
+    circuit      = state.get("circuit", "Unknown")
+    drivers      = state.get("drivers", [])
+    incidents    = state.get("incidents", [])
+    pit_stops    = state.get("pit_stops", [])
+
+    top10_str = "\n".join(
+        f"P{d['pos']} {d.get('code','?')} ({d.get('team','?')})"
+        for d in drivers[:10]
+    )
+    inc_str = " | ".join(
+        f"Lap {i.get('lap','?')}: {i.get('msg','')}"
+        for i in incidents[-12:]
+    ) or "None recorded"
+    pit_count = len({p.get("driver_number") for p in pit_stops if p.get("duration")})
+
+    prompt = (
+        f"Race: {session_name}\nCircuit: {circuit}\n\n"
+        f"Final Top 10:\n{top10_str}\n\n"
+        f"Incidents: {inc_str}\n"
+        f"Pit stops made: {pit_count} drivers pitted\n\n"
+        "Generate a post-race review as JSON with EXACTLY these keys:\n"
+        '{"headline":"one dramatic newspaper headline max 10 words",'
+        '"race_story":["paragraph 1: the start","paragraph 2: the middle","paragraph 3: the finish"],'
+        '"best_moment":"most dramatic moment in 2 sentences",'
+        '"winner_analysis":"why the winner won in 2 sentences",'
+        '"biggest_loser":{"driver":"name","reason":"one sentence"},'
+        '"championship_impact":"one sentence on title fight impact",'
+        '"next_race_watch":"one sentence on next race storyline",'
+        '"driver_ratings":[{"driver":"3-letter code","team":"team","rating":8,"verdict":"max 6 words"}],'
+        '"ai_verdict":"one casual punchy sentence — like texting a friend"}'
+        "\n\nReturn ONLY the JSON. No markdown, no extra text."
+    )
+
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        log.warning("[POST-RACE] No ANTHROPIC_API_KEY — cannot generate review")
+        return
+    try:
+        client = anthropic.AsyncAnthropic(api_key=api_key)
+        response = await client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1600,
+            system=_CRITICAL_CONTEXT + "\n\nYou are an expert F1 journalist. Return ONLY valid JSON.",
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw    = response.content[0].text.replace("```json", "").replace("```", "").strip()
+        review = json.loads(raw)
+        review["session_key"]   = session_key
+        review["session_name"]  = session_name
+        review["generated_at"]  = datetime.now(timezone.utc).isoformat()
+        _post_race_reviews[key_str] = review
+        log.info("[POST-RACE] Review ready for %s: %s", session_name, review.get("headline", ""))
+    except Exception as exc:
+        log.warning("[POST-RACE] Generation failed: %s", exc)
+
+
 # ── Background poller ─────────────────────────────────
 
 async def _poller():
@@ -680,6 +752,28 @@ async def _poller():
                 len(new_state.get("drivers", [])),
                 new_state.get("status"),
             )
+
+            # ── Race-end detection → auto-generate review ──────
+            sk = new_state.get("session_key")
+            if sk and new_state.get("is_race"):
+                sk_str = str(sk)
+                if sk_str not in _race_completed_notified:
+                    incs = new_state.get("incidents", [])
+                    has_chequered = any(
+                        "CHEQUERED" in str(i.get("msg", "")).upper()
+                        or "CHECKERED" in str(i.get("msg", "")).upper()
+                        for i in incs
+                    )
+                    # Also trigger if session finished (was live, now not, has lap data)
+                    was_live_now_done = (
+                        not new_state.get("is_live")
+                        and new_state.get("lap", 0) >= (new_state.get("total_laps", 0) or 9999)
+                        and new_state.get("total_laps", 0) > 0
+                    )
+                    if has_chequered or was_live_now_done:
+                        _race_completed_notified.add(sk_str)
+                        log.info("[POST-RACE] Race end detected for %s — queuing review", sk)
+                        asyncio.create_task(_generate_post_race_review(new_state))
         except Exception:
             log.exception("Poller iteration failed")
             interval = POLL_INTERVAL_IDLE  # back off on error
@@ -1736,6 +1830,33 @@ async def force_refresh(key: str = ""):
     except Exception as exc:
         log.warning("[FORCE-REFRESH] Failed: %s", exc)
         return {"ok": False, "error": str(exc)}
+
+
+@app.get("/api/post-race-review")
+async def get_post_race_review():
+    """Return the most recent post-race review, or {'available': false} if none exists."""
+    if not _post_race_reviews:
+        return JSONResponse({"available": False})
+    latest = max(_post_race_reviews.values(), key=lambda r: r.get("generated_at", ""))
+    return JSONResponse({"available": True, **latest})
+
+
+@app.post("/api/post-race-review/refresh")
+async def refresh_post_race_review(key: str = ""):
+    """Owner-only: delete cached review and regenerate from current state."""
+    if key != "atgaiimamw2026":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    async with _lock:
+        state_snap = dict(_state)
+    sk = state_snap.get("session_key")
+    if not sk:
+        return {"status": "no_session"}
+    sk_str = str(sk)
+    _post_race_reviews.pop(sk_str, None)
+    _race_completed_notified.discard(sk_str)
+    asyncio.create_task(_generate_post_race_review(state_snap))
+    log.info("[POST-RACE] Manual refresh triggered for session %s", sk)
+    return {"status": "regenerating", "session_key": sk}
 
 
 
