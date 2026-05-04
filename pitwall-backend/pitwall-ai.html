@@ -4082,6 +4082,15 @@
       color: #fff;
       pointer-events: none;
     }
+    .inc-pill {
+      font-size: 9px; font-weight: 700; letter-spacing: .06em;
+      padding: 4px 10px; border-radius: 20px; border: 1px solid #222;
+      background: transparent; color: #555; cursor: pointer;
+      font-family: inherit; white-space: nowrap; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: color .15s, border-color .15s;
+    }
+    .inc-pill-active { color: #f0ede8; border-color: #444; }
 
     /* COUNTDOWN STRIP */
     .mob-countdown-strip {
@@ -5278,23 +5287,38 @@
     <button class="mob-back-btn" onclick="mobClosePage('incidents')">← Back</button>
     <span class="mob-page-title">Race Incidents</span>
   </div>
-  <!-- Scrollable incident list — never cleared once populated -->
-  <div id="mobIncidentsBody"
-    style="overflow-y:auto;height:calc(65vh - 60px);display:flex;flex-direction:column;gap:8px;padding:12px;flex-shrink:0">
-    <div id="incEmptyState" style="text-align:center;padding:40px 0;color:#555;font-size:13px">
-      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;margin-right:6px;vertical-align:middle"></span>
-      No incidents yet — race is green
+  <!-- Sticky summary bar -->
+  <div id="incSummaryBar" style="padding:7px 14px;font-size:10px;color:#555;border-bottom:1px solid #111;flex-shrink:0;letter-spacing:.03em">No incidents yet</div>
+  <!-- Filter pills -->
+  <div style="padding:7px 12px;display:flex;gap:6px;overflow-x:auto;border-bottom:1px solid #111;flex-shrink:0;-webkit-overflow-scrolling:touch">
+    <button id="incF-all"       onclick="_setIncFilter('all')"       class="inc-pill inc-pill-active">ALL</button>
+    <button id="incF-flags"     onclick="_setIncFilter('flags')"     class="inc-pill">FLAGS</button>
+    <button id="incF-safety"    onclick="_setIncFilter('safety')"    class="inc-pill">SAFETY CAR</button>
+    <button id="incF-penalties" onclick="_setIncFilter('penalties')" class="inc-pill">PENALTIES</button>
+  </div>
+  <!-- Scrollable list -->
+  <div id="mobIncidentsBody" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:10px 12px;min-height:0">
+    <div id="incEmptyState" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 0;gap:14px">
+      <div style="display:flex;align-items:center;gap:8px;color:#4caf50;font-size:13px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#4caf50;display:inline-block;flex-shrink:0"></span>
+        Racing green — no incidents yet
+      </div>
+      <button onclick="_incEmptyChip('What should I watch for in this race?')" style="font-size:11px;padding:6px 14px;border-radius:20px;background:#111;border:1px solid #222;color:#888;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent">Ask AI what to watch for →</button>
     </div>
   </div>
-  <!-- AI explanation panel (between list and input) -->
-  <div id="incident-ai-panel"
-    style="display:none;background:#111;border:1px solid #1e1e1e;border-radius:10px;margin:0 12px 8px;padding:12px;flex-shrink:0"></div>
-  <!-- Free text Ask input — always at bottom -->
-  <div style="padding:8px 12px 14px;display:flex;gap:8px;flex-shrink:0">
-    <input id="incAskInput" placeholder="Ask about any incident…"
-      style="flex:1;background:#111;border:1px solid #222;border-radius:8px;color:#f0ede8;font-size:12px;padding:8px 10px;outline:none;font-family:inherit"
-      onkeydown="if(event.key==='Enter'){event.preventDefault();incFreeAsk();}">
-    <button onclick="incFreeAsk()" style="background:#e10600;border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:700;padding:0 12px;cursor:pointer;font-family:inherit">Ask</button>
+  <!-- Slide-up ask response -->
+  <div id="incAskCard" style="display:none;margin:0 12px 6px;background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:12px 36px 12px 12px;flex-shrink:0;position:relative">
+    <button onclick="_incDismissCard()" style="position:absolute;top:8px;right:10px;background:none;border:none;color:#555;font-size:14px;cursor:pointer;line-height:1;padding:2px">✕</button>
+    <div id="incAskResp" style="font-size:13px;color:#f0ede8;line-height:1.6"></div>
+  </div>
+  <!-- Sticky ask input -->
+  <div style="padding:8px 12px 14px;flex-shrink:0;border-top:1px solid #111">
+    <div style="display:flex;gap:8px">
+      <input id="incAskInput" placeholder="Ask about any incident…"
+        style="flex:1;background:#111;border:1px solid #222;border-radius:8px;color:#f0ede8;font-size:12px;padding:8px 10px;outline:none;font-family:inherit"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();incFreeAsk();}">
+      <button onclick="incFreeAsk()" style="background:#e10600;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;padding:0 14px;cursor:pointer;font-family:inherit">Ask</button>
+    </div>
   </div>
 </div>
 
@@ -13015,105 +13039,275 @@ const _INC_FLAG = (function() {
   };
 })();
 
-// Tracks which incident keys are already rendered — never removed
-var _renderedIncKeys = new Set();
+// ── Incidents screen — full redesign ─────────────
+var _incAllData    = [];          // {inc, cat} per rendered card, index = card idx
+var _incRenderedSet = new Set();  // dedup by key
+var _incFilter     = 'all';
+var _openIncIdx    = null;        // which breakdown is currently expanded
+var _incBreakBusy  = {};
 
 function _incKey(inc) {
   return (inc.lap || '') + '|' + (inc.msg || inc.message || '');
 }
 
-function _incCardHtml(inc, isNew) {
-  var msg     = inc.msg || inc.message || '';
-  var lap     = inc.lap || '';
-  var cfg     = _INC_FLAG(msg);
-  var safeMsg = escapeHtml(msg);
-  var safeQ   = JSON.stringify(msg).replace(/"/g, '&quot;');
-  return '<div class="' + (isNew ? 'inc-card-new' : '') + '" ' +
-    'style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:12px 14px;flex-shrink:0">' +
-    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
-    (lap ? '<span style="font-family:\'Barlow Condensed\',sans-serif;font-weight:700;font-size:13px;color:#e10600;letter-spacing:.04em">LAP ' + lap + '</span>' : '') +
-    '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:' + cfg.bg + ';color:' + cfg.text + ';letter-spacing:.06em">' + cfg.label + '</span>' +
-    '</div>' +
-    '<div style="font-size:13px;color:#f0ede8;line-height:1.5;margin-bottom:10px">' + safeMsg + '</div>' +
-    '<button onclick="explainIncident(' + safeQ + ')" ' +
-    'style="font-size:11px;padding:6px 12px;border-radius:20px;background:#111;border:1px solid #333;color:#e0ddd8;cursor:pointer;font-family:inherit">What does this mean? →</button>' +
-    '</div>';
+// ── Flag config (no AI) ───────────────────────────
+function _incFlagCfg(msg) {
+  var m = String(msg).toUpperCase();
+  if (/RED FLAG/.test(m))                               return { label:'RED FLAG',  bg:'#e10600', text:'#fff',    cat:'flags'     };
+  if (/SAFETY CAR IN THIS LAP/.test(m))                 return { label:'SC IN',     bg:'#7090ff', text:'#fff',    cat:'safety'    };
+  if (/SAFETY CAR DEPLOYED|SAFETY CAR/.test(m))         return { label:'SC',        bg:'#7090ff', text:'#fff',    cat:'safety'    };
+  if (/VIRTUAL SAFETY CAR ENDING|VSC ENDING/.test(m))   return { label:'VSC END',   bg:'#9b59b6', text:'#fff',    cat:'safety'    };
+  if (/VIRTUAL SAFETY CAR|VSC/.test(m))                 return { label:'VSC',       bg:'#9b59b6', text:'#fff',    cat:'safety'    };
+  if (/CHEQUERED|CHECKERED/.test(m))                    return { label:'FINISH',    bg:'#f0ede8', text:'#000',    cat:'flags'     };
+  if (/DRS ENABLED/.test(m))                            return { label:'DRS OPEN',  bg:'#00d84b', text:'#000',    cat:'flags'     };
+  if (/DRS DISABLED/.test(m))                           return { label:'DRS CLOSE', bg:'#444',    text:'#f0ede8', cat:'flags'     };
+  if (/BLUE/.test(m))                                   return { label:'BLUE FLAG', bg:'#0050ff', text:'#fff',    cat:'flags'     };
+  if (/DOUBLE YELLOW|DBL YELLOW/.test(m))               return { label:'DBL ⚠',    bg:'#f5a623', text:'#000',    cat:'flags'     };
+  if (/YELLOW/.test(m))                                 return { label:'YELLOW',    bg:'#f5a623', text:'#000',    cat:'flags'     };
+  if (/DRIVE.THROUGH/.test(m))                          return { label:'DT PEN',    bg:'#ff6600', text:'#fff',    cat:'penalties' };
+  if (/STOP.AND?.GO/.test(m))                           return { label:'S&G PEN',   bg:'#ff6600', text:'#fff',    cat:'penalties' };
+  if (/PENALTY/.test(m))                                return { label:'PENALTY',   bg:'#ff6600', text:'#fff',    cat:'penalties' };
+  if (/NO FURTHER ACTION|NO ACTION|NOT INVESTIGATED/.test(m)) return { label:'CLEARED', bg:'#0a2a0a', text:'#4caf50', cat:'penalties' };
+  if (/UNDER INVESTIGATION|INVESTIGATED/.test(m))       return { label:'INVEST.',   bg:'#1a1a1a', text:'#f5a623', cat:'penalties' };
+  if (/TRACK CLEAR/.test(m))                            return { label:'CLEAR',     bg:'#0a2a0a', text:'#4caf50', cat:'flags'     };
+  return                                                       { label:'NOTICE',     bg:'#1a1a1a', text:'#666',    cat:'flags'     };
 }
 
+// ── Plain-English translation (no AI) ─────────────
+function _incTranslate(msg) {
+  var orig = String(msg);
+  var m    = orig.toUpperCase();
+  var blue = orig.match(/WAVED?\s*BLUE(?:\s*FLAG)?\s*FOR\s*(?:CAR\s+)?(\d+)\s*\((\w+)\)/i);
+  if (blue) return 'Blue Flag · ' + blue[2] + ' must let faster cars past';
+  if (/BLUE FLAG/.test(m)) return 'Blue Flag · Lapped car must let leaders past';
+  if (/SAFETY CAR IN THIS LAP/.test(m)) return 'Safety Car In · SC pitting this lap — racing resumes';
+  if (/SAFETY CAR DEPLOYED/.test(m)) return 'Safety Car · Track incident ahead — field bunching up';
+  if (/SAFETY CAR/.test(m)) return 'Safety Car · Track incident — field neutralised';
+  if (/VIRTUAL SAFETY CAR ENDING|VSC ENDING/.test(m)) return 'VSC Ending · Normal racing pace returning';
+  if (/VIRTUAL SAFETY CAR|VSC/.test(m)) return 'Virtual Safety Car · Slow down — no overtaking allowed';
+  if (/RED FLAG/.test(m)) return 'Red Flag · Race stopped — serious incident on track';
+  if (/CHEQUERED|CHECKERED/.test(m)) return 'Chequered Flag · Race over — final results confirmed';
+  if (/DRS ENABLED/.test(m)) return 'DRS Open · Overtaking zone now active';
+  if (/DRS DISABLED/.test(m)) return 'DRS Closed · Overtaking assist disabled — conditions unsafe';
+  var sec = orig.match(/(\d+)\s*SECOND.*?PENALTY.*?CAR\s+(\d+)\s*\((\w+)\)/i);
+  if (sec) return sec[1] + 's Penalty · ' + sec[3] + ' — time added to race result';
+  var dt = orig.match(/DRIVE.THROUGH.*?CAR\s+(\d+)\s*\((\w+)\)/i);
+  if (dt) return 'Drive-Through · ' + dt[2] + ' must serve penalty in pits';
+  var sg = orig.match(/STOP.AND?.GO.*?CAR\s+(\d+)\s*\((\w+)\)/i);
+  if (sg) return 'Stop-and-Go · ' + sg[2] + ' — 10s stationary in pits';
+  if (/DOUBLE YELLOW|DBL YELLOW/.test(m)) return 'Double Yellow · Danger ahead — slow down significantly';
+  var sector = orig.match(/SECTOR\s+(\d+)/i);
+  if (/YELLOW/.test(m)) return 'Yellow Flag' + (sector ? ' Sector ' + sector[1] : '') + ' · Danger ahead — no overtaking';
+  if (/TRACK CLEAR/.test(m)) return 'Track Clear · All clear — racing resumes normally';
+  if (/NO FURTHER ACTION|NO ACTION/.test(m)) return 'No Action · Stewards found no rule breach';
+  if (/UNDER INVESTIGATION/.test(m)) return 'Under Investigation · Stewards reviewing possible rule breach';
+  return orig.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+// ── One-line context per flag type ────────────────
+function _incContextLine(msg) {
+  var m = String(msg).toUpperCase();
+  if (/RED FLAG/.test(m)) return 'Race neutralised — expect a standing restart or suspension.';
+  if (/SAFETY CAR/.test(m) && !/VIRTUAL/.test(m)) return 'Gap between cars resets — pit strategy becomes critical.';
+  if (/VIRTUAL SAFETY CAR|VSC/.test(m)) return 'Unlike a full SC, gaps are maintained — less strategic disruption.';
+  if (/BLUE FLAG/.test(m)) return 'Failure to comply within three waves earns a 5-second penalty.';
+  if (/YELLOW/.test(m)) return 'Overtaking under yellow is a serious offence — stewards will act.';
+  if (/CHEQUERED|CHECKERED/.test(m)) return 'Check the official timing screen for confirmed positions.';
+  if (/DRS ENABLED/.test(m)) return 'Attacking cars can open the rear wing for extra straight-line speed.';
+  if (/DRS DISABLED/.test(m)) return 'Overtaking is now harder — expect battles to settle.';
+  if (/PENALTY|DRIVE.THROUGH|STOP.AND?.GO/.test(m)) return 'This may affect the final finishing order.';
+  if (/INVESTIGATION/.test(m)) return 'Stewards reviewing in-car footage — decision expected within 30 mins.';
+  return 'Race control message logged at start/finish.';
+}
+
+// ── Build one incident card HTML ──────────────────
+function _incCardHtml(inc, idx) {
+  var msg  = inc.msg || inc.message || '';
+  var lap  = inc.lap || '';
+  var cfg  = _incFlagCfg(msg);
+  var title = _incTranslate(msg);
+  var ctx  = _incContextLine(msg);
+  var dm   = msg.match(/\(([A-Z]{2,3})\)/);
+  var code = dm ? dm[1] : '';
+  return '<div class="inc-redesign" id="incCard' + idx + '" data-cat="' + cfg.cat + '" ' +
+    'style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:11px 13px;flex-shrink:0">' +
+    '<div style="display:flex;align-items:center;gap:7px;margin-bottom:7px">' +
+      '<span style="font-size:8px;font-weight:700;padding:2px 7px;border-radius:4px;background:' + cfg.bg + ';color:' + cfg.text + ';letter-spacing:.07em;flex-shrink:0">' + cfg.label + '</span>' +
+      (code ? '<span style="font-size:11px;font-weight:700;color:#f0ede8">' + escapeHtml(code) + '</span>' : '') +
+      '<span style="flex:1"></span>' +
+      (lap ? '<span style="font-size:9px;font-weight:700;color:#444;flex-shrink:0">LAP ' + lap + '</span>' : '') +
+    '</div>' +
+    '<div style="font-size:14px;font-weight:700;color:#f0ede8;line-height:1.4;margin-bottom:4px">' + escapeHtml(title) + '</div>' +
+    '<div style="font-size:12px;color:#555;line-height:1.5;margin-bottom:8px">' + escapeHtml(ctx) + '</div>' +
+    '<div style="text-align:right">' +
+      '<button onclick="_incBreakdown(' + idx + ')" id="incBreakBtn' + idx + '" ' +
+        'style="font-size:10px;color:#444;background:none;border:none;cursor:pointer;font-family:inherit;padding:0;-webkit-tap-highlight-color:transparent">▼ breakdown</button>' +
+    '</div>' +
+    '<div id="incBreakPanel' + idx + '" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #1a1a1a"></div>' +
+  '</div>';
+}
+
+// ── Summary bar text ──────────────────────────────
+function _incUpdateSummaryBar() {
+  var el = document.getElementById('incSummaryBar');
+  if (!el) return;
+  if (!_incAllData.length) { el.textContent = 'No incidents yet'; return; }
+  var counts = { flags:0, safety:0, penalties:0 };
+  var lastLap = null;
+  _incAllData.forEach(function(d) {
+    counts[d.cat] = (counts[d.cat] || 0) + 1;
+    if (d.inc.lap) lastLap = d.inc.lap;
+  });
+  var parts = [_incAllData.length + ' incident' + (_incAllData.length !== 1 ? 's' : '')];
+  if (counts.flags)     parts.push(counts.flags + ' flag' + (counts.flags !== 1 ? 's' : ''));
+  if (counts.safety)    parts.push(counts.safety + ' safety car');
+  if (counts.penalties) parts.push(counts.penalties + ' penalt' + (counts.penalties !== 1 ? 'ies' : 'y'));
+  if (lastLap) parts.push('Last: Lap ' + lastLap);
+  el.textContent = parts.join(' · ');
+}
+
+// ── Filter pills ──────────────────────────────────
+function _setIncFilter(cat) {
+  _incFilter = cat;
+  ['all','flags','safety','penalties'].forEach(function(c) {
+    var btn = document.getElementById('incF-' + c);
+    if (btn) btn.classList.toggle('inc-pill-active', c === cat);
+  });
+  _applyIncFilter();
+}
+
+function _applyIncFilter() {
+  document.querySelectorAll('.inc-redesign').forEach(function(el) {
+    var elCat = el.getAttribute('data-cat');
+    el.style.display = (_incFilter === 'all' || elCat === _incFilter) ? '' : 'none';
+  });
+}
+
+// ── Main sync ─────────────────────────────────────
 function _mobSyncIncidents() {
   var incidents = (liveData && liveData.incidents) ? liveData.incidents : [];
-  var dest      = document.getElementById('mobIncidentsBody');
-  var empty     = document.getElementById('incEmptyState');
+  var dest  = document.getElementById('mobIncidentsBody');
+  var empty = document.getElementById('incEmptyState');
   if (!dest) return;
 
-  // No incidents ever — show empty state
-  if (!incidents.length && !_renderedIncKeys.size) return;
+  if (!incidents.length && !_incAllData.length) return;
 
-  // Find any incidents not yet rendered
   var newIncs = incidents.filter(function(inc) {
-    return !_renderedIncKeys.has(_incKey(inc));
+    return !_incRenderedSet.has(_incKey(inc));
   });
+  if (!newIncs.length) { _incUpdateSummaryBar(); return; }
 
-  if (!newIncs.length) return; // nothing new
-
-  // Remove empty-state placeholder the first time
   if (empty && empty.parentNode === dest) dest.removeChild(empty);
 
-  // Prepend each new incident (newest backend entry → top of list)
-  // Backend gives oldest-first, so reverse to prepend newest first
   newIncs.slice().reverse().forEach(function(inc) {
-    _renderedIncKeys.add(_incKey(inc));
+    _incRenderedSet.add(_incKey(inc));
+    var cfg = _incFlagCfg(inc.msg || inc.message || '');
+    var idx = _incAllData.length;
+    _incAllData.push({ inc: inc, cat: cfg.cat });
     var wrap = document.createElement('div');
-    wrap.innerHTML = _incCardHtml(inc, true);
+    wrap.innerHTML = _incCardHtml(inc, idx);
     dest.insertBefore(wrap.firstChild, dest.firstChild);
   });
 
-  // Auto-hide AI panel when new incident arrives
-  var panel = document.getElementById('incident-ai-panel');
-  if (panel) panel.style.display = 'none';
+  _incUpdateSummaryBar();
+  _applyIncFilter();
+
+  // Collapse any open breakdown when new incident arrives
+  if (_openIncIdx !== null) { _collapseIncBreakdown(_openIncIdx); _openIncIdx = null; }
 }
 
-async function explainIncident(incidentText) {
-  var panel = document.getElementById('incident-ai-panel');
+// ── Inline AI breakdown ───────────────────────────
+function _collapseIncBreakdown(idx) {
+  var panel = document.getElementById('incBreakPanel' + idx);
+  var btn   = document.getElementById('incBreakBtn' + idx);
+  if (panel) panel.style.display = 'none';
+  if (btn)   btn.textContent = '▼ breakdown';
+}
+
+async function _incBreakdown(idx) {
+  var panel = document.getElementById('incBreakPanel' + idx);
+  var btn   = document.getElementById('incBreakBtn' + idx);
   if (!panel) return;
+
+  // Collapse if already open
+  if (panel.style.display !== 'none') {
+    _collapseIncBreakdown(idx);
+    _openIncIdx = null;
+    return;
+  }
+  // Collapse whatever was open before
+  if (_openIncIdx !== null && _openIncIdx !== idx) _collapseIncBreakdown(_openIncIdx);
+  _openIncIdx = idx;
   panel.style.display = 'block';
-  panel.innerHTML = '<div style="color:#666;font-size:13px">Explaining…</div>';
+  if (btn) btn.textContent = '▲ less';
+
+  if (_incBreakBusy[idx] || panel.dataset.loaded) return;
+  _incBreakBusy[idx] = true;
+  panel.innerHTML = '<div style="color:#555;font-size:12px">Analysing…</div>';
+
+  var entry = _incAllData[idx];
+  if (!entry) { panel.innerHTML = ''; return; }
+  var msg = entry.inc.msg || entry.inc.message || '';
+  var prompt = 'F1 race incident: "' + msg + '". Reply with ONLY valid JSON: {"explain":"2 sentences plain English for a casual fan","benefit":"This could benefit: [driver name] ([reason])"}';
+
   try {
     var res = await fetch(BACKEND + '/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system: 'You are an F1 expert. Explain race incidents in 2 simple sentences for a casual fan. Plain English.',
-        messages: [{ role: 'user', content: 'Explain this F1 race incident: ' + incidentText }]
-      }),
-      signal: AbortSignal.timeout(15000)
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: 'You are an F1 race analyst. Return ONLY valid JSON.', messages: [{ role:'user', content: prompt }], max_tokens: 120 }),
+      signal: AbortSignal.timeout(14000),
     });
     var data = await res.json();
-    var txt  = data.reply || data.response || data.message || 'Could not load explanation.';
+    var raw  = (data.reply || '').replace(/```json|```/g, '').trim();
+    var parsed = JSON.parse(raw);
+    panel.dataset.loaded = '1';
     panel.innerHTML =
-      '<div style="color:#f0ede8;font-size:13px;line-height:1.6;border-left:2px solid #e10600;padding-left:10px">' + escapeHtml(txt) + '</div>' +
-      '<button onclick="document.getElementById(\'incident-ai-panel\').style.display=\'none\'" ' +
-      'style="margin-top:8px;font-size:11px;color:#555;background:none;border:none;cursor:pointer;font-family:inherit">✕ Dismiss</button>';
+      '<div style="font-size:13px;color:#d4d0ca;line-height:1.6;margin-bottom:8px">' + escapeHtml(parsed.explain || '') + '</div>' +
+      (parsed.benefit ? '<div style="font-size:11px;color:#f5a623;background:#1a1000;border-radius:6px;padding:5px 9px;display:inline-block">' + escapeHtml(parsed.benefit) + '</div>' : '') +
+      '<div style="margin-top:8px"><button onclick="_collapseIncBreakdown(' + idx + ');_openIncIdx=null;" style="font-size:10px;color:#444;background:none;border:none;cursor:pointer;font-family:inherit;padding:0">▲ less</button></div>';
   } catch(e) {
-    panel.innerHTML = '<div style="color:#666;font-size:12px">Could not connect — try again.</div>';
+    panel.innerHTML = '<div style="color:#555;font-size:12px">⚠ Could not reach AI.</div>';
   }
+  finally { _incBreakBusy[idx] = false; }
 }
 
-// Legacy alias kept so any old call sites still work
-var incAskAI = explainIncident;
-
+// ── Free-text ask ─────────────────────────────────
 async function incFreeAsk() {
   var input = document.getElementById('incAskInput');
+  var card  = document.getElementById('incAskCard');
+  var resp  = document.getElementById('incAskResp');
   if (!input || !input.value.trim()) return;
   var q = input.value.trim();
   input.value = '';
-  explainIncident(q);
+  if (card) card.style.display = 'block';
+  if (resp) resp.textContent = 'Thinking…';
+  try {
+    _countNextStream = true;
+    var res = await fetch(BACKEND + '/api/chat-stream', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: buildSystem('default'), messages: [{ role:'user', content: q }] }),
+      signal: AbortSignal.timeout(20000),
+    });
+    var reply = await _readTokenStream(res, function(txt) { if (resp) resp.innerHTML = _renderBold(txt); });
+    var parsed = parseFollowups(reply || '');
+    if (resp) resp.innerHTML = _renderBold(parsed.text || reply);
+  } catch(e) { if (resp) resp.textContent = '⚠ Could not reach AI.'; }
 }
 
-function incDismiss() {
-  var panel = document.getElementById('incident-ai-panel');
-  if (panel) panel.style.display = 'none';
+function _incDismissCard() {
+  var card = document.getElementById('incAskCard');
+  if (card) card.style.display = 'none';
 }
+
+function _incEmptyChip(q) {
+  var input = document.getElementById('incAskInput');
+  if (input) input.value = q;
+  incFreeAsk();
+}
+
+// Legacy aliases
+function explainIncident(t) { var i = document.getElementById('incAskInput'); if(i){i.value=t;} incFreeAsk(); }
+var incAskAI = explainIncident;
+function incDismiss() { _incDismissCard(); }
 
 // ── Sync drivers grid ────────────────────────────
 function _mobSyncDrivers() {
