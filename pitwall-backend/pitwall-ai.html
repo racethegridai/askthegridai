@@ -6585,6 +6585,30 @@
       <div style="font-size:10px;color:#e10600;font-weight:700;letter-spacing:.04em">READ THE FULL BREAKDOWN →</div>
     </div>
 
+    <!-- RACE PULSE desktop card -->
+    <div class="right-radio-card" id="deskPulseCard">
+      <div class="card-title" style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <svg width="18" height="13" viewBox="0 0 22 16" fill="none"><polyline points="0,8 4,8 6,2 8,14 10,5 12,11 14,8 22,8" stroke="#e10600" stroke-width="1.8" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        RACE PULSE
+        <span id="deskPulseBadge" style="margin-left:auto;font-size:8px;font-weight:700;padding:2px 6px;border-radius:6px;background:#e10600;color:#fff;display:none"></span>
+      </div>
+      <div id="deskPulseBody">
+        <div style="color:#333;font-size:12px">Waiting for session data…</div>
+      </div>
+    </div>
+
+    <!-- GAP TRACKER desktop card -->
+    <div class="right-radio-card" id="deskGapsCard">
+      <div class="card-title" style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <svg width="18" height="13" viewBox="0 0 22 16" fill="none"><circle cx="3" cy="8" r="2.5" fill="#5ac8ff"/><circle cx="19" cy="8" r="2.5" fill="#5ac8ff"/><line x1="7" y1="8" x2="15" y2="8" stroke="#5ac8ff" stroke-width="1.4"/><polyline points="12,5 15,8 12,11" stroke="#5ac8ff" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        GAP TRACKER
+        <span id="deskGapsBadge" style="margin-left:auto;font-size:8px;font-weight:700;padding:2px 6px;border-radius:6px;background:#f5a623;color:#000;display:none">BATTLE</span>
+      </div>
+      <div id="deskGapsBody">
+        <div style="color:#333;font-size:12px">Waiting for session data…</div>
+      </div>
+    </div>
+
     <!-- PRE-RACE INSIGHT card — shown when no live session -->
     <div class="right-radio-card" id="preRaceInsightCard" style="display:none">
       <div class="card-title" style="color:var(--red)">
@@ -7601,6 +7625,8 @@ function applyState(data) {
   try { _applyFlag(data.status, data.status_message); } catch(e) {}
   try { _updateRacePulseCard(); } catch(e) {}
   try { _updateGapCard(); } catch(e) {}
+  try { _updateDeskPulse(); } catch(e) {}
+  try { _updateDeskGaps(); } catch(e) {}
   // WJH badge: show UPDATED when 3+ new laps have passed since last WJH load
   try {
     if (data.lap && _mobWjhLastLap >= 0 && (data.lap - _mobWjhLastLap) >= 3) {
@@ -13056,6 +13082,144 @@ function _updateGapCard() {
 
 // Deprecated — kept so any residual _calcAllGaps() calls don't throw
 function _calcAllGaps() { return []; }
+
+// ── Desktop sidebar: Race Pulse card ─────────────────
+var _deskPulseLastStatus = null;
+var _deskPulseAiBusy = false;
+
+function _updateDeskPulse() {
+  var body = document.getElementById('deskPulseBody');
+  var badge = document.getElementById('deskPulseBadge');
+  if (!body) return;
+
+  var pulse = _calcRacePulse();
+  var cfg   = _PULSE_CFG[pulse] || _PULSE_CFG.PROCESSIONAL;
+  var sub   = _PULSE_SUBTITLES[pulse] || '';
+  var lap   = (liveData && liveData.lap) || '—';
+  var session = (liveData && liveData.session_name) || '';
+
+  // Excitement bars
+  var barFill  = { PROCESSIONAL:1, BUILDING:2, TENSE:3, CHAOS:5 }[pulse] || 1;
+  var barColor = pulse === 'CHAOS' ? '#e10600' : pulse === 'PROCESSIONAL' ? '#333' : '#f5a623';
+  var bars = [10,13,16,20,24].map(function(h, i) {
+    return '<div style="width:5px;height:' + h + 'px;border-radius:2px;background:' + (i < barFill ? barColor : '#1e1e1e') + ';flex-shrink:0"></div>';
+  }).join('');
+
+  // Badge
+  if (badge) { badge.textContent = pulse; badge.style.background = cfg.bg; badge.style.color = pulse === 'PROCESSIONAL' ? '#888' : '#fff'; badge.style.display = ''; }
+
+  body.innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
+      '<div style="font-size:22px;font-weight:900;color:' + cfg.color + ';line-height:1;letter-spacing:-.01em">' + pulse + '</div>' +
+      '<div style="display:flex;align-items:flex-end;gap:3px">' + bars + '</div>' +
+    '</div>' +
+    '<div style="font-size:10px;font-weight:700;color:' + (pulse === 'PROCESSIONAL' ? '#444' : '#f5a623') + ';letter-spacing:.08em;margin-bottom:4px;text-transform:uppercase">' + escapeHtml(sub) + '</div>' +
+    '<div style="font-size:10px;color:#333;letter-spacing:.04em;margin-bottom:8px">LAP ' + lap + (session ? ' · ' + escapeHtml(session.split('—')[0].trim().toUpperCase()) : '') + '</div>' +
+    '<div id="deskPulseAi" style="font-size:12px;color:#666;font-style:italic;line-height:1.5;min-height:16px"></div>';
+
+  // Fetch AI one-liner only when pulse status changes
+  if (pulse !== _deskPulseLastStatus && !_deskPulseAiBusy && (liveData && liveData.drivers && liveData.drivers.length)) {
+    _deskPulseLastStatus = pulse;
+    _deskPulseAiBusy = true;
+    var top5 = (liveData.drivers || []).slice(0, 5).map(function(d) { return 'P' + d.pos + ' ' + (d.code||''); }).join(', ');
+    var prompt = 'Race Lap ' + lap + '. Status: ' + pulse + '. Top 5: ' + top5 + '. One sentence (max 15 words) on why the race feels ' + pulse.toLowerCase() + '.';
+    fetch(BACKEND + '/api/chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ system:'You are an F1 commentator. One punchy sentence only.', messages:[{role:'user',content:prompt}], max_tokens:60 }),
+      signal: AbortSignal.timeout(12000),
+    }).then(function(r){ return r.json(); }).then(function(d){
+      var el = document.getElementById('deskPulseAi');
+      if (el) el.textContent = d.reply || '';
+    }).catch(function(){}).finally(function(){ _deskPulseAiBusy = false; });
+  }
+}
+
+// ── Desktop sidebar: Gap Tracker card ────────────────
+var _deskGapsLastClosest = null;
+var _deskGapsAiBusy = false;
+
+function _updateDeskGaps() {
+  var body  = document.getElementById('deskGapsBody');
+  var badge = document.getElementById('deskGapsBadge');
+  if (!body) return;
+
+  var drivers = (liveData && liveData.drivers) || [];
+  if (!drivers.length) { body.innerHTML = '<div style="color:#333;font-size:12px">Waiting for data…</div>'; return; }
+
+  _recordGapHistory();
+
+  // Find closest
+  var closestDriver = null, closestSec = Infinity;
+  for (var i = 1; i < drivers.length; i++) {
+    var sec = _parseGapSec(drivers[i].gap);
+    if (sec !== null && sec < closestSec) { closestSec = sec; closestDriver = drivers[i]; }
+  }
+  var aheadDriver = closestDriver ? (drivers[closestDriver.pos - 2] || drivers[0]) : null;
+
+  // Battle badge
+  if (badge) badge.style.display = (closestSec < 1.0) ? '' : 'none';
+
+  // Spotlight line
+  var spotHtml = '';
+  if (closestDriver && aheadDriver) {
+    var drsOn = closestSec < 1.0;
+    var ac = _teamColorByDriver(aheadDriver), bc = _teamColorByDriver(closestDriver);
+    spotHtml = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:#0a0000;border:1px solid #1e1e1e;border-radius:8px;padding:8px 10px">' +
+      '<div style="flex:1">' +
+        '<div style="font-size:13px;font-weight:900;color:#f0ede8">' + escapeHtml(aheadDriver.code||'?') + '</div>' +
+        '<div style="height:2px;background:' + ac + ';border-radius:1px;margin:3px 0 2px"></div>' +
+        '<div style="font-size:9px;color:#555">P' + aheadDriver.pos + '</div>' +
+      '</div>' +
+      '<div style="font-size:10px;color:#e10600;font-weight:700;flex-shrink:0">←' + closestSec.toFixed(1) + 's→</div>' +
+      '<div style="flex:1;text-align:right">' +
+        '<div style="font-size:13px;font-weight:900;color:#f0ede8">' + escapeHtml(closestDriver.code||'?') + '</div>' +
+        '<div style="height:2px;background:' + bc + ';border-radius:1px;margin:3px 0 2px"></div>' +
+        '<div style="font-size:9px;color:#555">P' + closestDriver.pos + '</div>' +
+      '</div>' +
+      '<div style="font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;background:' + (drsOn ? '#001a00' : '#111') + ';color:' + (drsOn ? '#00d84b' : '#444') + ';flex-shrink:0;margin-left:6px">DRS:' + (drsOn ? 'YES' : 'NO') + '</div>' +
+    '</div>';
+  }
+
+  // Gap bars for top 8
+  var barsHtml = drivers.slice(0, 8).map(function(d) {
+    var gapSec  = d.pos === 1 ? null : _parseGapSec(d.gap);
+    var barClr  = gapSec === null ? 'transparent' : gapSec < 1.0 ? '#e10600' : gapSec < 3.0 ? '#f5a623' : '#2a2a2a';
+    var barPct  = gapSec === null ? 0 : Math.min(92, (gapSec / 5) * 100);
+    var dKey    = d.number || d.driver_number || d.pos;
+    var trend   = _gapTrend(dKey);
+    var tArr    = trend === 'closing' ? '<span style="color:#00d84b;font-size:9px">▼</span>' : trend === 'opening' ? '<span style="color:#e10600;font-size:9px">▲</span>' : '';
+    var tc      = _teamColorByDriver(d);
+    return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #0f0f0f">' +
+      '<span style="font-size:9px;font-weight:700;color:' + tc + ';width:18px;flex-shrink:0">P' + d.pos + '</span>' +
+      '<span style="font-size:11px;font-weight:700;color:#f0ede8;width:30px;flex-shrink:0">' + escapeHtml(d.code||'') + '</span>' +
+      '<div style="flex:1;height:4px;background:#111;border-radius:2px;overflow:hidden">' +
+        '<div style="height:100%;width:' + barPct + '%;background:' + barClr + ';border-radius:2px;transition:width .4s"></div>' +
+      '</div>' +
+      '<span style="font-size:9px;color:' + barClr + ';font-weight:700;min-width:34px;text-align:right">' + (gapSec !== null ? '+' + gapSec.toFixed(1) : 'LEAD') + '</span>' +
+      tArr +
+    '</div>';
+  }).join('');
+
+  body.innerHTML = spotHtml +
+    '<div id="deskGapsAi" style="font-size:11px;color:#666;font-style:italic;line-height:1.5;margin-bottom:8px;min-height:14px"></div>' +
+    barsHtml;
+
+  // Fetch AI one-liner when closest battle changes
+  var closestKey = closestDriver ? closestDriver.code : null;
+  if (closestKey && closestKey !== _deskGapsLastClosest && !_deskGapsAiBusy && closestDriver && aheadDriver) {
+    _deskGapsLastClosest = closestKey;
+    _deskGapsAiBusy = true;
+    var prompt2 = closestDriver.code + ' (P' + closestDriver.pos + ', ' + (closestDriver.tyre||'?') + ') is ' + closestSec.toFixed(1) + 's behind ' + aheadDriver.code + ' (P' + aheadDriver.pos + ', ' + (aheadDriver.tyre||'?') + '). One sentence on overtake likelihood.';
+    fetch(BACKEND + '/api/chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ system:'You are an F1 analyst. One sentence only, confident and specific.', messages:[{role:'user',content:prompt2}], max_tokens:60 }),
+      signal: AbortSignal.timeout(12000),
+    }).then(function(r){ return r.json(); }).then(function(d){
+      var el = document.getElementById('deskGapsAi');
+      if (el) el.textContent = d.reply || '';
+    }).catch(function(){}).finally(function(){ _deskGapsAiBusy = false; });
+  }
+}
 
 async function _openGapTracker() {
   var drivers = (liveData && liveData.drivers) || [];
