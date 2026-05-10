@@ -6578,6 +6578,12 @@
   <!-- SIDE CARDS COLUMN -->
   <div class="side-cards">
 
+    <!-- POST RACE entry card (hidden until review ready) -->
+    <div id="deskPostRaceEntry" style="display:none;background:#080000;border-top:3px solid #e10600;border:1px solid #1a0000;border-top:3px solid #e10600;border-radius:10px;padding:14px;cursor:pointer;margin-bottom:0" onclick="switchTab('postrace')">
+      <div style="font-size:8px;font-weight:700;letter-spacing:.1em;color:#e10600;margin-bottom:8px">🏁 RACE OVER · POST RACE REVIEW READY</div>
+      <div id="deskPostRaceHeadline" style="font-size:14px;font-weight:900;color:#f0ede8;line-height:1.3;margin-bottom:8px">Loading review…</div>
+      <div style="font-size:10px;color:#e10600;font-weight:700;letter-spacing:.04em">READ THE FULL BREAKDOWN →</div>
+    </div>
 
     <!-- PRE-RACE INSIGHT card — shown when no live session -->
     <div class="right-radio-card" id="preRaceInsightCard" style="display:none">
@@ -7343,6 +7349,34 @@
     </div>
     <!-- PROFILE VIEW (hidden until a card is clicked) -->
     <div class="drv-profile-view" id="drvProfileView" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ─── TAB: POST RACE ────────────────────────── -->
+<div class="tab-panel" id="tab-postrace" style="overflow-y:auto">
+  <div id="deskPrNotReady" style="text-align:center;padding:80px 24px;color:#555;font-size:14px">
+    <div style="font-size:32px;margin-bottom:12px">🏁</div>
+    Post Race Review will appear here after the race ends.
+  </div>
+  <div id="deskPrContent" style="display:none;max-width:1100px;margin:0 auto;padding:24px 24px 60px;display:none">
+    <!-- Hero banner -->
+    <div id="deskPrHero" style="background:#080000;border-top:4px solid #e10600;border-radius:12px;padding:28px 32px;margin-bottom:24px"></div>
+    <!-- Two-column body -->
+    <div style="display:flex;gap:20px;align-items:flex-start">
+      <!-- Left 60% -->
+      <div style="flex:6;min-width:0">
+        <div id="deskPrStory"></div>
+        <div id="deskPrMoments" style="margin-top:20px"></div>
+        <div id="deskPrChamp" style="margin-top:20px"></div>
+        <div id="deskPrAsk" style="margin-top:20px"></div>
+      </div>
+      <!-- Right 40% -->
+      <div style="flex:4;min-width:0">
+        <div id="deskPrWinner"></div>
+        <div id="deskPrRatings" style="margin-top:20px"></div>
+        <div id="deskPrNext" style="margin-top:20px"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -8920,6 +8954,7 @@ function switchTab(tab) {
   if (tab === 'strategy') renderStrategyTab();
   if (tab === 'drivers')  { renderDriversGrid(); }
   if (tab === 'news')     { loadTrendingData(); }
+  if (tab === 'postrace') { _renderDesktopPostRace(); }
 }
 
 /* ── Trending data (Reddit + Google Trends + News) ─── */
@@ -12286,11 +12321,19 @@ async function _pollPostRaceReview() {
 }
 
 function _onPostRaceReviewReady(review) {
-  // Show mobile entry card
-  var entry = document.getElementById('mobPostRaceEntry');
-  var hl    = document.getElementById('mobPostRaceHeadline');
-  if (entry) entry.style.display = 'block';
-  if (hl) hl.textContent = review.headline || 'Race review ready';
+  var hl = review.headline || 'Race review ready';
+
+  // Mobile entry card
+  var mEntry = document.getElementById('mobPostRaceEntry');
+  var mHl    = document.getElementById('mobPostRaceHeadline');
+  if (mEntry) mEntry.style.display = 'block';
+  if (mHl) mHl.textContent = hl;
+
+  // Desktop entry card
+  var dEntry = document.getElementById('deskPostRaceEntry');
+  var dHl    = document.getElementById('deskPostRaceHeadline');
+  if (dEntry) dEntry.style.display = 'block';
+  if (dHl) dHl.textContent = hl;
 
   // Show Post Race tabs
   var mTab = document.getElementById('mobPostRaceTab');
@@ -12298,10 +12341,117 @@ function _onPostRaceReviewReady(review) {
   if (mTab) mTab.style.display = '';
   if (dTab) dTab.style.display = '';
 
-  // Transition: if race pulse badge is showing, update it
+  // Update Race Pulse card
   var hubSub = document.getElementById('hubSub-pulse');
   if (hubSub) { hubSub.textContent = 'RACE COMPLETE'; hubSub.style.color = '#f0ede8'; }
   _setHubBadge('pulse', 'DONE', '#555');
+}
+
+function _renderDesktopPostRace() {
+  var notReady = document.getElementById('deskPrNotReady');
+  var content  = document.getElementById('deskPrContent');
+  if (!_prReview) { if (notReady) notReady.style.display = ''; if (content) content.style.display = 'none'; return; }
+  if (notReady) notReady.style.display = 'none';
+  if (content)  { content.style.display = ''; content.style.display = 'block'; }
+
+  var r = _prReview;
+  var storyArr    = Array.isArray(r.race_story) ? r.race_story : [r.race_story || ''];
+  var storyColors = ['#e10600','#f5a623','#4caf50'];
+  var storyLabels = ['THE START','THE MIDDLE','THE FINISH'];
+
+  function sec(label, color) {
+    return '<div style="font-size:9px;font-weight:700;letter-spacing:.12em;color:' + (color||'#e10600') + ';margin:0 0 10px">' + label + '</div>';
+  }
+  function card(body, borderColor) {
+    return '<div style="background:#0f0f0f;border:1px solid #1e1e1e' + (borderColor ? ';border-left:3px solid ' + borderColor : '') + ';border-radius:10px;padding:14px 16px;margin-bottom:10px">' + body + '</div>';
+  }
+
+  // Hero
+  var hero = document.getElementById('deskPrHero');
+  if (hero) hero.innerHTML =
+    '<div style="display:flex;align-items:flex-start;gap:24px">' +
+      '<div style="flex:1">' +
+        '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:12px;font-weight:700;color:#555;letter-spacing:.1em;margin-bottom:6px">' + escapeHtml((r.session_name||'').toUpperCase()) + '</div>' +
+        '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:36px;font-weight:900;color:#e10600;line-height:1;margin-bottom:10px">' + escapeHtml(r.headline||'') + '</div>' +
+        '<div style="font-size:15px;color:#888;font-style:italic;line-height:1.6">' + escapeHtml(r.ai_verdict||'') + '</div>' +
+      '</div>' +
+      '<button onclick="_prShare()" style="flex-shrink:0;padding:10px 20px;background:#e10600;border:none;border-radius:8px;color:#fff;font-family:\'Titillium Web\',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.5px">SHARE ↗</button>' +
+    '</div>';
+
+  // Left column
+  var story = document.getElementById('deskPrStory');
+  if (story) story.innerHTML = sec('THE STORY') + storyArr.map(function(p,i) {
+    return '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-left:3px solid ' + (storyColors[i]||'#444') + ';border-radius:10px;padding:14px 16px;margin-bottom:10px">' +
+      '<div style="font-size:8px;font-weight:700;color:' + (storyColors[i]||'#444') + ';letter-spacing:.1em;margin-bottom:6px">' + (storyLabels[i]||'') + '</div>' +
+      '<div style="font-size:13px;color:#d4d0ca;line-height:1.7">' + escapeHtml(p) + '</div>' +
+    '</div>';
+  }).join('');
+
+  var moments = document.getElementById('deskPrMoments');
+  if (moments) moments.innerHTML = sec('KEY MOMENTS') +
+    card('<div style="font-size:8px;font-weight:700;color:#e10600;letter-spacing:.1em;margin-bottom:6px">BEST MOMENT</div><div style="font-size:13px;color:#f0ede8;line-height:1.6">' + escapeHtml(r.best_moment||'') + '</div>', '#e10600') +
+    card('<div style="font-size:8px;font-weight:700;color:#555;letter-spacing:.1em;margin-bottom:4px">BIGGEST DISAPPOINTMENT</div><div style="font-size:13px;font-weight:700;color:#f0ede8;margin-bottom:4px">' + escapeHtml((r.biggest_loser||{}).driver||'') + '</div><div style="font-size:12px;color:#666;line-height:1.5">' + escapeHtml((r.biggest_loser||{}).reason||'') + '</div>');
+
+  var champ = document.getElementById('deskPrChamp');
+  if (champ) champ.innerHTML = sec('CHAMPIONSHIP') +
+    card('<div style="font-size:14px;font-weight:700;color:#f0ede8;line-height:1.5">' + escapeHtml(r.championship_impact||'') + '</div>', '#e10600');
+
+  var askEl = document.getElementById('deskPrAsk');
+  var chips = [
+    'Why did the winner win?',
+    'Who had the worst race?',
+    'How does this affect the title?',
+    'What should I watch next race?',
+  ];
+  if (askEl) askEl.innerHTML = sec('DIG DEEPER') +
+    '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">' +
+    chips.map(function(c){ return '<button onclick="_prAsk(' + JSON.stringify(c) + ')" style="font-size:11px;padding:6px 12px;border-radius:20px;background:#111;border:1px solid #222;color:#d4d0ca;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent">' + escapeHtml(c) + '</button>'; }).join('') + '</div>' +
+    '<div style="display:flex;gap:8px;margin-bottom:8px"><input id="prAskInputDesk" placeholder="Ask anything about the race…" style="flex:1;background:#111;border:1px solid #222;border-radius:8px;color:#f0ede8;font-size:13px;padding:10px 12px;outline:none;font-family:\'Titillium Web\',sans-serif" onkeydown="if(event.key===\'Enter\'){event.preventDefault();_prAskDesk();}"><button onclick="_prAskDesk()" style="background:#e10600;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;padding:0 18px;cursor:pointer;font-family:\'Titillium Web\',sans-serif">Ask</button></div>' +
+    '<div id="prAskRespDesk" style="display:none;background:#111;border-left:3px solid #e10600;border-radius:6px;padding:12px;font-size:13px;color:#f0ede8;line-height:1.6"></div>';
+
+  // Right column
+  var winner = document.getElementById('deskPrWinner');
+  if (winner) winner.innerHTML = sec('WINNER ANALYSIS', '#4caf50') +
+    '<div style="background:#050f05;border:1px solid #1e3a1e;border-radius:10px;padding:14px 16px;margin-bottom:10px"><div style="font-size:13px;color:#d4d0ca;line-height:1.7">' + escapeHtml(r.winner_analysis||'') + '</div></div>';
+
+  var ratings = document.getElementById('deskPrRatings');
+  if (ratings) {
+    var rHtml = (r.driver_ratings||[]).map(function(d) {
+      var rc = d.rating>=9?'#4caf50':d.rating>=7?'#f5a623':d.rating>=5?'#f0ede8':'#e10600';
+      return '<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #111">' +
+        '<span style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:900;color:' + rc + ';width:34px;flex-shrink:0;line-height:1">' + d.rating + '</span>' +
+        '<div><div style="font-size:13px;font-weight:700;color:#f0ede8">' + escapeHtml(d.driver||'') + ' <span style="font-size:10px;color:#555;font-weight:400">' + escapeHtml(d.team||'') + '</span></div><div style="font-size:11px;color:#888">' + escapeHtml(d.verdict||'') + '</div></div>' +
+      '</div>';
+    }).join('');
+    ratings.innerHTML = sec('DRIVER RATINGS') + '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:10px;padding:4px 14px">' + rHtml + '</div>';
+  }
+
+  var next = document.getElementById('deskPrNext');
+  if (next) next.innerHTML = sec('NEXT RACE WATCH') +
+    card('<div style="font-size:13px;color:#d4d0ca;line-height:1.5">' + escapeHtml(r.next_race_watch||'') + '</div>');
+}
+
+function _prAskDesk() {
+  var input = document.getElementById('prAskInputDesk');
+  var resp  = document.getElementById('prAskRespDesk');
+  if (!input || !input.value.trim()) return;
+  var q = input.value.trim();
+  input.value = '';
+  if (resp) { resp.style.display = 'block'; resp.textContent = 'Thinking…'; }
+  _prAskHistory.push({ role:'user', content: q });
+  var sys = 'You are an F1 race analyst reviewing ' + ((_prReview && _prReview.session_name) || 'a recent race') + '. ' +
+    'The headline: ' + ((_prReview && _prReview.headline) || '') + '. Answer in 2-3 sentences, plain English.';
+  fetch(BACKEND + '/api/chat-stream', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ system: sys, messages: _prAskHistory }),
+    signal: AbortSignal.timeout(20000),
+  }).then(function(res) {
+    return _readTokenStream(res, function(txt) { if(resp) resp.innerHTML = _renderBold(txt); });
+  }).then(function(reply) {
+    var parsed = parseFollowups(reply||'');
+    if (resp) resp.innerHTML = _renderBold(parsed.text||reply);
+    _prAskHistory.push({ role:'assistant', content: reply });
+  }).catch(function() { if(resp) resp.textContent = '⚠ Could not reach AI.'; });
 }
 
 function _renderPostRaceScreen() {
