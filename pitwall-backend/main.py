@@ -136,6 +136,42 @@ _RATE_MAX      = 50    # max AI requests per IP per hour
 _rate_data: dict[str, list[float]] = {}
 _rate_lock     = asyncio.Lock()
 
+# ── Background AI throttle ───────────────────────────
+# Enforces a minimum gap between all *automatic* Claude calls so user
+# requests are never starved by background tasks.
+_BG_AI_MIN_INTERVAL: float = 12.0   # seconds between background calls
+_bg_ai_last_call:    float = 0.0    # monotonic timestamp of last bg call
+_bg_ai_lock:         asyncio.Lock | None = None  # initialised in _lifespan
+
+# Global 429 cooldown — set when any call receives rate-limit response
+_anthropic_429_until: float = 0.0   # monotonic: don't call Claude until this time
+_BG_429_COOLDOWN:    float = 45.0   # seconds to back off after any 429
+
+async def _bg_ai_gate() -> None:
+    """Call before every background (non-user) Claude API call.
+    Enforces minimum interval and 429 cooldown."""
+    global _bg_ai_last_call
+    if _bg_ai_lock is None:
+        return
+    async with _bg_ai_lock:
+        now = time.monotonic()
+        # Respect global 429 cooldown first
+        if now < _anthropic_429_until:
+            wait = _anthropic_429_until - now
+            log.info("[BG-AI] 429 cooldown — sleeping %.1fs", wait)
+            await asyncio.sleep(wait)
+        # Enforce minimum spacing between background calls
+        elapsed = time.monotonic() - _bg_ai_last_call
+        if elapsed < _BG_AI_MIN_INTERVAL:
+            await asyncio.sleep(_BG_AI_MIN_INTERVAL - elapsed)
+        _bg_ai_last_call = time.monotonic()
+
+def _record_bg_429() -> None:
+    """Mark a 429 cooldown so background tasks back off."""
+    global _anthropic_429_until
+    _anthropic_429_until = time.monotonic() + _BG_429_COOLDOWN
+    log.warning("[BG-AI] 429 received — background AI paused for %.0fs", _BG_429_COOLDOWN)
+
 # Keep legacy names so nothing else in the file breaks
 POLL_INTERVAL_REGULAR  = POLL_INTERVAL_LIVE
 POLL_INTERVAL_CRITICAL = POLL_CRITICAL_LIVE
@@ -708,6 +744,7 @@ async def _generate_post_race_review(state: dict[str, Any]) -> None:
     if not api_key:
         log.warning("[POST-RACE] No ANTHROPIC_API_KEY — cannot generate review")
         return
+    await _bg_ai_gate()
     try:
         client = anthropic.AsyncAnthropic(api_key=api_key)
         response = await client.messages.create(
@@ -723,6 +760,11 @@ async def _generate_post_race_review(state: dict[str, Any]) -> None:
         review["generated_at"]  = datetime.now(timezone.utc).isoformat()
         _post_race_reviews[key_str] = review
         log.info("[POST-RACE] Review ready for %s: %s", session_name, review.get("headline", ""))
+    except anthropic.RateLimitError:
+        _record_bg_429()
+        log.warning("[POST-RACE] 429 — review generation deferred, will retry next trigger")
+        # Remove from notified so the poller can retry on next chequered flag detection
+        _race_completed_notified.discard(key_str)
     except Exception as exc:
         log.warning("[POST-RACE] Generation failed: %s", exc)
 
@@ -867,7 +909,8 @@ def _time_ago(dt: datetime) -> str:
 
 
 async def _summarise_story(client: anthropic.AsyncAnthropic, title: str, description: str) -> str:
-    """Summarise one news story with Haiku. Falls back to raw description on error."""
+    """Summarise one news story with Haiku. Falls back to raw description on error.
+    _bg_ai_gate() must be called by the caller before invoking this."""
     snippet = (description or "").strip()[:800]
     prompt = (
         f"Headline: {title}. Description: {snippet}.\n\n"
@@ -884,6 +927,10 @@ async def _summarise_story(client: anthropic.AsyncAnthropic, title: str, descrip
             messages=[{"role": "user", "content": prompt}],
         )
         return resp.content[0].text.strip()
+    except anthropic.RateLimitError:
+        _record_bg_429()
+        log.warning("[NEWS] Summarisation 429 — using raw description")
+        return snippet[:300]
     except Exception as exc:
         log.warning("[NEWS] Summarisation failed: %s", exc)
         return snippet[:300]
@@ -966,14 +1013,16 @@ async def fetch_f1_news() -> list[dict]:
     )
     unique = unique[:10]
 
-    # Parallel AI summaries
+    # Sequential AI summaries — serialised with _bg_ai_gate to avoid bursting rate limit.
+    # Parallel gather was the primary cause of 429s (8+ simultaneous Haiku calls).
     api_key = os.getenv("ANTHROPIC_API_KEY", "")
+    summaries: list[str] = []
     if api_key:
         ai_client = anthropic.AsyncAnthropic(api_key=api_key)
-        summaries = await asyncio.gather(
-            *[_summarise_story(ai_client, it["title"], it["description"]) for it in unique],
-            return_exceptions=True,
-        )
+        for it in unique:
+            await _bg_ai_gate()
+            result_s = await _summarise_story(ai_client, it["title"], it["description"])
+            summaries.append(result_s)
     else:
         summaries = [it["description"][:300] for it in unique]
 
@@ -1170,11 +1219,12 @@ async def _news_poller():
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
-    global _state, _log_lock, _WAITLIST_LOCK, _VISITS_LOCK, _of1_token_lock
+    global _state, _log_lock, _WAITLIST_LOCK, _VISITS_LOCK, _of1_token_lock, _bg_ai_lock
     _log_lock        = asyncio.Lock()
     _WAITLIST_LOCK   = asyncio.Lock()
     _VISITS_LOCK     = asyncio.Lock()
     _of1_token_lock  = asyncio.Lock()
+    _bg_ai_lock      = asyncio.Lock()
     _state = _blank_state()
     # Kick an immediate refresh so data is ready before first SSE client connects
     try:
@@ -1644,22 +1694,31 @@ async def chat(req: ChatRequest, request: Request):
         )
         return response.content[0].text
 
-    # Exponential backoff — up to 3 attempts
+    # 429 retry: wait 5s then retry once. If still failing, serve cached or friendly message.
     reply = None
     last_exc: Exception | None = None
-    for _attempt in range(3):
+    for _attempt in range(2):
         try:
             reply = await _call_anthropic()
             break
         except anthropic.AuthenticationError:
             raise HTTPException(status_code=401, detail="Invalid Anthropic API key in .env")
-        except (anthropic.RateLimitError, anthropic.APIStatusError) as exc:
-            is_429 = isinstance(exc, anthropic.RateLimitError) or getattr(exc, "status_code", 0) == 429
-            if is_429 and _attempt < 2:
-                wait = (2 ** _attempt) * 1.5
-                log.warning("[CHAT] 429 — attempt %d, waiting %.1fs", _attempt + 1, wait)
-                await asyncio.sleep(wait)
+        except anthropic.RateLimitError as exc:
+            last_exc = exc
+            if _attempt == 0:
+                log.warning("[CHAT] 429 on attempt 1 — waiting 5s before retry")
+                await asyncio.sleep(5.0)
+            else:
+                log.warning("[CHAT] 429 on attempt 2 — exhausted, serving fallback")
+                break
+        except anthropic.APIStatusError as exc:
+            if getattr(exc, "status_code", 0) == 429:
                 last_exc = exc
+                if _attempt == 0:
+                    log.warning("[CHAT] 429 (APIStatusError) — waiting 5s")
+                    await asyncio.sleep(5.0)
+                else:
+                    break
             else:
                 last_exc = exc
                 break
@@ -1669,7 +1728,13 @@ async def chat(req: ChatRequest, request: Request):
 
     if reply is None:
         log.warning("[CHAT] All retries exhausted: %s", last_exc)
-        return {"reply": "The AI is getting lots of questions right now — try again in a few seconds!"}
+        # Check cache first before giving up
+        if cache_key:
+            cached_reply = _get_rc(cache_key)
+            if cached_reply:
+                log.info("[CHAT] Serving stale cache after 429 exhaustion")
+                return JSONResponse({"reply": cached_reply}, headers={"X-Cache": "STALE"})
+        return {"reply": "The AI is very busy right now — please try again in a few seconds."}
 
     if cache_key and reply:
         _set_rc(cache_key, reply)
@@ -2365,6 +2430,7 @@ async def get_fan_topics():
         "No extra text, just the JSON array."
     )
 
+    await _bg_ai_gate()
     try:
         client = anthropic.AsyncAnthropic(api_key=api_key)
         resp = await client.messages.create(
@@ -2379,6 +2445,9 @@ async def get_fan_topics():
             _fan_topics_cache["cached_at"] = now
             log.info("[FAN-TOPICS] Generated %d topics", len(topics))
             return {"topics": topics[:5], "cached": False}
+    except anthropic.RateLimitError:
+        _record_bg_429()
+        log.warning("[FAN-TOPICS] 429 — returning cached topics")
     except Exception as exc:
         log.warning("[FAN-TOPICS] Failed: %s", exc)
 
