@@ -1318,6 +1318,12 @@ async def serve_logo():
     return FileResponse(Path(__file__).parent / "atg-logo.svg", media_type="image/svg+xml")
 
 
+@app.get("/montreal-circuit.jpg")
+async def serve_circuit_map():
+    from fastapi.responses import FileResponse
+    return FileResponse(Path(__file__).parent / "montreal-circuit.jpg", media_type="image/jpeg")
+
+
 @app.get("/api/health")
 async def health():
     key_set = bool(os.getenv("ANTHROPIC_API_KEY"))

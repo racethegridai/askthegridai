@@ -5860,65 +5860,54 @@
   <!-- Scrollable body — no padding so map is full width -->
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch">
 
-    <!-- SVG track map — Circuit Gilles Villeneuve, Montreal -->
+    <!-- SVG track map — Circuit Gilles Villeneuve photo + interactive dots -->
     <div class="mob-tm-map-wrap">
       <div id="mobTmRainBadge" class="mob-tm-rain-badge">⚡ FLASH RAIN</div>
-      <svg viewBox="0 0 292 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#0d1117;max-height:272px">
-        <rect width="292" height="180" fill="#0d1117"/>
+      <!--
+        viewBox 0 0 300 328 matches the image aspect ratio.
+        Zone dot coordinates mapped from the actual image:
+          T10 hairpin:      top-left tight U  (~22%, 26%)  → (66, 85)
+          DRS back straight midpoint           (~58%, 53%)  → (174, 174)
+          S-Chicane T1-4:   lower-right kink  (~65%, 67%)  → (195, 220)
+          Wall of Champs:   above S/F left    (~26%, 41%)  → (78, 134)
+      -->
+      <svg viewBox="0 0 300 328" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;max-height:272px">
+        <!-- Image layer: invert so white→dark, circuit outline→light -->
+        <image href="/montreal-circuit.jpg"
+               x="0" y="0" width="300" height="328"
+               preserveAspectRatio="xMidYMid meet"
+               style="filter:invert(1) brightness(0.85)"/>
 
-        <!-- ── Circuit Gilles Villeneuve outline ── -->
-        <!-- Clockwise from S/F: back straight (DRS) → T10 hairpin → right side → S-chicane → Wall of Champions → S/F -->
-        <path d="
-          M 68,97
-          C 90,85 158,54 208,36
-          C 224,30 240,23 252,21
-          C 262,20 270,24 274,35
-          C 280,48 276,66 263,75
-          C 253,82 240,87 228,98
-          C 216,110 205,123 197,136
-          C 187,149 174,159 158,164
-          C 142,169 124,167 112,161
-          C 102,155 97,144 103,134
-          C 109,124 118,121 113,115
-          C 107,109 97,109 91,118
-          C 85,127 76,130 68,124
-          C 58,117 62,108 68,102
-          C 74,97 77,97 70,97 Z
-        " fill="none" stroke="#2a2a3a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-
-        <!-- S/F line marker -->
-        <line x1="62" y1="99" x2="76" y2="99" stroke="#e10600" stroke-width="1.8" stroke-linecap="round"/>
-
-        <!-- Purple DRS — midway along back straight -->
+        <!-- Purple DRS — midpoint of long diagonal back straight -->
         <g style="cursor:pointer" onclick="mobTmShowZone('purple')">
-          <circle cx="168" cy="44" r="18" fill="transparent"/>
-          <circle cx="168" cy="44" r="5" fill="none" id="mobTmRingPurple" stroke="#a855f7" stroke-width="1.5" opacity="0.8"><animate attributeName="r" values="5;13;5" dur="2.7s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0;0.8" dur="2.7s" repeatCount="indefinite"/></circle>
-          <circle cx="168" cy="44" r="5" id="mobTmDotPurple" fill="#a855f7"/>
-          <text x="168" y="34" text-anchor="middle" id="mobTmLblPurple" fill="#a855f7" font-size="6" font-weight="700" font-family="Titillium Web,Arial,sans-serif">DRS</text>
+          <circle cx="174" cy="174" r="20" fill="transparent"/>
+          <circle cx="174" cy="174" r="6" fill="none" id="mobTmRingPurple" stroke="#a855f7" stroke-width="2" opacity="0.9"><animate attributeName="r" values="6;15;6" dur="2.7s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.9;0;0.9" dur="2.7s" repeatCount="indefinite"/></circle>
+          <circle cx="174" cy="174" r="6" id="mobTmDotPurple" fill="#a855f7"/>
+          <text x="174" y="162" text-anchor="middle" id="mobTmLblPurple" fill="#a855f7" font-size="8" font-weight="700" font-family="Titillium Web,Arial,sans-serif" style="text-shadow:0 0 4px #000">DRS</text>
         </g>
 
-        <!-- Yellow S-Chicane T1-4 — bottom of circuit -->
-        <g style="cursor:pointer" onclick="mobTmShowZone('yellow')">
-          <circle cx="106" cy="148" r="18" fill="transparent"/>
-          <circle cx="106" cy="148" r="5" fill="none" id="mobTmRingYellow" stroke="#f5c842" stroke-width="1.5" opacity="0.8"><animate attributeName="r" values="5;13;5" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite"/></circle>
-          <circle cx="106" cy="148" r="5" id="mobTmDotYellow" fill="#f5c842"/>
-          <text x="106" y="162" text-anchor="middle" id="mobTmLblYellow" fill="#f5c842" font-size="6" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T1-4</text>
-        </g>
-
-        <!-- Green T10 Hairpin — far right -->
+        <!-- Green T10 Hairpin — tight U at top-left -->
         <g style="cursor:pointer" onclick="mobTmShowZone('green')">
-          <circle cx="276" cy="50" r="18" fill="transparent"/>
-          <circle cx="276" cy="50" r="5" fill="none" id="mobTmRingGreen" stroke="#00d84b" stroke-width="1.5" opacity="0.8"><animate attributeName="r" values="5;13;5" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0;0.8" dur="2.4s" repeatCount="indefinite"/></circle>
-          <circle cx="276" cy="50" r="5" id="mobTmDotGreen" fill="#00d84b"/>
-          <text x="276" y="40" text-anchor="middle" id="mobTmLblGreen" fill="#00d84b" font-size="6" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T10</text>
+          <circle cx="66" cy="85" r="20" fill="transparent"/>
+          <circle cx="66" cy="85" r="6" fill="none" id="mobTmRingGreen" stroke="#00d84b" stroke-width="2" opacity="0.9"><animate attributeName="r" values="6;15;6" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.9;0;0.9" dur="2.4s" repeatCount="indefinite"/></circle>
+          <circle cx="66" cy="85" r="6" id="mobTmDotGreen" fill="#00d84b"/>
+          <text x="66" y="73" text-anchor="middle" id="mobTmLblGreen" fill="#00d84b" font-size="8" font-weight="700" font-family="Titillium Web,Arial,sans-serif" style="text-shadow:0 0 4px #000">T10</text>
         </g>
 
-        <!-- Red Wall of Champions — left side near S/F -->
+        <!-- Yellow S-Chicane T1-4 — lower-right chicane kink -->
+        <g style="cursor:pointer" onclick="mobTmShowZone('yellow')">
+          <circle cx="195" cy="220" r="20" fill="transparent"/>
+          <circle cx="195" cy="220" r="6" fill="none" id="mobTmRingYellow" stroke="#f5c842" stroke-width="2" opacity="0.9"><animate attributeName="r" values="6;15;6" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.9;0;0.9" dur="2s" repeatCount="indefinite"/></circle>
+          <circle cx="195" cy="220" r="6" id="mobTmDotYellow" fill="#f5c842"/>
+          <text x="195" y="236" text-anchor="middle" id="mobTmLblYellow" fill="#f5c842" font-size="8" font-weight="700" font-family="Titillium Web,Arial,sans-serif" style="text-shadow:0 0 4px #000">T1-4</text>
+        </g>
+
+        <!-- Red Wall of Champions — left side just above S/F -->
         <g style="cursor:pointer" onclick="mobTmShowZone('red')">
-          <circle cx="62" cy="114" r="18" fill="transparent"/>
-          <circle cx="62" cy="114" r="5" fill="none" id="mobTmRingRed" stroke="#e10600" stroke-width="1.5" opacity="0.8"><animate attributeName="r" values="5;13;5" dur="1.9s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0;0.8" dur="1.9s" repeatCount="indefinite"/></circle>
-          <circle cx="62" cy="114" r="5" id="mobTmDotRed" fill="#e10600"/>
-          <text x="62" y="128" text-anchor="middle" id="mobTmLblRed" fill="#e10600" font-size="6" font-weight="700" font-family="Titillium Web,Arial,sans-serif">WoC</text>
+          <circle cx="78" cy="134" r="20" fill="transparent"/>
+          <circle cx="78" cy="134" r="6" fill="none" id="mobTmRingRed" stroke="#e10600" stroke-width="2" opacity="0.9"><animate attributeName="r" values="6;15;6" dur="1.9s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.9;0;0.9" dur="1.9s" repeatCount="indefinite"/></circle>
+          <circle cx="78" cy="134" r="6" id="mobTmDotRed" fill="#e10600"/>
+          <text x="78" y="150" text-anchor="middle" id="mobTmLblRed" fill="#e10600" font-size="8" font-weight="700" font-family="Titillium Web,Arial,sans-serif" style="text-shadow:0 0 4px #000">WoC</text>
         </g>
       </svg>
       <p style="font-size:9px;color:#333;text-align:right;padding:2px 10px 4px;margin:0;font-family:Arial,sans-serif">Circuit Gilles Villeneuve · Île Notre-Dame, Montreal</p>
