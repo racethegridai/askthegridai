@@ -7067,158 +7067,48 @@
             <div class="rp-card-title">Circuit de Catalunya · Race Preview</div>
           </div>
 
-          <!-- Color legend -->
+          <!-- Sector legend -->
           <div class="rp-track-legend">
-            <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegPurple" style="background:#a855f7"></div><span>DRS Zone</span></div>
-            <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegGreen"  style="background:#00d84b"></div><span>T14–16 Traction</span></div>
-            <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegYellow" style="background:#f5c842"></div><span>T3 Long Corner</span></div>
-            <div class="rp-legend-item"><div class="rp-legend-dot" id="rpLegRed"    style="background:#e10600"></div><span>T9 Braking</span></div>
-            <div class="rp-legend-item"><div class="rp-legend-dot" style="background:#e10600;border-radius:50%"></div><span>S/F</span></div>
+            <div class="rp-legend-item"><div class="rp-legend-dot" style="background:#3b82f6"></div><span style="color:#3b82f6;font-weight:700">S1</span>&nbsp;<span>T1–T5</span></div>
+            <div class="rp-legend-item"><div class="rp-legend-dot" style="background:#a855f7"></div><span style="color:#a855f7;font-weight:700">S2</span>&nbsp;<span>T6–T9</span></div>
+            <div class="rp-legend-item"><div class="rp-legend-dot" style="background:#22c55e"></div><span style="color:#22c55e;font-weight:700">S3</span>&nbsp;<span>T10–T12</span></div>
+            <div class="rp-legend-item"><div class="rp-legend-dot" style="background:#f59e0b"></div><span style="color:#f59e0b;font-weight:700">S4</span>&nbsp;<span>T13–T16</span></div>
           </div>
 
-          <!-- SVG circuit map — Circuit de Catalunya schematic (16 corners, clockwise) -->
-          <div class="rp-track-wrap" style="padding:8px;max-height:320px;overflow:hidden;">
-            <svg viewBox="0 0 540 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:320px;height:auto;display:block;">
-              <defs>
-                <linearGradient id="barcaS1" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#1e3a8a"/>
-                  <stop offset="100%" stop-color="#3b82f6"/>
-                </linearGradient>
-                <linearGradient id="barcaS4" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#6d28d9"/>
-                  <stop offset="100%" stop-color="#a855f7"/>
-                </linearGradient>
-              </defs>
-              <rect width="540" height="340" fill="#060b18"/>
+          <!-- Image-based circuit map with overlaid interactive markers -->
+          <div style="position:relative;background:#060b18;border:1px solid #111d35;border-radius:3px;overflow:hidden;margin-bottom:10px;">
+            <img src="/barcelona-circuit.webp" style="width:100%;display:block;opacity:0.9;" alt="Circuit de Catalunya">
 
-              <!-- Full circuit shadow/base -->
-              <path d="M 45,305 L 358,305
-                       C 382,305 406,293 420,274
-                       C 436,252 446,225 448,196
-                       C 450,168 444,142 432,116
-                       C 420,92 398,76 358,70
-                       C 318,64 265,64 215,69
-                       C 175,73 138,83 108,100
-                       C 82,114 68,134 68,157
-                       C 68,170 74,181 86,186
-                       C 100,191 122,185 136,174
-                       C 148,164 150,176 148,187
-                       C 146,196 154,200 167,199
-                       C 184,197 206,187 226,174
-                       C 250,158 278,161 294,178
-                       C 308,192 308,213 305,235
-                       C 303,252 320,264 345,257
-                       C 372,249 404,237 430,226
-                       C 455,215 474,226 480,250
-                       C 486,272 480,294 462,308
-                       C 452,316 438,316 422,310 L 45,305 Z"
-                    fill="none" stroke="#101828" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- Turn markers T1–T5 (Sector 1 · blue) -->
+            <div onclick="rpSend('Explain Turn 1 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 1" style="position:absolute;left:18%;top:75%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#3b82f6;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">1</div>
+            <div onclick="rpSend('Explain Turn 2 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 2" style="position:absolute;left:10%;top:82%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#3b82f6;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">2</div>
+            <div onclick="rpSend('Explain Turn 3 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 3" style="position:absolute;left:14%;top:65%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#3b82f6;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">3</div>
+            <div onclick="rpSend('Explain Turn 4 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 4" style="position:absolute;left:22%;top:60%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#3b82f6;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">4</div>
+            <div onclick="rpSend('Explain Turn 5 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 5" style="position:absolute;left:8%;top:55%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#3b82f6;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">5</div>
 
-              <!-- Sector 3: Main straight (bottom, DRS zone) -->
-              <path d="M 45,305 L 422,310"
-                    fill="none" stroke="#1e2d44" stroke-width="12" stroke-linecap="round"/>
+            <!-- Turn markers T6–T9 (Sector 2 · purple) -->
+            <div onclick="rpSend('Explain Turn 6 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 6" style="position:absolute;left:28%;top:72%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#a855f7;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">6</div>
+            <div onclick="rpSend('Explain Turn 7 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 7" style="position:absolute;left:38%;top:78%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#a855f7;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">7</div>
+            <div onclick="rpSend('Explain Turn 8 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 8" style="position:absolute;left:48%;top:78%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#a855f7;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">8</div>
+            <div onclick="rpSend('Explain Turn 9 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 9" style="position:absolute;left:52%;top:25%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#a855f7;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">9</div>
 
-              <!-- Sector 1: T1–T5 top-left loop (BLUE gradient) -->
-              <path d="M 358,305
-                       C 382,305 406,293 420,274
-                       C 436,252 446,225 448,196
-                       C 450,168 444,142 432,116
-                       C 420,92 398,76 358,70
-                       C 318,64 265,64 215,69
-                       C 175,73 138,83 108,100
-                       C 82,114 68,134 68,157
-                       C 68,170 74,181 86,186"
-                    fill="none" stroke="url(#barcaS1)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- Turn markers T10–T12 (Sector 3 · green) -->
+            <div onclick="rpSend('Explain Turn 10 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 10" style="position:absolute;left:58%;top:35%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#22c55e;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:5px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">10</div>
+            <div onclick="rpSend('Explain Turn 11 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 11" style="position:absolute;left:62%;top:42%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#22c55e;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:5px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">11</div>
+            <div onclick="rpSend('Explain Turn 12 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 12" style="position:absolute;left:78%;top:30%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#22c55e;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:5px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">12</div>
 
-              <!-- Sector 2: T6–T11 middle connecting section -->
-              <path d="M 86,186
-                       C 100,191 122,185 136,174
-                       C 148,164 150,176 148,187
-                       C 146,196 154,200 167,199
-                       C 184,197 206,187 226,174
-                       C 250,158 278,161 294,178
-                       C 308,192 308,213 305,235
-                       C 303,252 320,264 345,257"
-                    fill="none" stroke="#2a4a78" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- Turn markers T13–T16 (Sector 4 · amber) -->
+            <div onclick="rpSend('Explain Turn 13 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 13" style="position:absolute;left:85%;top:38%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:5px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">13</div>
+            <div onclick="rpSend('Explain Turn 14 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 14" style="position:absolute;left:82%;top:55%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:5px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">14</div>
+            <div onclick="rpSend('Explain Turn 15 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 15" style="position:absolute;left:78%;top:48%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:5px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">15</div>
+            <div onclick="rpSend('Explain Turn 16 at the Circuit de Catalunya Barcelona for a casual F1 fan — what makes it challenging and what should I watch for?')" title="Turn 16" style="position:absolute;left:72%;top:62%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:5px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.5);">16</div>
 
-              <!-- Sector 4: T12–T16 tight right side (PURPLE gradient) -->
-              <path d="M 345,257
-                       C 372,249 404,237 430,226
-                       C 455,215 474,226 480,250
-                       C 486,272 480,294 462,308
-                       C 452,316 438,316 422,310
-                       L 45,305"
-                    fill="none" stroke="url(#barcaS4)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-
-              <!-- S marker (start of main straight) -->
-              <circle cx="75" cy="305" r="5.5" fill="#e10600" stroke="#fff" stroke-width="0.8"/>
-              <text x="75" y="293" text-anchor="middle" fill="#fff" font-size="8.5" font-weight="900" font-family="Titillium Web,Arial,sans-serif">S</text>
-
-              <!-- F marker (finish line) -->
-              <circle cx="215" cy="305" r="4.5" fill="#fff"/>
-              <text x="215" y="293" text-anchor="middle" fill="#fff" font-size="8.5" font-weight="900" font-family="Titillium Web,Arial,sans-serif">F</text>
-
-              <!-- Corner labels T1–T16 -->
-              <text x="422" y="270" text-anchor="middle" fill="#93c5fd" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T1</text>
-              <text x="446" y="200" text-anchor="middle" fill="#93c5fd" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T2</text>
-              <text x="286" y="55" text-anchor="middle" fill="#60a5fa" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T3</text>
-              <text x="56" y="142" text-anchor="end"    fill="#93c5fd" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T4</text>
-              <text x="56" y="190" text-anchor="end"    fill="#93c5fd" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T5</text>
-              <text x="128" y="166" text-anchor="middle" fill="#7ab4e8" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T6</text>
-              <text x="138" y="208" text-anchor="middle" fill="#7ab4e8" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T7</text>
-              <text x="196" y="207" text-anchor="middle" fill="#7ab4e8" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T8</text>
-              <text x="288" y="162" text-anchor="middle" fill="#fca5a5" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T9</text>
-              <text x="296" y="253" text-anchor="middle" fill="#7ab4e8" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T10</text>
-              <text x="335" y="272" text-anchor="middle" fill="#7ab4e8" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T11</text>
-              <text x="408" y="247" text-anchor="middle" fill="#d8b4fe" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T12</text>
-              <text x="462" y="212" text-anchor="middle" fill="#d8b4fe" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T13</text>
-              <text x="491" y="252" text-anchor="middle" fill="#d8b4fe" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T14</text>
-              <text x="483" y="302" text-anchor="middle" fill="#d8b4fe" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T15</text>
-              <text x="440" y="328" text-anchor="middle" fill="#d8b4fe" font-size="7" font-weight="700" font-family="Titillium Web,Arial,sans-serif">T16</text>
-
-              <!-- Sector labels -->
-              <text x="262" y="43" text-anchor="middle" fill="#3b82f6" font-size="7" font-weight="900" font-family="Titillium Web,Arial,sans-serif" letter-spacing="1.5">SECTOR 1</text>
-              <text x="188" y="228" text-anchor="middle" fill="#4a6fa5" font-size="7" font-weight="900" font-family="Titillium Web,Arial,sans-serif" letter-spacing="1.5">SECTOR 2</text>
-              <text x="165" y="325" text-anchor="middle" fill="#4a5568" font-size="7" font-weight="900" font-family="Titillium Web,Arial,sans-serif" letter-spacing="1.5">SECTOR 3</text>
-              <text transform="rotate(90,519,268)" x="519" y="268" text-anchor="middle" fill="#a855f7" font-size="7" font-weight="900" font-family="Titillium Web,Arial,sans-serif" letter-spacing="1.5">SECTOR 4</text>
-
-              <!-- DRS zone interactive dot — main straight midpoint -->
-              <g style="cursor:pointer" onclick="showBriefing('purple')">
-                <circle cx="172" cy="305" r="14" fill="transparent"/>
-                <circle cx="172" cy="305" r="5" fill="none" stroke="#a855f7" stroke-width="1.5" opacity="0.8"><animate attributeName="r" values="5;12;5" dur="2.7s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0;0.8" dur="2.7s" repeatCount="indefinite"/></circle>
-                <circle cx="172" cy="305" r="4.5" fill="#a855f7"/>
-                <text x="172" y="288" text-anchor="middle" fill="#a855f7" font-size="5.5" font-weight="900" font-family="Titillium Web,Arial,sans-serif">MAX SPEED</text>
-                <text x="172" y="282" text-anchor="middle" fill="#a855f7" font-size="5.5" font-weight="900" font-family="Titillium Web,Arial,sans-serif">DRS ZONE</text>
-              </g>
-
-              <!-- T3 Long Corner zone (yellow) — top of circuit -->
-              <g style="cursor:pointer" onclick="showBriefing('yellow')">
-                <circle cx="286" cy="67" r="14" fill="transparent"/>
-                <circle cx="286" cy="67" r="5" fill="none" stroke="#f5c842" stroke-width="1.5" opacity="0.8"><animate attributeName="r" values="5;12;5" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite"/></circle>
-                <circle cx="286" cy="67" r="4.5" fill="#f5c842"/>
-              </g>
-
-              <!-- T9 Braking Intensity zone (red) -->
-              <g style="cursor:pointer" onclick="showBriefing('red')">
-                <circle cx="294" cy="180" r="14" fill="transparent"/>
-                <circle cx="294" cy="180" r="5" fill="none" stroke="#e10600" stroke-width="1.5" opacity="0.8"><animate attributeName="r" values="5;12;5" dur="1.9s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0;0.8" dur="1.9s" repeatCount="indefinite"/></circle>
-                <circle cx="294" cy="180" r="4.5" fill="#e10600"/>
-                <text x="294" y="147" text-anchor="middle" fill="#e10600" font-size="5.5" font-weight="900" font-family="Titillium Web,Arial,sans-serif">BRAKING</text>
-                <text x="294" y="154" text-anchor="middle" fill="#e10600" font-size="5.5" font-weight="900" font-family="Titillium Web,Arial,sans-serif">INTENSITY</text>
-                <line x1="294" y1="157" x2="294" y2="172" stroke="#e10600" stroke-width="1" opacity="0.5"/>
-              </g>
-
-              <!-- T14–T16 Low Speed Traction Zone (green) -->
-              <g style="cursor:pointer" onclick="showBriefing('green')">
-                <circle cx="478" cy="278" r="14" fill="transparent"/>
-                <circle cx="478" cy="278" r="5" fill="none" stroke="#00d84b" stroke-width="1.5" opacity="0.8"><animate attributeName="r" values="5;12;5" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0;0.8" dur="2.4s" repeatCount="indefinite"/></circle>
-                <circle cx="478" cy="278" r="4.5" fill="#00d84b"/>
-                <text x="510" y="274" text-anchor="start" fill="#00d84b" font-size="5.5" font-weight="900" font-family="Titillium Web,Arial,sans-serif">LOW SPEED</text>
-                <text x="510" y="281" text-anchor="start" fill="#00d84b" font-size="5.5" font-weight="900" font-family="Titillium Web,Arial,sans-serif">TRACTION</text>
-              </g>
-            </svg>
+            <!-- Zone badges -->
+            <div onclick="showBriefing('purple')" style="position:absolute;left:45%;top:88%;transform:translate(-50%,-50%);background:rgba(59,130,246,0.88);border:1px solid #3b82f6;border-radius:20px;padding:2px 8px;font-size:7px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:3;white-space:nowrap;letter-spacing:.5px;box-shadow:0 1px 4px rgba(0,0,0,.5);">DRS ZONE</div>
+            <div onclick="showBriefing('red')" style="position:absolute;left:50%;top:18%;transform:translate(-50%,-50%);background:rgba(225,6,0,0.88);border:1px solid #e10600;border-radius:20px;padding:2px 8px;font-size:7px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:3;white-space:nowrap;letter-spacing:.5px;box-shadow:0 1px 4px rgba(0,0,0,.5);">BRAKING ZONE</div>
+            <div onclick="showBriefing('green')" style="position:absolute;left:80%;top:22%;transform:translate(-50%,-50%);background:rgba(245,158,11,0.88);border:1px solid #f59e0b;border-radius:20px;padding:2px 8px;font-size:7px;font-weight:900;color:#fff;cursor:pointer;font-family:'Titillium Web',Arial,sans-serif;z-index:3;white-space:nowrap;letter-spacing:.5px;box-shadow:0 1px 4px rgba(0,0,0,.5);">TRACTION ZONE</div>
           </div>
-          <p style="font-size:9px;color:#444;text-align:right;margin:2px 0 8px;font-family:Arial,sans-serif;">Circuit de Catalunya schematic · Barcelona, Spain</p>
+          <p style="font-size:9px;color:#444;text-align:right;margin:2px 0 8px;font-family:Arial,sans-serif;">Circuit de Catalunya · Barcelona, Spain · Tap any turn for AI briefing</p>
 
           <!-- AI Briefing Card -->
           <div class="rp-ai-card" id="rpAiCard">

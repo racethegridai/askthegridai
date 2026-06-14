@@ -1324,6 +1324,12 @@ async def serve_circuit_map():
     return FileResponse(Path(__file__).parent / "montreal-circuit.jpg", media_type="image/jpeg")
 
 
+@app.get("/barcelona-circuit.webp")
+async def serve_barcelona_circuit():
+    from fastapi.responses import FileResponse
+    return FileResponse(Path(__file__).parent / "barcelona-circuit.webp", media_type="image/webp")
+
+
 @app.get("/api/health")
 async def health():
     key_set = bool(os.getenv("ANTHROPIC_API_KEY"))
