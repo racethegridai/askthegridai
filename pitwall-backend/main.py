@@ -25,6 +25,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 # ── Questions log ────────────────────────────────────
@@ -1256,6 +1257,8 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+app.mount('/static', StaticFiles(directory='.'), name='static')
 
 # ── Serve the frontend HTML ───────────────────────────
 _html_file   = Path(__file__).parent / "pitwall-ai.html"
