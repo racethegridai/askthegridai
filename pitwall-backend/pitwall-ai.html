@@ -4675,7 +4675,7 @@
     .turn-circle{fill:#e10600;stroke:#fff;stroke-width:1.5}
     .turn-text{fill:#fff;font-family:system-ui,sans-serif;font-size:7px;font-weight:700;text-anchor:middle;dominant-baseline:central}
     .zone-badge{font-family:system-ui,sans-serif;font-size:8px;font-weight:700;letter-spacing:.06em}
-    .s1{fill:#3b82f6}.s2{fill:#a855f7}.s3{fill:#22c55e}.s4{fill:#f5a623}
+    .s1{fill:#e53c32}.s2{fill:#38bdf8}.s3{fill:#f5a623}.s4{fill:#f5a623}
     .sector-legend{display:flex;gap:12px;padding:6px 8px;font-family:system-ui,sans-serif;font-size:11px;color:#888;flex-wrap:wrap}
     .sector-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle}
     .map-briefing{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:10px 14px;margin-top:8px;font-family:system-ui,sans-serif;font-size:13px;color:#d4d0ca;line-height:1.6;display:none;border-left:3px solid #e10600}
@@ -7081,73 +7081,64 @@
           </div>
 
           <div class="map-wrap">
-            <img class="map-img" src="/static/barcelona-circuit.webp" onerror="this.style.background='white';this.alt='Circuit de Catalunya'">
+            <img class="map-img" src="/static/barcelona-map.png" onerror="this.style.background='white';this.alt='Circuit de Catalunya'">
             <div class="overlay">
-              <svg viewBox="0 0 379 138" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 379 253" xmlns="http://www.w3.org/2000/svg">
                 <g class="turn-marker" onclick="showZone('T1','Turn 1 is a tight right hander after the start straight. Drivers brake hard here — it is the main overtaking opportunity on lap 1. Position into T1 on the opening lap often decides the race.')">
-                  <circle class="turn-circle s1" cx="65" cy="118" r="7"/><text class="turn-text" x="65" y="118">1</text>
+                  <circle class="turn-circle s1" cx="32" cy="211" r="7"/><text class="turn-text" x="32" y="211">1</text>
                 </g>
                 <g class="turn-marker" onclick="showZone('T2','Turn 2 is a quick left flick taken flat or near flat by most cars. Small mistake here carries into the long Turn 3 complex and can cost significant time.')">
-                  <circle class="turn-circle s1" cx="48" cy="108" r="7"/><text class="turn-text" x="48" y="108">2</text>
+                  <circle class="turn-circle s1" cx="32" cy="174" r="7"/><text class="turn-text" x="32" y="174">2</text>
                 </g>
                 <g class="turn-marker" onclick="showZone('T3','Turn 3 is the long sweeping left hander — one of the most demanding corners in F1. Drivers hold it flat at over 200kph. Rear stability is critical here and separates the fast cars from the rest.')">
-                  <circle class="turn-circle s1" cx="32" cy="92" r="7"/><text class="turn-text" x="32" y="92">3</text>
+                  <circle class="turn-circle s1" cx="20" cy="134" r="7"/><text class="turn-text" x="20" y="134">3</text>
                 </g>
-                <g class="turn-marker" onclick="showZone('T4','Turn 4 tightens the exit of the T3 complex. Cars are at their most stressed on the tyres here — degradation starts to show after 10+ laps on the same compound.')">
-                  <circle class="turn-circle s1" cx="38" cy="75" r="7"/><text class="turn-text" x="38" y="75">4</text>
+                <g class="turn-marker" onclick="showZone('T4','Turn 4 is the hairpin at the top of the circuit. Cars brake heavily here from high speed. It is a potential overtaking spot — any driver who out-brakes the car ahead and gets a cleaner exit can make a move stick.')">
+                  <circle class="turn-circle s2" cx="105" cy="73" r="7"/><text class="turn-text" x="105" y="73">4</text>
                 </g>
-                <g class="turn-marker" onclick="showZone('T5','Turn 5 is the slow hairpin at the top left of the circuit. Cars slow dramatically here. It is a potential overtaking spot if a driver can carry better speed through T3-T4 and get a run.')">
-                  <circle class="turn-circle s1" cx="20" cy="85" r="7"/><text class="turn-text" x="20" y="85">5</text>
+                <g class="turn-marker" onclick="showZone('T5','Turn 5 is the tight inner hairpin. Very slow, very technical. Cars queue up through the T5-T6-T7 complex — any mistake through here is immediately punished on the following straight.')">
+                  <circle class="turn-circle s2" cx="71" cy="134" r="7"/><text class="turn-text" x="71" y="134">5</text>
                 </g>
-                <g class="turn-marker" onclick="showZone('T6','Turn 6 begins the technical middle sector. A tight right hander where teams must balance mechanical grip and aero. Poor exit here hurts speed all the way to Turn 9.')">
-                  <circle class="turn-circle s2" cx="85" cy="94" r="7"/><text class="turn-text" x="85" y="94">6</text>
+                <g class="turn-marker" onclick="showZone('T6','Turn 6 is a tight right hander in the technical inner complex. Teams must balance mechanical grip and aero. Poor exit here hurts speed all the way to Turn 9.')">
+                  <circle class="turn-circle s2" cx="77" cy="155" r="7"/><text class="turn-text" x="77" y="155">6</text>
                 </g>
-                <g class="turn-marker" onclick="showZone('T7','Turn 7 is a fast left kink that most cars take flat. Any car running low downforce trim will struggle with stability here.')">
-                  <circle class="turn-circle s2" cx="98" cy="103" r="7"/><text class="turn-text" x="98" y="103">7</text>
+                <g class="turn-marker" onclick="showZone('T7','Turn 7 exits the inner complex toward the middle sector. Getting a clean line through here is important for carry speed into T8 and the run up to the T9 braking zone.')">
+                  <circle class="turn-circle s2" cx="85" cy="180" r="7"/><text class="turn-text" x="85" y="180">7</text>
                 </g>
                 <g class="turn-marker" onclick="showZone('T8','Turn 8 is a medium speed right hander. Teams often tune their setup specifically for the T7-T8-T9 sequence as it is very sensitive to aero balance.')">
-                  <circle class="turn-circle s2" cx="112" cy="94" r="7"/><text class="turn-text" x="112" y="94">8</text>
+                  <circle class="turn-circle s2" cx="126" cy="135" r="7"/><text class="turn-text" x="126" y="135">8</text>
                 </g>
-                <g class="turn-marker" onclick="showZone('T9','Turn 9 is the heaviest braking point on the circuit — drivers scrub off 200kph in under 2 seconds. One of the most spectacular moments of the lap. Brake failure here would be catastrophic.')">
-                  <circle class="turn-circle s2" cx="148" cy="42" r="7"/><text class="turn-text" x="148" y="42">9</text>
+                <g class="turn-marker" onclick="showZone('T9','Turn 9 is the heaviest braking point on the circuit — drivers scrub off 200kph in under 2 seconds. One of the most spectacular moments of the lap. The DRS detection point is just past the apex here.')">
+                  <circle class="turn-circle s2" cx="167" cy="73" r="7"/><text class="turn-text" x="167" y="73">9</text>
                 </g>
-                <g class="turn-marker" onclick="showZone('T10','Turn 10 begins the long Sector 3 run. A medium speed right hander that feeds into the DRS detection zone. Getting a clean exit here is critical for a fast lap time.')">
-                  <circle class="turn-circle s3" cx="238" cy="98" r="7"/><text class="turn-text" x="238" y="98">10</text>
+                <g class="turn-marker" onclick="showZone('T10','Turn 10 opens the final sector. A medium speed right hander where the DRS detection zone is active — the driver ahead must defend carefully. Getting a clean exit here is critical for the run to T11.')">
+                  <circle class="turn-circle s3" cx="236" cy="178" r="7"/><text class="turn-text" x="236" y="178">10</text>
                 </g>
-                <g class="turn-marker" onclick="showZone('T11','Turn 11 is a fast right hander that drivers try to take as flat as possible. High downforce cars like Red Bull historically excel here.')">
-                  <circle class="turn-circle s3" cx="256" cy="62" r="7"/><text class="turn-text" x="256" y="62">11</text>
+                <g class="turn-marker" onclick="showZone('T11','Turn 11 is a fast right hander that drivers try to take as flat as possible. High downforce cars excel here. A good exit sets up the run into the tight T12-T13 chicane.')">
+                  <circle class="turn-circle s3" cx="236" cy="134" r="7"/><text class="turn-text" x="236" y="134">11</text>
                 </g>
-                <g class="turn-marker" onclick="showZone('T12','Turn 12 begins the tight and twisty Sector 4. This is where traction and low speed grip matters most. Teams with good mechanical grip shine through here.')">
-                  <circle class="turn-circle s4" cx="298" cy="40" r="7"/><text class="turn-text" x="298" y="40">12</text>
+                <g class="turn-marker" onclick="showZone('T12','Turn 12 begins the tight final chicane. This is where traction and low speed grip matters most. Teams with good mechanical grip shine through here — tyre degradation is very visible at this stage of a stint.')">
+                  <circle class="turn-circle s3" cx="276" cy="73" r="7"/><text class="turn-text" x="276" y="73">12</text>
                 </g>
-                <g class="turn-marker" onclick="showZone('T13','Turn 13 is the tightest part of the circuit. Very slow, very technical. Drivers must be patient and wait for the exit to maximise acceleration onto the back straight.')">
-                  <circle class="turn-circle s4" cx="332" cy="38" r="7"/><text class="turn-text" x="332" y="38">13</text>
+                <g class="turn-marker" onclick="showZone('T13','Turn 13 is the tightest part of the circuit. Very slow, very technical. Drivers must be patient and wait for the exit to maximise acceleration toward T14 and the main straight.')">
+                  <circle class="turn-circle s3" cx="328" cy="73" r="7"/><text class="turn-text" x="328" y="73">13</text>
                 </g>
-                <g class="turn-marker" onclick="showZone('T14','Turn 14 is a medium speed right hander inside the Sector 4 complex. Tyre management is critical here — worn tyres push wide and lose significant time.')">
-                  <circle class="turn-circle s4" cx="350" cy="62" r="7"/><text class="turn-text" x="350" y="62">14</text>
+                <g class="turn-marker" onclick="showZone('T14','Turn 14 is the final corner — a slow right hander that feeds directly onto the main straight DRS zone. The best exit here gives a massive straight-line speed advantage. This is where qualifying laps are won and lost.')">
+                  <circle class="turn-circle s3" cx="328" cy="175" r="7"/><text class="turn-text" x="328" y="175">14</text>
                 </g>
-                <g class="turn-marker" onclick="showZone('T15','Turn 15 feeds back toward the main straight. A good exit here means higher speed through T16 and onto the DRS straight — directly affecting the next lap.')">
-                  <circle class="turn-circle s4" cx="338" cy="73" r="7"/><text class="turn-text" x="338" y="73">15</text>
-                </g>
-                <g class="turn-marker" onclick="showZone('T16','Turn 16 is the final corner — a slow right hander onto the main straight. The best exit here gives a massive tow advantage and is the key to a fast lap time. This is where qualifying laps are won and lost.')">
-                  <circle class="turn-circle s4" cx="366" cy="95" r="7"/><text class="turn-text" x="366" y="95">16</text>
-                </g>
-                <rect x="140" y="12" width="68" height="14" rx="7" fill="#e10600"/>
-                <text x="174" y="22" class="zone-badge" fill="#fff" text-anchor="middle">BRAKING ZONE</text>
-                <rect x="272" y="12" width="76" height="14" rx="7" fill="#f5a623"/>
-                <text x="310" y="22" class="zone-badge" fill="#1a0f00" text-anchor="middle">TRACTION ZONE</text>
-                <rect x="164" y="126" width="62" height="14" rx="7" fill="#3b82f6"/>
-                <text x="195" y="136" class="zone-badge" fill="#fff" text-anchor="middle">DRS ZONE</text>
-                <rect x="68" y="118" width="14" height="3" rx="1" fill="#e10600"/>
-                <text x="84" y="124" class="zone-badge" fill="#666" font-size="7">S/F</text>
+                <rect x="130" y="49" width="76" height="14" rx="7" fill="#e10600"/>
+                <text x="168" y="59" class="zone-badge" fill="#fff" text-anchor="middle">BRAKING ZONE</text>
+                <rect x="90" y="238" width="62" height="14" rx="7" fill="#3b82f6"/>
+                <text x="121" y="248" class="zone-badge" fill="#fff" text-anchor="middle">DRS ZONE</text>
+                <rect x="36" y="218" width="14" height="3" rx="1" fill="#e10600"/>
+                <text x="53" y="224" class="zone-badge" fill="#666" font-size="7">S/F</text>
               </svg>
             </div>
           </div>
           <div class="sector-legend">
-            <span><span class="sector-dot" style="background:#3b82f6"></span>S1 · T1–T5</span>
-            <span><span class="sector-dot" style="background:#a855f7"></span>S2 · T6–T9</span>
-            <span><span class="sector-dot" style="background:#22c55e"></span>S3 · T10–T11</span>
-            <span><span class="sector-dot" style="background:#f5a623"></span>S4 · T12–T16</span>
+            <span><span class="sector-dot" style="background:#e53c32"></span>S1 · T1–T3</span>
+            <span><span class="sector-dot" style="background:#38bdf8"></span>S2 · T4–T9</span>
+            <span><span class="sector-dot" style="background:#f5a623"></span>S3 · T10–T14</span>
             <span style="margin-left:auto;font-size:11px;color:#555">Tap any turn for circuit briefing</span>
           </div>
           <div class="map-briefing" id="zone-briefing">
